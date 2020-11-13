@@ -39,7 +39,27 @@
 # get separate data table of just claims records columns ------
   
   claim_cols = data.table(col_names = colnames(claims_data))
+  claim_IDs = data.table(ID = unique(claims_public[, .(`Program ID`)]))
+  
+# aggregate Budget by program ID + year -------
+  
+  budget_claim = claims_public[, .(claim_budget_usd = sum(`Budget`, na.rm = T)), by = .(`Program ID`, `PA`, `Year`, `Primary Sector`)]
+  budget_filing = filings_public[, .(filing_budget_usd = sum(`Budget`, na.rm = T)), by = .(`Program ID`, `PA`, `Year`, `Primary Sector`)]
+  
+# combine budget data -------
+  
+  budget_combined = budget_claim[budget_filing, on = .(`Program ID`, `PA`, `Year`, `Primary Sector`)]
+  colnames(budget_combined)[1:4] = c('program_ID', 'PA', 'year', 'primary_sector')
+  setcolorder(budget_combined, c('program_ID', 'PA', 'year', 'primary_sector', 'filing_budget_usd', 'claim_budget_usd'))
+  setorder(budget_combined, program_ID, year)
 
+# export to csv files ------
+
+  fwrite(claims_public, file.path(save_path, 'claims_record_all_years_public.csv'), row.names = F)
+  fwrite(filings_public, file.path(save_path, 'filings_record_all_years_public.csv'), row.names = F)
+  fwrite(claim_cols, file.path(save_path, 'claims_record_columns.csv'), row.names = F)
+  fwrite(budget_combined, file.path(save_path, 'program_budget_info.csv'), row.names = F)
+  
 # select claims columns to keep ------
   # claims_keep = claims_public[, .(`Claim ID`, 
   #                                 `Year`, 
@@ -62,15 +82,11 @@
   #                                 `Lifecycle Gross kWh`,
   #                                 `Lifecycle Gross Therm`,
   #                                 `Upstream Flag`)]
-
+  
   
 # export to fst files ------
   
   # write_fst(claims_public, here::here('data', 'claims_record_all_years_public.fst'), compress = 90)
   # write_fst(filings_public, here::here('data', 'filings_record_all_years_public.fst'), compress = 90)
   
-# export to csv files ------
-
-  fwrite(claims_public, file.path(save_path, 'claims_record_all_years_public.csv'), row.names = F)
-  fwrite(filings_public, file.path(save_path, 'filings_record_all_years_public.csv'), row.names = F)
-  fwrite(claim_cols, file.path(save_path, 'claims_record_columns.csv'), row.names = F)
+  
