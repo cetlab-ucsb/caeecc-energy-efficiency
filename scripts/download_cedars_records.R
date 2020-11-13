@@ -43,14 +43,17 @@
   
 # aggregate Budget by program ID + year -------
   
-  budget_claim = claims_public[, .(claim_budget_usd = sum(`Budget`, na.rm = T)), by = .(`Program ID`, `PA`, `Year`, `Primary Sector`)]
-  budget_filing = filings_public[, .(filing_budget_usd = sum(`Budget`, na.rm = T)), by = .(`Program ID`, `PA`, `Year`, `Primary Sector`)]
+  budget_claim = claims_public[, .(claim_budget_usd = sum(`Budget`, na.rm = T)), 
+                               by = .(`Program ID`, `PA`, `Program Name`, `Primary Sector`, `Program Category`, `Program Implementer`, `Year`)]
+  budget_filing = filings_public[, .(filing_budget_usd = sum(`Budget`, na.rm = T)), 
+                                 by = .(`Program ID`, `PA`, `Program Name`, `Primary Sector`, `Program Category`, `Program Implementer`, `Year`)]
   
 # combine budget data -------
   
-  budget_combined = budget_claim[budget_filing, on = .(`Program ID`, `PA`, `Year`, `Primary Sector`)]
-  colnames(budget_combined)[1:4] = c('program_ID', 'PA', 'year', 'primary_sector')
-  setcolorder(budget_combined, c('program_ID', 'PA', 'year', 'primary_sector', 'filing_budget_usd', 'claim_budget_usd'))
+  budget_combined = budget_claim[budget_filing, on = .(`Program ID`, `PA`, `Program Name`, `Primary Sector`, `Program Category`, `Program Implementer`, `Year`)]
+  colnames(budget_combined)[1:7] = c('program_ID', 'PA', 'program_name', 'primary_sector', 'program_category', 'program_implementer', 'year')
+  setcolorder(budget_combined, c('program_ID', 'PA', 'program_name', 'primary_sector', 'program_category', 'program_implementer', 'year', 
+                                 'filing_budget_usd', 'claim_budget_usd'))
   setorder(budget_combined, program_ID, year)
 
 # export to csv files ------
