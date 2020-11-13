@@ -15,7 +15,7 @@
 # load libraries -------
 
   library(data.table)
-  library(fst)
+  # library(fst)
 
 # read in claims data -------
   
@@ -66,8 +66,8 @@
   
 # export to fst files ------
   
-  write_fst(claims_public, here::here('data', 'claims_record_all_years_public.fst'), compress = 90)
-  write_fst(filings_public, here::here('data', 'filings_record_all_years_public.fst'), compress = 90)
+  # write_fst(claims_public, here::here('data', 'claims_record_all_years_public.fst'), compress = 90)
+  # write_fst(filings_public, here::here('data', 'filings_record_all_years_public.fst'), compress = 90)
   
 # export to csv files ------
 
