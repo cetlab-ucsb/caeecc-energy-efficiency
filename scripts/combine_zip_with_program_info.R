@@ -6,6 +6,10 @@
 
   data_path     = '/Users/MEAS/Google Drive/data/cedars'
   claims_file   = 'claims_record_all_years.csv'
+  
+# outputs -------
+  
+  save_path     = '/Users/MEAS/Google Drive/data/cedars/processed'
 
 # ------------------------------ script ------------------------------ 
   
@@ -59,4 +63,19 @@
   
   setorder(matched_public, `Program ID`, `Year`)
   setorder(nonmatched_public, `Program ID`, `Year`)
+
+# count unique number of programs in each dataset -------
+  
+  uniqueN(un_public[, `Program ID`])
+  uniqueN(matched_public[, `Program ID`])
+  uniqueN(nonmatched_public[, `Program ID`])
+  
+  uniqueN(un_public[, `Program ID`, Year])
+  uniqueN(matched_public[, `Program ID`, Year])
+  uniqueN(nonmatched_public[, `Program ID`, Year])
+  
+# export to csvs --------
+  
+  fwrite(matched_public, file.path(save_path, 'public_programs_with_zip_code_data.csv'), row.names = F)
+  fwrite(nonmatched_public, file.path(save_path, 'public_programs_without_zip_code_data.csv'), row.names = F)
   
