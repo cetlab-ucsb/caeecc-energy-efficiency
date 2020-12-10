@@ -1,1 +1,1 @@
-# caeecc-ee
+# CAEECC Underserved Public Sector Customers in Energy Efficiency Programs Project
