@@ -59,6 +59,10 @@
   # nonmatched = dt_claims[!`Program ID` %in% dt_zip[, PrgID], .(`Claim ID`, `Year`, `PA`, `Program ID`, `Program Name`, `Primary Sector`, `Program Sector`)]
   # nonmatched_public = nonmatched[`Primary Sector` == 'Public']
   
+# get nonmatched zip code data -------
+  
+  nonmatched_zip = dt_zip[!un_programs, on = .(`PrgID` = `Program ID`, `year` == `Year`)]
+  
 # set column orders -------
   
   setorder(matched_public, `Program ID`, `Year`)
@@ -70,12 +74,14 @@
   uniqueN(matched_public[, `Program ID`])
   uniqueN(nonmatched_public[, `Program ID`])
   
+  uniqueN(un_public[! `Program ID` %in% dt_zip[, PrgID], `Program ID` ])
+  
   uniqueN(un_public[, `Program ID`, Year])
   uniqueN(matched_public[, `Program ID`, Year])
   uniqueN(nonmatched_public[, `Program ID`, Year])
   
 # export to csvs --------
   
-  fwrite(matched_public, file.path(save_path, 'public_programs_with_zip_code_data.csv'), row.names = F)
-  fwrite(nonmatched_public, file.path(save_path, 'public_programs_without_zip_code_data.csv'), row.names = F)
+  fwrite(matched_public, file.path(save_path, 'public_programs_with_zip_code_data_2017_2019.csv'), row.names = F)
+  fwrite(nonmatched_public, file.path(save_path, 'public_programs_without_zip_code_data_2017_2019.csv'), row.names = F)
   
