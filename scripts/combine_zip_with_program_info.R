@@ -17,6 +17,10 @@
 # load packages -------
   
   library(data.table)
+  library(ggplot2)
+  library(hrbrthemes)
+  library(extrafont)
+  library(stringr)
   
 # load zip code level data ---------  
 
@@ -101,8 +105,16 @@
 # get top 10 categories for filings ------
   
   vars_2019[, budget_rank := rank(-budget_usd)]
+  setorder(vars_2019, budget_rank)
+  top10_budget = vars_2019[1:10, `Program Name`]
+  
   vars_2019[, measure_cost_rank := rank(-gross_measure_cost_usd)]
+  setorder(vars_2019, measure_cost_rank)
+  top10_measure_cost = vars_2019[1:10, `Program Name`]
+  
   vars_2019[, gross_kwh_rank := rank(-lifecycle_gross_kwh)]
+  setorder(vars_2019, gross_kwh_rank)
+  top10_gross_kwh = vars_2019[1:10, `Program Name`]
   
 # merge ranking with variable data -------
   
@@ -115,6 +127,17 @@
   vars_combined[, budget_program_name := ifelse(budget_rank %in% 1:10, `Program Name`, 'Other')]
   vars_combined[, measure_cost_program_name := ifelse(measure_cost_rank %in% 1:10, `Program Name`, 'Other')]
   vars_combined[, gross_kwh_program_name := ifelse(gross_kwh_rank %in% 1:10, `Program Name`, 'Other')]
+  
+# aggregate variables ------
+  
+  agg_measure_cost = vars_combined[, .(gross_measure_cost_usd = sum(gross_measure_cost_usd, na.rm = T)),
+                                   by = .(`Program ID`, `PA`, `measure_cost_program_name`, `Primary Sector`, `Program Category`, `Program Implementer`, `Year`, type)]
+  
+# reorder factor levels ------
+  
+  vars_combined[, type := factor(type, levels = rev(c('claim', 'filing')))]
+  vars_combined[, measure_cost_program_name := factor(measure_cost_program_name, levels = c(top10_measure_cost, 'Other'))]
+  vars_combined[, gross_kwh_program_name := factor(gross_kwh_program_name, levels = c(top10_gross_kwh, 'Other'))]
   
 # export to csvs --------
   
@@ -134,3 +157,106 @@
   uniqueN(nonmatched_public[, `Program ID`, Year])
   
   
+  
+# ------------------------- plots ------------------------- 
+  
+  # plot theme & palettes ------
+  
+    pal_type = c('claim' = '#005581',
+                   'filing' = '#FFB511')
+    
+    theme_line = theme_ipsum(base_family = 'Secca Soft',
+                             grid = 'Y', 
+                             plot_title_size = 14, 
+                             subtitle_size = 12,
+                             axis_title_just = 'center',
+                             axis_title_size = 12, 
+                             axis_text_size = 12,
+                             strip_text_size = 12)  +
+      theme(plot.title = element_text(hjust = 0, face = 'bold'),
+            plot.title.position = 'plot',
+            plot.subtitle = element_text(hjust = 0),
+            plot.caption = element_text(size = 8, color = '#5c5c5c', face = 'plain'),
+            axis.line.x = element_line(color = 'black'),
+            axis.ticks.x = element_line(color = 'black'),
+            axis.ticks.length.x = unit(0.2, 'cm'),
+            axis.text.x = element_text(margin = margin(t = .1, unit = 'cm')),
+            axis.text.y = element_text(margin = margin(r = .1, unit = 'cm')),
+            legend.title = element_text(size = 12, vjust = 0.5),
+            legend.text = element_text(size = 12, vjust = 0.5),
+            legend.margin = margin(t = 0, b = 0, unit = 'cm'),
+            legend.position = 'bottom',
+            strip.text = element_text(hjust = 0.5),
+            plot.margin = unit(c(1,1,1,1), 'lines'))
+  
+  # plot: measure costs ---------
+  
+    fig_measure_cost = ggplot(vars_combined[Year == 2019], aes(x = measure_cost_program_name, y = gross_measure_cost_usd/1e6, group = type, fill = type)) +
+      geom_bar(position = "dodge", stat = "identity", width = 0.5) +
+      labs(title = 'Gross measure cost reported in 2019 filings',
+           subtitle = 'Million USD',
+           caption = 'Non-top 10 programs aggregated into single program', 
+           x = NULL,
+           y = NULL,
+           fill = NULL) +
+      scale_fill_manual(values = pal_type) +
+      scale_x_discrete(labels = function(x) str_wrap(x, width = 10), expand = c(0,0)) + 
+      scale_y_continuous(expand = c(0,0)) +
+      theme_line
+    fig_measure_cost
+  
+    ggsave(fig_measure_cost,
+           filename = here::here('figures', 'top_10_gross_measure_cost.pdf'),
+           width = 11,
+           height = 6,
+           units = 'in', 
+           device = 'pdf')
+    
+    embed_fonts(here::here('figures', 'top_10_gross_measure_cost.pdf'),
+                outfile = here::here('figures', 'top_10_gross_measure_cost.pdf'))
+    
+    ggsave(fig_measure_cost,
+           filename = here::here('figures', 'top_10_gross_measure_cost.png'),
+           width = 11,
+           height = 6,
+           dpi = 400, 
+           units = 'in', 
+           device = 'png')
+    
+    
+    
+  # plot: lifecycle gross kwh ---------
+    
+    fig_gross_kwh = ggplot(vars_combined[Year == 2019], aes(x = gross_kwh_program_name, y = lifecycle_gross_kwh/1e6, group = type, fill = type)) +
+      geom_bar(position = "dodge", stat = "identity", width = 0.5) +
+      labs(title = 'Lifecycle gross energy savings in 2019 filings',
+           subtitle = 'Terawatt-hours (TWh)',
+           caption = 'Non-top 10 programs aggregated into single program', 
+           x = NULL,
+           y = NULL,
+           fill = NULL) +
+      scale_fill_manual(values = pal_type) +
+      scale_x_discrete(labels = function(x) str_wrap(x, width = 10), expand = c(0,0)) + 
+      scale_y_continuous(expand = c(0,0)) +
+      theme_line
+    fig_gross_kwh
+    
+    ggsave(fig_gross_kwh,
+           filename = here::here('figures', 'top_10_lifecycle_gross_kwh.pdf'),
+           width = 11,
+           height = 6,
+           units = 'in', 
+           device = 'pdf')
+    
+    embed_fonts(here::here('figures', 'top_10_lifecycle_gross_kwh.pdf'),
+                outfile = here::here('figures', 'top_10_lifecycle_gross_kwh.pdf'))
+    
+    ggsave(fig_gross_kwh,
+           filename = here::here('figures', 'top_10_lifecycle_gross_kwh.png'),
+           width = 11,
+           height = 6,
+           dpi = 400, 
+           units = 'in', 
+           device = 'png')
+    
+    
