@@ -6,6 +6,7 @@
 
   data_path     = '/Users/MEAS/Google Drive/data/cedars'
   claims_file   = 'claims_record_all_years.csv'
+  filings_file  = 'filings_record_all_years.csv'
   
 # outputs -------
   
@@ -36,6 +37,12 @@
 # load public claims data -------
   
   dt_claims = fread(file.path(data_path, 'raw', claims_file), header = T)
+  claims_public = dt_claims[`Primary Sector` == 'Public']
+  
+# load public filings data -------
+  
+  dt_filigs = fread(file.path(data_path, 'raw', filings_file), header = T)
+  filings_public = dt_filigs[`Primary Sector` == 'Public']
 
 # get unique set of programs and primary sector --------
   
