@@ -85,20 +85,24 @@
                                    budget_usd = sum(`Budget`, na.rm = T),
                                    gross_measure_cost_usd = sum(`Gross Measure Cost`, na.rm = T),
                                    lifecycle_gross_kwh = sum(`Lifecycle Gross kWh`, na.rm = T)), 
-                               by = .(`Program ID`, `PA`, `Program Name`, `Primary Sector`, `Program Category`, `Program Implementer`, `Year`)]
+                               by = .(`Program Name`, `Primary Sector`, `Program Category`, `Program Implementer`, `Year`)]
   budget_filing = filings_public[, .(type = 'filing',
                                      budget_usd = sum(`Budget`, na.rm = T),
                                      gross_measure_cost_usd = sum(`Gross Measure Cost`, na.rm = T),
                                      lifecycle_gross_kwh = sum(`Lifecycle Gross kWh`, na.rm = T)), 
-                                 by = .(`Program ID`, `PA`, `Program Name`, `Primary Sector`, `Program Category`, `Program Implementer`, `Year`)]
+                                 by = .(`Program Name`, `Primary Sector`, `Program Category`, `Program Implementer`, `Year`)]
   
 # combine claims and filings data -------
   
   vars_combined = rbindlist(list(budget_claim, budget_filing), use.names = T)
-
+  
+# calculate gross measure cost per kwh -------
+  
+  vars_combined[, cost_per_kwh := gross_measure_cost_usd/lifecycle_gross_kwh]
+  
 # get 2019 filings data ------
   
-  vars_2019 = vars_combined[Year == 2019 & type == 'filing']
+  vars_2019 = vars_combined[Year == 2019 & type == 'filing' & cost_per_kwh < Inf]
   # claims_2019 = budget_claim[Year == 2019]
   # filings_2019 = budget_filing[Year == 2019]
   
@@ -116,28 +120,39 @@
   setorder(vars_2019, gross_kwh_rank)
   top10_gross_kwh = vars_2019[1:10, `Program Name`]
   
+  vars_2019[, cost_per_kwh_rank := rank(cost_per_kwh)]
+  setorder(vars_2019, cost_per_kwh_rank)
+  top10_cost_per_kwh = vars_2019[1:10, `Program Name`]
+
 # merge ranking with variable data -------
   
   vars_combined = merge(vars_combined, 
-                        vars_2019[, .(`Program ID`, `PA`, `Program Name`, `Primary Sector`, `Program Category`, `Program Implementer`,
-                                      budget_rank, measure_cost_rank, gross_kwh_rank)], 
-                        on = c(`Program ID`, `PA`, `Program Name`, `Primary Sector`, `Program Category`, `Program Implementer`),
+                        vars_2019[, .(`Program Name`, `Primary Sector`, `Program Category`, `Program Implementer`,
+                                      budget_rank, measure_cost_rank, gross_kwh_rank, cost_per_kwh_rank)], 
+                        on = c(`Program Name`, `Primary Sector`, `Program Category`, `Program Implementer`),
                         all.x = T)
   
   vars_combined[, budget_program_name := ifelse(budget_rank %in% 1:10, `Program Name`, 'Other')]
   vars_combined[, measure_cost_program_name := ifelse(measure_cost_rank %in% 1:10, `Program Name`, 'Other')]
   vars_combined[, gross_kwh_program_name := ifelse(gross_kwh_rank %in% 1:10, `Program Name`, 'Other')]
+  vars_combined[, cost_per_kwh_name := ifelse(cost_per_kwh_rank %in% 1:10, `Program Name`, 'Other')]
   
 # aggregate variables ------
   
   agg_measure_cost = vars_combined[, .(gross_measure_cost_usd = sum(gross_measure_cost_usd, na.rm = T)),
-                                   by = .(`Program ID`, `PA`, `measure_cost_program_name`, `Primary Sector`, `Program Category`, `Program Implementer`, `Year`, type)]
+                                   by = .(`measure_cost_program_name`, `Primary Sector`, `Program Category`, `Program Implementer`, `Year`, type)]
+  agg_cost_per_kwh = vars_combined[, .(cost_per_kwh = mean(cost_per_kwh, na.rm = T)),
+                                   by = .(`cost_per_kwh_name`, `Primary Sector`, `Program Category`, `Program Implementer`, `Year`, type)]
   
 # reorder factor levels ------
   
   vars_combined[, type := factor(type, levels = rev(c('claim', 'filing')))]
   vars_combined[, measure_cost_program_name := factor(measure_cost_program_name, levels = c(top10_measure_cost, 'Other'))]
   vars_combined[, gross_kwh_program_name := factor(gross_kwh_program_name, levels = c(top10_gross_kwh, 'Other'))]
+  vars_combined[, cost_per_kwh_name := factor(cost_per_kwh_name, levels = c(top10_cost_per_kwh, 'Other'))]
+  
+  agg_cost_per_kwh[, cost_per_kwh_name := factor(cost_per_kwh_name, levels = c(top10_cost_per_kwh, 'Other'))]
+  
   
 # export to csvs --------
   
@@ -260,3 +275,41 @@
            device = 'png')
     
     
+    
+  # plot: measure cost per lifecycle savings kwh ---------
+    
+    fig_cost_per_kwh = ggplot(agg_cost_per_kwh[Year == 2019], aes(x = cost_per_kwh_name, y = cost_per_kwh, group = type, fill = type)) +
+      geom_bar(position = "dodge", stat = "identity", width = 0.5) +
+      labs(title = 'Measure cost per lifecycle energy savings in 2019 filings',
+           subtitle = 'USD per kWh',
+           caption = 'Non-top 10 programs aggregated into single program', 
+           x = NULL,
+           y = NULL,
+           fill = NULL) +
+      scale_fill_manual(values = pal_type) +
+      scale_x_discrete(labels = function(x) str_wrap(x, width = 10), expand = c(0,0)) + 
+      scale_y_continuous(breaks = seq(0, 1, 0.1), limits = c(0, 0.5), expand = c(0,0)) +
+      theme_line
+    fig_cost_per_kwh
+    
+    ggsave(fig_cost_per_kwh,
+           filename = here::here('figures', 'top_10_cost_per_kwh.pdf'),
+           width = 11,
+           height = 6,
+           units = 'in', 
+           device = 'pdf')
+    
+    embed_fonts(here::here('figures', 'top_10_cost_per_kwh.pdf'),
+                outfile = here::here('figures', 'top_10_cost_per_kwh.pdf'))
+    
+    ggsave(fig_cost_per_kwh,
+           filename = here::here('figures', 'top_10_cost_per_kwh.png'),
+           width = 11,
+           height = 6,
+           dpi = 400, 
+           units = 'in', 
+           device = 'png')
+    
+    
+    
+  
