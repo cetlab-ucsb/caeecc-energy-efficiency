@@ -43,11 +43,6 @@
   dt_claims = fread(file.path(data_path, 'raw', claims_file), header = T)
   claims_public = dt_claims[`Primary Sector` == 'Public']
   
-# load public filings data -------
-  
-  # dt_filigs = fread(file.path(data_path, 'raw', filings_file), header = T)
-  # filings_public = dt_filigs[`Primary Sector` == 'Public']
-
 # get unique set of programs and primary sector --------
   
   un_programs = unique(dt_claims[, .(`Program ID`, `Year`, `PA`, `Program Name`, `Primary Sector`, `Program Sector`)])
@@ -67,9 +62,7 @@
   
   nonmatched_programs = un_programs[!dt_zip, on = .(`Program ID` = `PrgID`, `Year` == `year`)]
   nonmatched_public = nonmatched_programs[`Primary Sector` == 'Public']
-  # nonmatched = dt_claims[!`Program ID` %in% dt_zip[, PrgID], .(`Claim ID`, `Year`, `PA`, `Program ID`, `Program Name`, `Primary Sector`, `Program Sector`)]
-  # nonmatched_public = nonmatched[`Primary Sector` == 'Public']
-  
+
 # get nonmatched zip code data -------
   
   nonmatched_zip = dt_zip[!un_programs, on = .(`PrgID` = `Program ID`, `year` == `Year`)]
@@ -85,16 +78,7 @@
                                  gross_measure_cost_usd = sum(`Gross Measure Cost`, na.rm = T),
                                  lifecycle_gross_kwh = sum(`Lifecycle Gross kWh`, na.rm = T)), 
                              by = .(`Program ID`, `Program Name`, `Primary Sector`, `Program Category`, `Program Implementer`, `Year`)]
-  # budget_filing = filings_public[, .(type = 'filing',
-  #                                    budget_usd = sum(`Budget`, na.rm = T),
-  #                                    gross_measure_cost_usd = sum(`Gross Measure Cost`, na.rm = T),
-  #                                    lifecycle_gross_kwh = sum(`Lifecycle Gross kWh`, na.rm = T)), 
-  #                                by = .(`Program Name`, `Primary Sector`, `Program Category`, `Program Implementer`, `Year`)]
-  
-# combine claims and filings data -------
-  
-  # vars_combined = rbindlist(list(budget_claim, budget_filing), use.names = T)
-  
+
 # calculate gross measure cost per kwh -------
   
   vars_claim[, cost_per_kwh := gross_measure_cost_usd/lifecycle_gross_kwh]
@@ -102,10 +86,7 @@
 # get 2018 claims data ------
   
   vars_2018 = vars_claim[Year == 2018 & cost_per_kwh < Inf]
-  # vars_2019 = vars_claim[Year == 2019 & cost_per_kwh < Inf]
-  # claims_2019 = budget_claim[Year == 2019]
-  # filings_2019 = budget_filing[Year == 2019]
-  
+
 # get top 10 categories for claims ------
   
   vars_2018[, budget_rank := rank(-budget_usd)]
