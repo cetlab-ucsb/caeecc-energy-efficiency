@@ -151,8 +151,8 @@
   vars_combined[, gross_kwh_program_name := factor(gross_kwh_program_name, levels = c(top10_gross_kwh, 'Other'))]
   vars_combined[, cost_per_kwh_name := factor(cost_per_kwh_name, levels = c(top10_cost_per_kwh, 'Other'))]
   
+  agg_cost_per_kwh[, type := factor(type, levels = rev(c('claim', 'filing')))]
   agg_cost_per_kwh[, cost_per_kwh_name := factor(cost_per_kwh_name, levels = c(top10_cost_per_kwh, 'Other'))]
-  
   
 # export to csvs --------
   
