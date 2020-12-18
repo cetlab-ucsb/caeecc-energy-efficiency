@@ -5,9 +5,8 @@
 # ------------------------------ inputs ------------------------------ 
 
   data_path     = '/Users/MEAS/Google Drive/data/cedars'
-  claims_file   = 'claims_record_all_years.csv'
-  filings_file  = 'filings_record_all_years.csv'
-  
+  claims_file   = 'claims_record_all_years.fst'
+
 # outputs -------
   
   save_path     = '/Users/MEAS/Google Drive/data/cedars/processed'
@@ -17,6 +16,7 @@
 # load packages -------
   
   library(data.table)
+  library(fst)
   library(ggplot2)
   library(hrbrthemes)
   library(extrafont)
@@ -40,7 +40,8 @@
 
 # load public claims data -------
   
-  dt_claims = fread(file.path(data_path, 'raw', claims_file), header = T)
+  dt_claims = read_fst(file.path(data_path, 'raw', claims_file))
+  setDT(dt_claims)
   claims_public = dt_claims[`Primary Sector` == 'Public']
   
 # get unique set of programs and primary sector --------
