@@ -27,6 +27,10 @@
   dt_claims = fread(file.path(data_path, data_file), header = T)
   dt_claims[, ZCTA5 := substr(SiteZipCode, 1, 5)]
   
+# keep only local governments ------
+  
+  dt_claims = dt_claims[Grouping %like% 'Local Government']
+  
 # import zip code to county mapping ------
   
   dt_zip = fread(file.path(zip_path, zip_file), header = T, colClasses = rep("character", 24))
@@ -74,6 +78,10 @@
                                                                                            'TotalLifecycleGrosskW',
                                                                                            'TotalLifecycleGrosskWh',
                                                                                            'TotalLifecycleGrossTherm') ] 
+  
+# rename column ----
+  
+  setnames(agg_claims, 'area_name', 'county')
   
 # export to csv -------
   
