@@ -1,0 +1,55 @@
+---
+title: "caeecc regression"
+output: 
+  html_document:
+    keep_md: true
+---
+
+inputs:
+```{r}
+data_file = '/Volumes/GoogleDrive/.shortcut-targets-by-id/1-BTh8T0PMwHDs3KZ9V--KPrNWRUgRxvV/2020_CAEECC_Public_Sector_Underserved/data/processed/2_4_2021_updated_compiled_dataset.xlsx'
+```
+
+load packages:
+```{r}
+library(data.table)
+library(openxlsx)
+```
+
+import data:
+```{r}
+dt = as.data.table(read.xlsx(data_file))
+```
+
+rename columns:
+```{r}
+colnames(dt) = c('county', 'budget', 'first_year_gross_kwh', 'population', 'mean_income', 'irr', 'tax_revenue', 'ces_score_median', 'first_year_gross_therm',
+                 'first_year_net_kwh', 'first_year_net_therm', 'total_claims', 'total_programs')
+
+```
+
+# regression
+
+## linear regression to predict budget
+i'm just going to try it out with a linear regression for now
+
+### linear regression on full dataset
+```{r}
+reg_budget_full = lm(budget ~ population + mean_income + tax_revenue + ces_score_median + irr, data = dt)
+```
+
+checking the results:
+```{r}
+summary(reg_budget_full)
+```
+
+### linear regression on only counties with programs/budgets
+```{r}
+reg_budget_partial = lm(budget ~ population + mean_income + tax_revenue + ces_score_median + irr, data = dt[budget > 0])
+```
+
+checking results:
+```{r}
+summary(reg_budget_partial)
+```
+
