@@ -25,7 +25,7 @@
   
 # select columns ------
   
-  dt_prog = dt_prog[, .(PA, PrgID, Selected)]
+  dt_prog = dt_prog[, .(PA, PrgID, ProgramName, Selected, Grouping)]
   
 # get selected programs only -----
   
@@ -91,7 +91,9 @@
   
 # keep claims dataset for selected programs only ------
   
-  sel_claims = dt_cpuc[PrgID %in% sel_prog[, PrgID]]
+  # sel_claims = dt_cpuc[PrgID %in% sel_prog[, PrgID]]
+  sel_claims = dt_cpuc[sel_prog, on = .(PrgID), nomatch = 0]
+  setcolorder(sel_claims, c(colnames(sel_claims)[1:2], colnames(sel_claims)[c(41,40,42:43,3:39)]))
   
 # export to csv -------
   
