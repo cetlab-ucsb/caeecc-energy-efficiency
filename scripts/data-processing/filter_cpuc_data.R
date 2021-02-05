@@ -1,5 +1,5 @@
-# filter out claims data for programs highlighted by chris
-# created: january 20, 2021
+# filter out CPUC data for programs highlighted by chris
+# created: february 5, 2021
 # author: meas meng
 
 # ------------------------------ inputs ------------------------------ 
