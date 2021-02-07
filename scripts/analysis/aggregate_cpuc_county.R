@@ -83,6 +83,14 @@
   
   setnames(agg_claims, 'area_name', 'county')
   
-# export to csv -------
+# get unique claims-id + zip + county --------
   
+  dt_zip_county = unique(dt_claims_3[, .(PrgYear, ClaimID, PrgID, ZCTA5, COUNTY, area_name)])
+  setnames(dt_zip_county, 'ZCTA5', 'zip_code')
+  setnames(dt_zip_county, 'area_name', 'county_name')
+  
+# export to csv -------
+
   fwrite(agg_claims, file.path(save_path, save_file), row.names = F)
+  fwrite(dt_zip_county, file.path(save_path, 'claims_zip_county_mapping.csv'), row.names = F)
+  
