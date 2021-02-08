@@ -21,11 +21,15 @@
   library(ggplot2)
   library(hrbrthemes)
   library(extrafont)
+  library(stringr)
   
 # import claims data ------
 
   dt_claims = fread(file.path(data_path, data_file), header = T)
-  dt_claims[, ZCTA5 := substr(SiteZipCode, 1, 5)]
+  
+# keep only public sector ------
+  
+  dt_claims = dt_claims[Sector == 'Public']
 
 # if no grouping, say unclassified --------
   
@@ -131,13 +135,13 @@
            x = NULL,
            y = NULL, 
            fill = NULL) +
-      scale_y_continuous(labels = scales::comma, expand = c(0,0), limits = c(0,1200)) +
+      scale_y_continuous(labels = scales::comma, expand = c(0,0), limits = c(0,40)) +
       scale_fill_manual(values = pal_category) + 
       guides(fill = "none") +
       theme_line 
-    bar_cost
+    # bar_cost
     
-    bar_cost_fname = 'bar_gross-measure-cost-by-category_2017-2019.pdf'
+    bar_cost_fname = 'bar_gross-measure-cost-by-category_2017-2019_public.pdf'
     
     ggsave(bar_cost, 
            filename = here::here('figures', bar_cost_fname), 
@@ -156,13 +160,13 @@
            x = NULL,
            y = NULL, 
            fill = NULL) +
-      scale_y_continuous(expand = c(0,0), limits = c(0,20)) +
+      scale_y_continuous(expand = c(0,0), limits = c(0,0.6), breaks = seq(0, 0.6, 0.1)) +
       scale_fill_manual(values = pal_category) + 
       guides(fill = "none") +
       theme_line 
-    bar_kwh
+    # bar_kwh
     
-    bar_kwh_fname = 'bar_lifecycle-kwh-savings-by-category_2017-2019.pdf'
+    bar_kwh_fname = 'bar_lifecycle-kwh-savings-by-category_2017-2019_public.pdf'
     
     ggsave(bar_kwh, 
            filename = here::here('figures', bar_kwh_fname), 
@@ -183,13 +187,13 @@
            x = NULL,
            y = NULL, 
            fill = NULL) +
-      scale_y_continuous(expand = c(0,0), limits = c(0,100)) +
+      scale_y_continuous(expand = c(0,0), limits = c(0,80), breaks = seq(0, 80, 10)) +
       scale_fill_manual(values = pal_category) + 
       guides(fill = "none") +
       theme_line 
-    bar_nprogs
+    # bar_nprogs
     
-    bar_nprogs_fname = 'bar_number-of-programs-by-category_2017-2019.pdf'
+    bar_nprogs_fname = 'bar_number-of-programs-by-category_2017-2019_public.pdf'
     
     ggsave(bar_nprogs, 
            filename = here::here('figures', bar_nprogs_fname), 
@@ -210,13 +214,13 @@
            x = NULL,
            y = NULL, 
            fill = NULL) +
-      scale_y_continuous(labels = scales::comma, expand = c(0,0), limits = c(0,4.5e5)) +
+      scale_y_continuous(labels = scales::comma, expand = c(0,0), limits = c(0,6e3)) +
       scale_fill_manual(values = pal_category) + 
       guides(fill = "none") +
       theme_line 
-    bar_nclaims
+    # bar_nclaims
     
-    bar_nclaims_fname = 'bar_number-of-claims-by-category_2017-2019.pdf'
+    bar_nclaims_fname = 'bar_number-of-claims-by-category_2017-2019_public.pdf'
     
     ggsave(bar_nclaims, 
            filename = here::here('figures', bar_nclaims_fname), 
@@ -237,18 +241,19 @@
            x = NULL,
            y = NULL, 
            fill = NULL) +
-      scale_y_continuous(labels = scales::comma, expand = c(0,0), limits = c(0,175)) +
+      scale_x_discrete(labels = function(x) str_wrap(x, width = 10)) +
+      scale_y_continuous(labels = scales::comma, expand = c(0,0), limits = c(0,30)) +
       scale_fill_manual(values = pal_category) + 
       # guides(fill = "none") +
       theme_line +
-      theme(axis.text.x = element_text(angle = 65, hjust = 1, vjust = 1))
-    bar_top10_cost
+      theme(axis.text.x = element_text(size = 14))
+    # bar_top10_cost
     
-    bar_top10_cost_fname = 'bar_top-10-measure-costs-by-program_2017-2019.pdf'
+    bar_top10_cost_fname = 'bar_top-10-measure-costs-by-program_2017-2019_public.pdf'
     
     ggsave(bar_top10_cost, 
            filename = here::here('figures', bar_top10_cost_fname), 
-           width = 13.5, 
+           width = 16, 
            height = 8)
     
     embed_fonts(here::here('figures', bar_top10_cost_fname),
