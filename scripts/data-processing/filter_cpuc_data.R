@@ -34,8 +34,6 @@
 # read in cpuc claims data ------
   
   list_files = list.files(path = data_path, pattern = '*.csv')
-  
-  years = 2017:2019
   list_cpuc = list()
   
   for (i in seq_along(list_files)) {
@@ -78,10 +76,13 @@
                                                                  'TotalLifecycleGrossTherm',
                                                                  'Upstream_Flag',
                                                                  'WaterOnly_Flag'))
-    temp[, PrgYear := years[i]]
+    
+    x = gsub("_Claims.csv", "", list_files[i])
+    cur_year = substr(x, nchar(x)-3, nchar(x))
+    temp[, PrgYear := as.numeric(cur_year)]
     list_cpuc[[i]] = temp
     
-    rm(temp)
+    rm(temp,x)
     
   }
   
