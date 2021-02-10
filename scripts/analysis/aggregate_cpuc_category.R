@@ -142,6 +142,7 @@
     # bar_cost
     
     bar_cost_fname = 'bar_gross-measure-cost-by-category_2017-2019_public.pdf'
+    bar_cost_fname_png = 'bar_gross-measure-cost-by-category_2017-2019_public.png'
     
     ggsave(bar_cost, 
            filename = here::here('figures', bar_cost_fname), 
@@ -150,6 +151,13 @@
     
     embed_fonts(here::here('figures', bar_cost_fname),
                 outfile = here::here('figures', bar_cost_fname))
+    
+    ggsave(bar_cost, 
+           filename = here::here('figures', bar_cost_fname_png), 
+           width = 12, 
+           height = 6.25,
+           dpi = 400)
+    
     
   # bar plot: energy savings by category ----------
     
@@ -167,6 +175,7 @@
     # bar_kwh
     
     bar_kwh_fname = 'bar_lifecycle-kwh-savings-by-category_2017-2019_public.pdf'
+    bar_kwh_fname_png = 'bar_lifecycle-kwh-savings-by-category_2017-2019_public.png'
     
     ggsave(bar_kwh, 
            filename = here::here('figures', bar_kwh_fname), 
@@ -175,9 +184,13 @@
     
     embed_fonts(here::here('figures', bar_kwh_fname),
                 outfile = here::here('figures', bar_kwh_fname))
-  
-  
     
+    ggsave(bar_kwh, 
+           filename = here::here('figures', bar_kwh_fname_png), 
+           width = 12, 
+           height = 6.25,
+           dpi = 400)
+
   # bar plot: number of programs by category ----------
     
     bar_nprogs = ggplot(agg_category, aes(x = category, y = PrgID, fill = category)) + 
@@ -194,6 +207,7 @@
     # bar_nprogs
     
     bar_nprogs_fname = 'bar_number-of-programs-by-category_2017-2019_public.pdf'
+    bar_nprogs_fname_png = 'bar_number-of-programs-by-category_2017-2019_public.png'
     
     ggsave(bar_nprogs, 
            filename = here::here('figures', bar_nprogs_fname), 
@@ -203,6 +217,11 @@
     embed_fonts(here::here('figures', bar_nprogs_fname),
                 outfile = here::here('figures', bar_nprogs_fname))
     
+    ggsave(bar_nprogs, 
+           filename = here::here('figures', bar_nprogs_fname_png), 
+           width = 12, 
+           height = 6.25,
+           dpi = 400)
     
     
   # bar plot: number of claims by category ----------
@@ -221,6 +240,7 @@
     # bar_nclaims
     
     bar_nclaims_fname = 'bar_number-of-claims-by-category_2017-2019_public.pdf'
+    bar_nclaims_fname_png = 'bar_number-of-claims-by-category_2017-2019_public.png'
     
     ggsave(bar_nclaims, 
            filename = here::here('figures', bar_nclaims_fname), 
@@ -230,7 +250,11 @@
     embed_fonts(here::here('figures', bar_nclaims_fname),
                 outfile = here::here('figures', bar_nclaims_fname))
     
-    
+    ggsave(bar_nclaims, 
+           filename = here::here('figures', bar_nclaims_fname_png), 
+           width = 12, 
+           height = 6.25,
+           dpi = 400)
     
   # bar plot: top 10 gross measure costs by program ----------
     
@@ -250,6 +274,7 @@
     # bar_top10_cost
     
     bar_top10_cost_fname = 'bar_top-10-measure-costs-by-program_2017-2019_public.pdf'
+    bar_top10_cost_fname_png = 'bar_top-10-measure-costs-by-program_2017-2019_public.png'
     
     ggsave(bar_top10_cost, 
            filename = here::here('figures', bar_top10_cost_fname), 
@@ -258,5 +283,12 @@
     
     embed_fonts(here::here('figures', bar_top10_cost_fname),
                 outfile = here::here('figures', bar_top10_cost_fname))
+    
+    ggsave(bar_top10_cost, 
+           filename = here::here('figures', bar_top10_cost_fname_png), 
+           width = 16, 
+           height = 8,
+           dpi = 400)
+    
     
     
