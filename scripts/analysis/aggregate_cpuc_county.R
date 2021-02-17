@@ -79,18 +79,19 @@
   
 # aggregate by county ------
   
-  agg_claims = dt_claims_single_3[, lapply(.SD, sum, na.rm = TRUE), by = 'area_name', .SDcols = c('TotalFirstYearGrosskW',
-                                                                                                  'TotalFirstYearGrosskWh',
-                                                                                                  'TotalFirstYearGrossTherm',
-                                                                                                  'TotalGrossIncentive',
-                                                                                                  'TotalGrossMeasureCost',
-                                                                                                  'TotalGrossMeasureCost_ER',
-                                                                                                  'TotalLifecycleGrosskW',
-                                                                                                  'TotalLifecycleGrosskWh',
-                                                                                                  'TotalLifecycleGrossTherm') ] 
+  agg_claims = dt_claims_single_3[, lapply(.SD, sum, na.rm = TRUE), by = .(COUNTY, area_name), .SDcols = c('TotalFirstYearGrosskW',
+                                                                                                           'TotalFirstYearGrosskWh',
+                                                                                                           'TotalFirstYearGrossTherm',
+                                                                                                           'TotalGrossIncentive',
+                                                                                                           'TotalGrossMeasureCost',
+                                                                                                           'TotalGrossMeasureCost_ER',
+                                                                                                           'TotalLifecycleGrosskW',
+                                                                                                           'TotalLifecycleGrosskWh',
+                                                                                                           'TotalLifecycleGrossTherm') ] 
   
 # rename column ----
   
+  setnames(agg_claims, 'COUNTY', 'county_fips')
   setnames(agg_claims, 'area_name', 'county')
   
 # get unique claims-id + zip + county --------
