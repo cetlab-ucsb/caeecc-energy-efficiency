@@ -5,7 +5,7 @@
 # ------------------------------ inputs ------------------------------ 
 
   prog_path     = '/Volumes/GoogleDrive/.shortcut-targets-by-id/1-BTh8T0PMwHDs3KZ9V--KPrNWRUgRxvV/2020_CAEECC_Public_Sector_Underserved/data/raw/cedars'
-  prog_file     = 'cedars_programs_10nov2020_at_233654_Public Sector_grouped.xlsx - cedars_programs_10nov2020_at_23.csv'
+  prog_file     = '021721_cedars_programs_final_saved_20210315.csv'
   data_path     = '/Volumes/GoogleDrive/.shortcut-targets-by-id/1-BTh8T0PMwHDs3KZ9V--KPrNWRUgRxvV/2020_CAEECC_Public_Sector_Underserved/data/raw/cedars_cpuc_confidential/Claims_P2017-2019'
 
 # outputs -------
