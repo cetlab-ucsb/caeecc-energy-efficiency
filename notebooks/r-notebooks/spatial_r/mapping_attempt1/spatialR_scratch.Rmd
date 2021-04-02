@@ -15,3 +15,16 @@ library(data.table)
 library(tigris)
 library(ggplot2)
 ```
+
+```{r, load data}
+cpuc_file   = 'better_cpuc_compiled.csv'
+df <- fread(cpuc_file) #, colClasses = c('character', df$county_fips))
+
+#df <- fread(cpuc_file, header = T, colClasses = c('character', rep(NA, 10)))
+# Ask Sophia
+# We lack leading zeroes, AND class
+```
+
+```{r}
+
+```
