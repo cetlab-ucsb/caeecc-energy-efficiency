@@ -9,6 +9,9 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r, import}
-
+```{r, load packages}
+library(sf)
+library(data.table)
+library(tigris)
+library(ggplot2)
 ```
