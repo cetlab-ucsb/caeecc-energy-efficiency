@@ -38,6 +38,7 @@ old_cpuc_file   = 'cpuc_claims_county_2017_2019.csv'
 ``fread`` is the data.table package version of read.csv or read_csv. i like working in data.table because it's sooo much faster than base R (or tidyverse), but this is a preference thing
 ```{r}
 cpuc_dt = fread(old_cpuc_file, header = T, colClasses = c('character', rep(NA, 10)))
+# specify for first column = character
 head(cpuc_dt)
 ```
 also, i specify the first column as a character type because i know that's the column that's the county's FIPS code. if not specified, ``fread`` will detect it as a numeric type and get rid of the leading zeroes in the column
