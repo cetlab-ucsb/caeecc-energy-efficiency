@@ -14,17 +14,133 @@ library(sf)
 library(data.table)
 library(tigris)
 library(ggplot2)
+library(maps)
+library(tmap)
+library(USAboundaries)
+library(maptools)
+library(tidyverse)
+library(stringr)
 ```
 
 ```{r, load data}
 cpuc_file   = 'better_cpuc_compiled.csv'
-df <- fread(cpuc_file) #, colClasses = c('character', df$county_fips))
+#df <- fread(cpuc_file) #, colClasses = c('character', df$county_fips))
 
-#df <- fread(cpuc_file, header = T, colClasses = c('character', rep(NA, 10)))
-# Ask Sophia
-# We lack leading zeroes, AND class
+df <- fread(cpuc_file, header = T, colClasses = c('character', rep(NA, 11)))
+# best practice is to classify column as a character as you read the data in.
+
+#rep(NA,11)= NA, NA, NA...... 11 times
+
+
+# We lack leading zeroes (best practice to have them).
+```
+
+Now we gotta get the county shapefiles from tigris.
+However the code block below gives an error.
+
+This stack overflow post has the same error:
+https://stackoverflow.com/questions/61282572/cant-read-shp-file-in-r
+
+```{r, retrieve county data}
+ca_counties = counties(state = 'california')
+head(ca_counties)
+```
+
+Note: sf package does not provide downloads for shape files, it lets you manipulate geometry.
+
+This tigirs website:
+
+https://www.census.gov/cgi-bin/geo/shapefiles/index.php?year=2019&layergroup=Counties+%28and+equivalent%29
+
+...is where I got county data from. I am gonna store this data in a subdirectory in our working repo.
+
+
+Ask Sophia about how to generalize file path names in R for collaboration.
+
+```{r, let's use a shape file from the repo}
+shape_file <-"C:\\Users\\acove\\Desktop\\GitHub_repos\\caeecc-energy-efficiency\\notebooks\\r-notebooks\\spatial_r\\mapping_attempt1\\2019_county_shapefiles\\CA_Counties"
+
+original_data<-st_read(shape_file)
+```
+
+```{r, let's use a shape file from the repo pt 2}
+
+
+original_data<-st_read("C:\\Users\\acove\\Desktop\\GitHub_repos\\caeecc-energy-efficiency\\notebooks\\r-notebooks\\spatial_r\\mapping_attempt1\\2019_county_shapefiles\\CA_Counties", "CA_Counties_TIGER2016.shp.xml")
 ```
 
 ```{r}
+colnames(original_data)
+st_geometry(original_data)
+```
+
+```{r, Start Here}
+all_counties<- map_data("county")
+# Lot of observations, this stores geometries in an inefficent way (there are 3000 counties in US, but way more observations (storing in point, line way))
+ggplot(data=all_counties)+
+  geom_polygon(aes(x = long, y = lat, fill = region, group = group))+ #if you were using a different coord system you would have to change long and lat
+  # Fill is the colors of the states (region=state)
+  # Group is extremely important. There are lots of point values in this data. Group tells R that all of these points belong in a county
+  coord_fixed(1.3)+
+  guides(fill = FALSE) #if change to white you see county lines (don't see them at this rez)
 
 ```
+```{r}
+head(all_counties)
+# group gets you county
+# region gets you state
+# don't mess with the order, ever (tells R what way the points go)
+# like the maps at macaroni grill
+# Let's see what is included in this data sets
+```
+```{r}
+table(all_counties$region)
+sort(table(all_counties$subregion), decreasing = TRUE)[1:5] #GIVES US TOP 5 COUNTIES by points
+```
+
+```{r, subset to CA}
+CA_counties<- subset(x = all_counties, subset = region == "california")
+# Check subset with: table(CA_counties$region)
+```
+
+```{r, check that we can merge counties because you can merge your data sucessfully and it can still be totally wrong}
+
+length(table(CA_counties$subregion))
+length(table(df$County))
+```
+
+```{r, make lowercase}
+df_edited<-df
+df_edited$County <- str_to_lower(df_edited$County)
+
+```
+
+```{r, merge on count name}
+#get dimensions
+dim(df_edited)
+dim(CA_counties)
+merged_data<- left_join(CA_counties, df_edited, by = c("subregion"="County")) 
+dim(merged_data)
+
+#take all the unique values from left one and add the matches from the right (doesn't matter in this case)
+
+```
+```{r, visualize}
+ggplot(data = merged_data)+
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `Mean Income`))+ #change the fill argument from plot to plot
+  coord_fixed(1.3)+
+  ggtitle("California Results")+ #change title from plot to plot
+  theme_classic()+ #order matters in ggplot
+  theme(axis.title.x = element_blank(),
+                           axis.title.y = element_blank(),
+                           axis.text=element_blank(),
+                           axis.ticks = element_blank(),
+                           panel.grid = element_blank())
+#there are ways to change colors and get rid of the axis
+  
+
+
+  
+```
+
+
