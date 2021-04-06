@@ -80,7 +80,7 @@ ggplot(merge_dt, aes(fill = TotalGrossMeasureCost/1e6)) +
   geom_sf()
 ```
 
-that's the basis of it! visually i don't like how that looks so let's make some aesthetic changes
+that's the basis of it! visually I don't like how that looks so let's make some aesthetic changes
 
 ### map with some aesthetic changes
 ```{r}
