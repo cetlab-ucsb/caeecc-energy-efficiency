@@ -104,12 +104,13 @@ CA_counties<- subset(x = all_counties, subset = region == "california")
 ```
 
 ```{r, check that we can merge counties because you can merge your data sucessfully and it can still be totally wrong}
-
+#the length should be 58 for both since there are 58 counties in total 
 length(table(CA_counties$subregion))
 length(table(df$County))
 ```
 
 ```{r, make lowercase}
+
 df_edited<-df
 df_edited$County <- str_to_lower(df_edited$County)
 
