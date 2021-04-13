@@ -1,0 +1,188 @@
+---
+title: "PCA + Hierarchial Clustering"
+author: "Michelle Le"
+date: "June 11th 2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = '~/Desktop/W21EEMB146/caeecc')
+```
+
+```{r}
+#Load in all necessary packages
+library(data.table)
+library(tigris)
+library(ggplot2)
+library(hrbrthemes)
+library(extrafont) 
+library(car)
+library(multcomp)
+library(factoextra)
+library(psych)
+library(colorspace)
+library(dendextend)
+library(maps)
+library(sp)
+
+#Read in the data
+compiled <- read.csv("better_cpuc_compiled.csv")
+```
+
+```{r}
+hist(compiled$CES.Score.Median)
+hist(compiled$IRR)
+hist(compiled$Population)
+hist(compiled$Mean.Income)
+hist(compiled$Budget)
+hist(compiled$TotalFirstYearGrosskWh)
+```
+## Statistical Methods
+
+#### PCA 
+Resources to learn more about PCA: https://www.datacamp.com/community/tutorials/pca-analysis-r
+
+```{r}
+#Subset out variables that might have a high correlation to analyze in our PCA
+pcadat <- compiled[,c("Population","Tax.Revenue..2016.2018.","IRR")]
+```
+
+```{r}
+#Run the PCA
+pca1 <- prcomp(pcadat, scale = TRUE)
+```
+
+```{r}
+#Make the PCA scatterplot
+fviz_pca_ind(pca1,
+             col.ind = "cos2", # Color by the quality of representation
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+             repel = TRUE     # Avoid text overlapping
+)
+```
+
+```{r}
+# Results for Variables
+res.var <- get_pca_var(pca1) #Stores Results
+res.var$coord          # Coordinates
+res.var$contrib        # Contributions to the PCs
+```
+
+```{r}
+#Create Elbow Plot
+fviz_eig(pca1) 
+```
+
+```{r}
+#Make Scatterplot of 
+plot(pcadat$Population[-19],pcadat$Tax.Revenue..2016.2018.[-19]) #makes a scatterplot of the two variables (i removed LA county here since its an outlier)
+cor(pcadat$Population[-19],pcadat$Tax.Revenue..2016.2018.[-19]) #runs a correlation test on the two variables (w/o LA county)
+```
+
+```{r}
+#makes the scatterplot matrix, so you can quickly check for multicollinearity
+pairs.panels(pcadat)
+```
+
+```{r}
+# Results for individuals
+res.ind <- get_pca_ind(pca1) #stores results
+res.ind$coord          # Coordinates <- this will be your new X variable (proxy for population/rurality)
+res.ind$contrib        # Contributions to the PCs <- tells you how much each individual county is contributing to the analysis (LA county is the biggest contributor)
+```
+
+```{r}
+compiled$pca_proxy_popdensity <- res.ind$coord[,1] #adds your new X variable (population proxy) to your dataset
+```
+
+####Regression Attempt (skip over this part)
+```{r}
+#log-transform the buget
+compiled$log_Budget <- log(compiled$Budget + 1)
+
+#sqrt-transform the buget
+compiled$sqrt_Budget <- sqrt(compiled$Budget)
+
+#subset out just the variables you want to analyze in your budget regression
+budget_regress <- compiled[,c("CES.Score.Median","Mean.Income","pca_proxy_popdensity","log_Budget")]
+#subset out just the variables you want to analyze in your budget regression
+budget_regression <- compiled[,c("CES.Score.Median","Mean.Income","pca_proxy_popdensity","sqrt_Budget")]
+
+#check data
+pairs.panels(budget_regress, lm = TRUE, cor = T)
+
+#check data
+pairs.panels(budget_regression, lm = TRUE, cor = T)
+```
+
+```{r}
+hist(compiled$log_Budget)
+```
+
+```{r}
+#model for the strongest predictor
+fit_avar <- lm(log_Budget ~ pca_proxy_popdensity, 
+               data = budget_regress)
+#model for the two strongest predictors
+fit_bvar <- lm(log_Budget ~ pca_proxy_popdensity + Mean.Income, 
+               data = budget_regress)
+#model including all predictors
+fit_cvar <- lm(log_Budget ~ pca_proxy_popdensity + Mean.Income + CES.Score.Median,
+               data = budget_regress)
+
+#check residuals
+par(mfrow = c(2,2))
+plot(fit_avar)
+plot(fit_bvar)
+plot(fit_cvar)
+```
+```{r}
+#calculate AIC of each model
+result <- AIC(fit_avar,fit_bvar,fit_cvar) 
+
+#add other metrics to your table
+models <- list(fit_avar,fit_bvar,fit_cvar) 
+
+#add a column for BIC to the results
+result$BIC <- sapply(models, BIC) 
+
+model_summary <- lapply(models, summary) 
+
+for(i in 1:length(models)){
+  result$rsq[i] <- model_summary[[i]]$r.squared 
+  result$adj_rsq[i] <- model_summary[[i]]$adj.r.squared 
+} 
+
+
+kable(result, digits = 2, align = "c")
+```
+
+
+####Hierachial Clustering 
+Resources to learn more about Hierachial Clustering: https://www.r-bloggers.com/2016/01/hierarchical-clustering-in-r-2/
+
+```{r}
+#calculate the distance matrix and generate the clusters
+
+d <- dist(as.matrix(compiled)) #data must be in a matrix for dist to work
+
+hc <- hclust(d) #this actually runs the hierarchical clustering algorithm, based on the distances you just calculated. hclust uses the "complete linkage" method by default to define the clusters
+
+
+#analyze results
+
+plot(hc) 
+
+fviz_nbclust(mtcars, FUN=hcut, method="wss") #get an elbow plot, just like PCA! pick the k that reduces your total within sum of squares sufficiently
+
+fviz_nbclust(mtcars, FUN=hcut, method="silhouette") #average silhouette method to determine optimal k. measures the quality of the clustering, ie how well each datapoint lies within its cluster. high average silhouette width indicates good clustering
+
+#plotting
+
+dend <- as.dendrogram(hc) #generate the dendrogram
+dend <- color_branches(dend, k=3) #color based on the number of clusters you determined
+dend <- set(dend, "labels_cex", 0.5) #reduce label size so they all fit nicely
+plot(dend)
+
+```
