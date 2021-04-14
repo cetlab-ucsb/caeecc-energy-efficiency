@@ -1,6 +1,6 @@
 ---
 title: "PCA + Hierarchial Clustering"
-author: "Michelle Le"
+author: "Michelle Le "
 date: "June 11th 2021"
 output: html_document
 ---
