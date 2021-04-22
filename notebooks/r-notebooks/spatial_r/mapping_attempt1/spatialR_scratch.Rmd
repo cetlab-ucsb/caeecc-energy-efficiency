@@ -147,11 +147,26 @@ ggplot(data = merged_data)+
 #there are ways to change colors and get rid of the axis (read more into ggplot:http://sape.inf.usi.ch/quick-reference/ggplot2/colour)
 
 ```
+
 ```{r, visualize}
 
 log_pop <- log(merged_data$Population + 1)
-merged_data$Population <- log(merged_data$Population + 1)
+merged_data$log_pop <- log(merged_data$Population + 1)
 
+# LOG Population
+ggplot(data = merged_data)+
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `log_pop`))+ 
+  coord_fixed(1.3)+
+  ggtitle("County Population (LOG)")+ 
+  scale_color_viridis_d(option="viridis")+
+  theme(axis.title.x = element_blank(),
+                           axis.title.y = element_blank(),
+                           axis.text=element_blank(),
+                           axis.ticks = element_blank(),
+                           panel.grid = element_blank())
+```
+
+```{r}
 #Population
 ggplot(data = merged_data)+
   geom_polygon(aes(x = long, y = lat, group = group, fill= `Population`))+ 
