@@ -148,6 +148,9 @@ ggplot(data = merged_data)+
 ```
 ```{r, visualize}
 
+log_pop <- log(merged_data$Population + 1)
+merged_data$Population <- log(merged_data$Population + 1)
+
 #Population
 ggplot(data = merged_data)+
   geom_polygon(aes(x = long, y = lat, group = group, fill= `Population`))+ 
