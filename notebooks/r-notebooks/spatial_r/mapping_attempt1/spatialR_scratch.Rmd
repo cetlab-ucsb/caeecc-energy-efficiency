@@ -129,6 +129,7 @@ dim(CA_counties)
 merged_data<- left_join(CA_counties, df_edited, by = c("subregion"="County")) #the left_join takes all the unique values from left one and only add the matches from the right (doesn't matter in this case because they WILL match since we checked already)
 dim(merged_data) 
 ```
+
 ```{r, visualize}
 
 #Mean Income
