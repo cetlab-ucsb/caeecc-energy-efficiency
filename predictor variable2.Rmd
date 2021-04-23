@@ -1,0 +1,41 @@
+---
+title: "predictor variable"
+author: "Sydney Litvin"
+date: "4/16/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(readr)
+data<-read.csv("cities_1 - cities_1.csv")
+View(data)
+```
+
+```{r}
+library(tidyverse)
+library(dbplyr)
+library(psych)
+```
+
+
+```{r}
+tax_pop_lm<-lm(Total.Tax.Revenue~total_population, data=data)
+summary(tax_pop_lm)
+data1 <- data #preserve original data frame, create copy data1
+data1 <- data1[complete.cases(data1[,17:18]),]
+data1 <- data1 %>% mutate(pred = predict(tax.pop.lm, .)) %>% 
+  mutate(Total.Tax.Revenue = ifelse(is.na(Total.Tax.Revenue),pred,Total.Tax.Revenue)) 
+```
+
+```{r}
+write.csv(data1,'cities_updated.csv')
+```
+
+```{r}
+
+```
+
