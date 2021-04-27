@@ -22,88 +22,83 @@
 # read in frpm data ----------
   
   dt_frpm = as.data.table(read.xlsx(file.path(data_path, frpm_file), sheet = 'FRPM School-Level Data ', startRow = 2))
-  dt_frpm = dt_frpm[, c('County.Code', 'County.Name', 'School.Code', 'School.Name', 'Enrollment.(K-12)', 'Free.Meal.Count.(K-12)', 'FRPM.Count.(K-12)')]
+  dt_frpm = dt_frpm[, c('County.Code', 'County.Name', 'District.Code', 'School.Code', 'School.Name', 'Enrollment.(K-12)', 'Free.Meal.Count.(K-12)', 'FRPM.Count.(K-12)')]
   setnames(dt_frpm,
-           c('County.Code', 'County.Name', 'School.Code', 'School.Name', 'Enrollment.(K-12)', 'Free.Meal.Count.(K-12)', 'FRPM.Count.(K-12)'),
-           c('county_code', 'county_name', 'school_code', 'school_name', 'enrollment', 'free_meal_count', 'frpm_count'))
+           c('County.Code', 'County.Name', 'District.Code', 'School.Code', 'School.Name', 'Enrollment.(K-12)', 'Free.Meal.Count.(K-12)', 'FRPM.Count.(K-12)'),
+           c('county_code', 'county_name', 'district_code', 'school_code', 'school_name', 'enrollment', 'free_meal_count', 'frpm_count'))
   
 # read in title 1 data -----
   
   dt_title1 = as.data.table(read.xlsx(file.path(data_path, title1_file), sheet = ' Title 1a', startRow = 14))
-  dt_title1 = dt_title1[, c('County.Code', 'County.Name', 'School.Code')]
+  dt_title1 = dt_title1[, c('County.Code', 'County.Name', 'District.Code', 'School.Code')]
   setnames(dt_title1,
-           c('County.Code', 'County.Name', 'School.Code'),
-           c('county_code', 'county_name', 'school_code'))
+           c('County.Code', 'County.Name', 'District.Code', 'School.Code'),
+           c('county_code', 'county_name', 'district_code', 'school_code'))
   
 # read in local control funding formula (lcff) data ----------
   
   dt_lcff = as.data.table(read.xlsx(file.path(data_path, lcff_file), sheet = 'LCFF Summary 19-20 AN', startRow = 8))
-  dt_lcff = dt_lcff[, c('County.Code', 'School.Code', 'Total.LCFF.Entitlement2')]
+  dt_lcff = dt_lcff[, c('County.Code', 'District.Code', 'School.Code', 'Total.LCFF.Entitlement2')]
   setnames(dt_lcff,
-           c('County.Code', 'School.Code', 'Total.LCFF.Entitlement2'),
-           c('county_code', 'school_code', 'total_lcff_entitlement'))
+           c('County.Code', 'District.Code', 'School.Code', 'Total.LCFF.Entitlement2'),
+           c('county_code', 'District.Code', 'school_code', 'total_lcff_entitlement'))
   
 # remove school code = '0000000' --------
   
-  dt_frpm = dt_frpm[! school_code == '0000000']
-  dt_title1 = dt_title1[! school_code == '0000000']
-  dt_lcff = dt_lcff[! school_code == '0000000']
+  # dt_frpm = dt_frpm[! school_code == '0000000']
+  # dt_title1 = dt_title1[! school_code == '0000000']
+  # dt_lcff = dt_lcff[! school_code == '0000000']
   
 # add column for title 1 status -----
   
   dt_title1[, title1_status := 'yes']
   
-# aggregate lcff data to school level -----
+# remove totals from title 1 dataset -----
   
-  dt_lcff = dt_lcff[, .(total_lcff_entitlement = sum(total_lcff_entitlement, na.rm = T)), by = .(county_code, school_code)]
+  dt_title1 = dt_title1[!is.na(county_code)]
+  
+# remove totals from lcff dataset -----
+  
+  dt_lcff = dt_lcff[!is.na(school_code)]
 
 # merge frpm data with title 1 data -----
   
-  dt_school = merge(dt_frpm, dt_title1, by = c('county_code', 'county_name', 'school_code'), all.x = T)
+  dt_school = merge(dt_frpm, dt_title1, by = c('county_code', 'county_name', 'district_code', 'school_code'), all.x = T)
   
 # if title 1 status is NA, change it to 'no' -----
   
   dt_school[is.na(title1_status), title1_status := 'no']
   
-# merge frpm / title 1 data with lcff data -----
+# aggregate frpm data to county level -------
   
-  dt_school = merge(dt_school, dt_lcff, by = c('county_code', 'school_code'), all = T)
-  
-# remove all schools that are in the lcff data but not in the frpm data -----
-  # (quick check shows that all of those schools got $0 entitlement)
-  
-  dt_school = dt_school[!is.na(enrollment)]
-  
-# if lcff entitlement is NA, make it zero -----
-  
-  dt_school[is.na(total_lcff_entitlement), total_lcff_entitlement := 0]
-  
-# aggregate numeric data to county level ------
-  
-  county_num = dt_school[, lapply(.SD, sum, na.rm = T), 
-                         .SDcols = c("enrollment", "free_meal_count", "frpm_count", "total_lcff_entitlement"), 
+  agg_frpm = dt_school[, lapply(.SD, sum, na.rm = T), 
+                         .SDcols = c("enrollment", "free_meal_count", "frpm_count"), 
                          by = .(county_code, county_name)]
   
-  county_num[, perc_eligible_free := free_meal_count/enrollment]
-  county_num[, perc_eligible_frpm := frpm_count/enrollment]
+  agg_frpm[, perc_eligible_free := free_meal_count/enrollment]
+  agg_frpm[, perc_eligible_frpm := frpm_count/enrollment]
   
-  county_num = county_num[, .(county_code, county_name, enrollment, free_meal_count, frpm_count, 
-                              perc_eligible_free, perc_eligible_frpm, total_lcff_entitlement)]
+  agg_frpm = agg_frpm[, .(county_code, county_name, enrollment, free_meal_count, frpm_count, perc_eligible_free, perc_eligible_frpm)]
   
 # aggregate title 1 status to county level ------
   
-  county_title1 = dt_school[, .(no_title1_status = .N), by = .(county_code, county_name, title1_status)]
-  county_title1[, number_of_schools := sum(no_title1_status), by = .(county_code, county_name)]
-  county_title1[, perc_title1_status := no_title1_status/number_of_schools]
-  county_title1 = county_title1[((title1_status == 'yes' & perc_title1_status > 0) | (title1_status == 'no' & perc_title1_status == 1))]
-  county_title1[title1_status == 'no', perc_title1_status := 0]
-  county_title1[title1_status == 'no', no_title1_status := 0]
+  agg_title1 = dt_school[, .(no_title1_status = .N), by = .(county_code, county_name, title1_status)]
+  agg_title1[, number_of_schools := sum(no_title1_status), by = .(county_code, county_name)]
+  agg_title1[, perc_title1_status := no_title1_status/number_of_schools]
+  agg_title1 = agg_title1[((title1_status == 'yes' & perc_title1_status > 0) | (title1_status == 'no' & perc_title1_status == 1))]
+  agg_title1[title1_status == 'no', perc_title1_status := 0]
+  agg_title1[title1_status == 'no', no_title1_status := 0]
   
-  county_title1 = county_title1[, .(county_code, county_name, no_title1_status, number_of_schools, perc_title1_status)]
+  agg_title1 = agg_title1[, .(county_code, county_name, no_title1_status, number_of_schools, perc_title1_status)]
 
-# combine county-level data -----
+# aggregate lcff data to county level -----
   
-  dt_county = county_num[county_title1, on = .(county_code, county_name)]
+  agg_lcff = dt_lcff[, .(total_lcff_entitlement = sum(total_lcff_entitlement, na.rm = T)), by = .(county_code)]
+  
+# merge all county-level data -----
+  
+  dt_county = agg_frpm[agg_title1, on = .(county_code, county_name)]
+  dt_county = dt_county[agg_lcff, on = .(county_code)]
   
 # export to csv ------
   
