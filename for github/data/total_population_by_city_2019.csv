@@ -1,0 +1,790 @@
+city,total_population
+Fresno,591168
+Ontario,178589
+Stockton,363335
+Los Angeles,2484718
+Modesto,300210
+Bakersfield,557492
+Gardena,79331
+San Bernardino,278008
+Riverside,464021
+Selma,35199
+Compton,136845
+Lathrop,28172
+San Diego,1335542
+Glendale,188222
+Colton,56431
+Pomona,152251
+Long Beach,476520
+Bell,101415
+March Air Reserve Base,4721
+Fontana,221813
+Parlier,9242
+Sacramento,821850
+Van Nuys,179670
+Sun Valley,48393
+North Hollywood,154252
+Torrance,182791
+El Monte,98427
+South Gate,97229
+Reedley,40225
+Huntington Park,74249
+Moreno Valley,204601
+Paramount,54513
+Inglewood,131234
+Baldwin Park,75905
+Bloomington,34906
+Hawthorne,104391
+Merced,110611
+Turlock,78062
+South El Monte,39515
+Riverbank,16110
+Rancho Cucamonga,176646
+San Pedro,84077
+Pacoima,106498
+Carson,83730
+Hanford,72726
+Wilmington,55198
+Oakland,407922
+Norwalk,105858
+Lynwood,69438
+Corona,249129
+MC Farland,30118
+Pico Rivera,64247
+Los Banos,43374
+Oxnard,220161
+Redlands,93523
+Whittier,183516
+El Centro,65394
+Anaheim,347532
+Manteca,83541
+La Puente,116524
+Porterville,75022
+Ceres,44934
+Delano,40423
+Santa Fe Springs,20785
+Montclair,47796
+Madera,103572
+Mendota,13415
+Panorama City,72365
+Montebello,65023
+Perris,109675
+Richmond,88242
+Tulare,72613
+Pittsburg,78759
+Upland,79787
+French Camp,6299
+Buena Park,80669
+Hacienda Heights,56972
+Del Rey,3293
+Burbank,105608
+Fullerton,155957
+Sanger,47464
+Ballico,3918
+West Sacramento,45454
+Grand Terrace,18063
+Barstow,31403
+Garden Grove,190024
+Dinuba,32347
+Maywood,27332
+San Jose,1047701
+Adelanto,35179
+Dos Palos,9043
+Downey,112322
+Calexico,40121
+Wasco,27297
+Pixley,5934
+Kingsburg,16545
+La Habra,64062
+Santa Ana,369465
+Gustine,8712
+Indio,92025
+McClellan,5067
+San Francisco,874961
+Bellflower,77195
+Fowler,5177
+Highland,45961
+Atwater,40011
+Rosemead,61315
+Loma Linda,16018
+Visalia,159505
+Shafter,23656
+Chowchilla,22300
+Gilroy,62228
+Earlimart,14978
+Rialto,103564
+Kettleman City,4101
+Tracy,123469
+San Pablo,63422
+Orosi,9384
+Chula Vista,249928
+Kerman,22144
+Lodi,87881
+San Fernando,40260
+Stanton,32441
+Corcoran,23331
+El Cajon,164462
+National City,64048
+Lost Hills,2635
+Brawley,27089
+Mira Loma,43481
+Cantua Creek,6768
+Vallejo,122876
+Palo Alto,94562
+La Mirada,48764
+Caruthers,5068
+Lawndale,32819
+Olivehurst,28522
+Harbor City,30013
+Alhambra,84647
+West Covina,104339
+Strathmore,8019
+Monterey Park,62542
+Patterson,28730
+Coachella,47636
+Azusa,53463
+Duarte,29214
+Chico,109037
+Emeryville,37271
+Clovis,133683
+Hemet,116515
+Reseda,84394
+Antioch,112354
+Orange Cove,7179
+Westminster,88853
+Westmorland,2728
+Santa Monica,91577
+Lakewood,83312
+Placentia,56135
+Buttonwillow,3415
+Rancho Cordova,69032
+Mecca,11044
+Firebaugh,11116
+San Leandro,118450
+Sylmar,86812
+Livingston,18171
+Watsonville,88671
+Tipton,7396
+Moss Landing,10004
+Chino,101292
+Beaumont,45822
+Wofford Heights,10485
+Alviso,2355
+Calipatria,8245
+Riverdale,5221
+Yuba City,77902
+Marysville,39064
+Winton,9800
+Northridge,62367
+Newman,13682
+Tarzana,29785
+Lemoore,37546
+Snelling,2389
+Huron,8085
+Victorville,135177
+Hawaiian Gardens,10762
+North Hills,64740
+California Hot Springs,6161
+Canoga Park,86509
+Salinas,199851
+South San Francisco,67118
+Rodeo,6285
+Delhi,12422
+Oroville,56228
+Costa Mesa,111330
+Hayward,176116
+Pasadena,157148
+Signal Hill,11545
+Lake Elsinore,76453
+Redwood City,121495
+Arvin,22818
+Taft,17248
+Morgan Hill,51712
+Winnetka,52729
+California City,15982
+Martinez,58611
+Lindsay,18018
+Union City,81064
+Newark,55184
+San Jacinto,61157
+Blythe,14924
+Ventura,109566
+MC Kittrick,3358
+Oakdale,28121
+Covina,87592
+Nuevo,15456
+Hesperia,102311
+Stevinson,1526
+Cutler,6998
+Escalon,13379
+Hughson,8359
+Baker,3547
+Santa Clara,125772
+Orange,143399
+San Ysidro,28880
+Laton,3407
+Artesia,16758
+Huntington Beach,197574
+Lancaster,183225
+San Gabriel,62324
+Monrovia,43966
+Berkeley,132996
+Lamont,17003
+Oakley,43415
+Santa Rosa,219348
+Farmersville,5422
+Avenal,12987
+San Bruno,43101
+Marina,16685
+Le Grand,2345
+Alameda,78522
+Lemon Grove,27977
+Palmdale,174630
+Cerritos,50143
+Chatsworth,47215
+Concord,151412
+Rio Vista,10676
+Winterhaven,2377
+Fairfield,119471
+Banning,31334
+Santa Maria,158111
+Canyon Country,73789
+Escondido,191297
+Woodlake,8453
+North Highlands,29135
+Napa,103365
+Hollister,51064
+Midway City,14338
+Apple Valley,80949
+Coalinga,18095
+Tehachapi,28375
+La Mesa,80976
+Mather,4156
+Imperial,14848
+Holtville,8625
+Yucaipa,53712
+Corning,17805
+Encino,49070
+Thermal,22326
+Brentwood,78554
+Oceanside,179958
+Brisbane,5051
+Claremont,38213
+Newbury Park,44718
+Daly City,114485
+Tustin,88473
+Rosamond,28292
+Port Hueneme,19861
+Culver City,41077
+Grass Valley,47806
+Sherman Oaks,53155
+La Verne,34225
+Rowland Heights,48682
+Temecula,127231
+Sun City,63822
+San Rafael,72139
+Elk Grove,185304
+Hilmar,9060
+Essex,1343
+Norco,28660
+Willows,7118
+Santee,75659
+Chino Hills,73391
+Irvine,261711
+Temple City,34176
+Hinkley,11133
+Meridian,1499
+Rio Linda,12856
+Santa Barbara,145719
+Waterford,5823
+Castaic,30663
+San Juan Capistrano,68270
+Lucerne Valley,8842
+Moorpark,38234
+San Marcos,96792
+Lomita,19694
+Brea,46522
+Fillmore,19999
+Ukiah,26453
+Sunland,28057
+Mission Hills,19137
+Castroville,15986
+Fremont,227727
+Newhall,38242
+Live Oak,14220
+Roseville,142410
+Mojave,3394
+Valley Village,24842
+Needles,4011
+Desert Center,7998
+Red Bluff,34100
+Weed,7510
+Arcadia,69373
+Denair,13833
+San Lorenzo,30688
+Granada Hills,58564
+Pinole,17262
+Homeland,5371
+Colusa,7592
+San Mateo,143097
+Seal Beach,22214
+Castro Valley,68146
+Walnut,37467
+Isleton,1514
+Woodland,68805
+Vacaville,106828
+Murrieta,127318
+Lake Forest,62999
+Redding,109737
+Imperial Beach,27315
+Big Bear Lake,3518
+Crestline,3171
+Point Mugu Nawc,2035
+Venice,26751
+Ripon,17867
+Santa Clarita,51656
+Gridley,11949
+Camarillo,79627
+Sunnyvale,159933
+Zamora,4076
+Gerber,4315
+Diamond Bar,46130
+Altadena,37326
+Cottonwood,13765
+Milpitas,78528
+Capistrano Beach,5207
+Marina del Rey,24033
+Sonora,21270
+Dixon,27647
+Fountain Valley,53847
+Death Valley,3054
+Paicines,3049
+Big Bear City,17386
+Suisun City,26469
+Caliente,1225
+Ione,10220
+Ridgecrest,37182
+Tujunga,25105
+Galt,29404
+Weldon,4942
+Benicia,28681
+Glendora,55146
+Carmichael,58219
+Acampo,9814
+San Dimas,35444
+Citrus Heights,79441
+Exeter,15992
+Maricopa,1521
+West Hills,30112
+Wildomar,34552
+Santa Paula,39386
+San Martin,9665
+Fortuna,9342
+Discovery Bay,9370
+Campo,7998
+Studio City,30866
+Spring Valley,65340
+Farmington,5330
+Oakhurst,13760
+Anderson,23258
+Idyllwild,1122
+Loleta,4606
+Walnut Grove,3571
+Seaside,26914
+Arbuckle,5647
+Soledad,24958
+Biggs,4202
+San Juan Bautista,6263
+Woodland Hills,54985
+Newport Beach,71747
+Long Barn,10174
+San Luis Obispo,65313
+Mentone,4182
+Windsor,21434
+Yorba Linda,63982
+Lompoc,60288
+Clearlake,11491
+Sutter Creek,4675
+King City,13528
+Davis,71684
+Cypress,43083
+Eureka,49398
+Livermore,99939
+Gonzales,5469
+Camp Pendleton,38754
+Somis,8366
+Nicolaus,2488
+Mountain View,74507
+El Cerrito,30762
+Petaluma,79601
+Williams,5963
+Boron,2221
+Wheatland,4652
+Burney,4881
+Lakeside,49334
+Fallbrook,44391
+Los Alamitos,26297
+Laguna Woods,19870
+La Crescenta,26640
+Plymouth,5105
+Menifee,55591
+Simi Valley,128176
+Cathedral City,49296
+Millbrae,22625
+Thousand Oaks,79305
+Jamestown,13181
+Greenfield,18424
+Arcata,14499
+Redondo Beach,72275
+Frazier Park,7686
+Mountain Center,5577
+Agoura Hills,40671
+Mission Viejo,100766
+El Sobrante,21101
+Lakeport,16029
+West Hollywood,20977
+Valencia,70275
+Edwards,2827
+Orland,17308
+Landers,5539
+Vista,109549
+Littlerock,14024
+Angelus Oaks,2125
+Chualar,6527
+Borrego Springs,2706
+Cloverdale,10009
+Twentynine Palms,28961
+Fort Bragg,12078
+Cotati,14516
+Palm Springs,54648
+Elk Creek,1956
+Carmel Valley,11768
+Paso Robles,42290
+Yucca Valley,17367
+Healdsburg,19524
+Morongo Valley,10157
+Jackson,3152
+Bonita,27241
+Menlo Park,42424
+Lockeford,2902
+Three Rivers,4845
+Paradise,20696
+Running Springs,3232
+Valley Springs,17895
+Beverly Hills,40656
+Fort Irwin,9872
+Willits,12690
+Springville,5237
+Linden,5944
+Morro Bay,10655
+Alturas,3509
+Yreka,11567
+Calimesa,21063
+Phelan,20372
+Bradley,4462
+Half Moon Bay,11860
+Copperopolis,4694
+Scotia,4347
+El Segundo,16731
+Antelope,47668
+Thousand Palms,7205
+Lincoln,52810
+Redwood Valley,10311
+Stonyford,2252
+Wilton,7963
+Montrose,5874
+Laguna Hills,22922
+Berry Creek,4660
+Carpinteria,13619
+Calabasas,21831
+Walnut Creek,97658
+Auburn,44187
+Rohnert Park,38042
+Cupertino,61929
+Porter Ranch,34254
+Nevada City,19638
+Fair Oaks,42933
+Igo,3575
+Litchfield,9280
+Winchester,49302
+Novato,63616
+Playa del Rey,12692
+Saint Helena,7947
+Nipomo,27744
+Yosemite NTL Park,3487
+Dublin,37942
+White Water,1332
+Sausalito,10548
+Clearlake Oaks,7002
+San Carlos,32112
+Portola,4409
+Davis Creek,2441
+Calpine,3040
+Hercules,22381
+Fiddletown,4748
+Pescadero,3944
+Pine Grove,4639
+San Clemente,54350
+Bishop,16336
+Stevenson Ranch,12035
+Kelseyville,9457
+Mariposa,10285
+Westlake Village,17146
+Pleasanton,93374
+Placerville,39151
+Kings Canyon National PK,6101
+Lower Lake,7286
+Korbel,4675
+Desert Hot Springs,48809
+Dana Point,19711
+Malibu,19438
+Oceano,7033
+Encinitas,55060
+Carlsbad,117678
+La Palma,14476
+Hornbrook,656
+Pinon Hills,7661
+Winters,9111
+Lytle Creek,1858
+American Canyon,13352
+Shandon,9434
+Pioneer,5890
+Santa Cruz,106510
+Catheys Valley,2576
+Independence,2284
+Crescent City,26244
+Ojai,16740
+Cassel,2774
+Alpine,19359
+South Lake Tahoe,30165
+Durham,5834
+Mendocino NTL Forest,3376
+Sonoma,36263
+Los Padres NTL Forest,1050
+Shasta Lake,9210
+Lake Arrowhead,4121
+Soda Springs,3754
+South Pasadena,25661
+Avalon,4167
+McArthur,4237
+Belmont,27359
+Sebastopol,25746
+Palm Desert,63032
+Klamath,1251
+Susanville,11057
+Quincy,5446
+Campbell,44176
+Elverta,9109
+Chester,3794
+Acton,7865
+Potter Valley,1869
+Llano,3926
+Travis AFB,3952
+Angels Camp,4483
+La Canada Flintridge,20521
+Anza,5266
+Poway,44333
+Magalia,8458
+Leggett,3542
+Montague,3939
+Macdoel,2787
+Lebec,620
+Orangevale,37602
+Port Hueneme CBC Base,2295
+Grover Beach,13535
+Santa Margarita,6793
+Ferndale,3309
+Shingletown,6282
+Albany,16742
+Pleasant Hill,32996
+Termo,1445
+Joshua Tree,8864
+Oak View,8617
+Ramona,40288
+Nice,2446
+Geyserville,3644
+Blocksburg,3465
+Rocklin,63112
+Mountain Ranch,7496
+Hoopa,5686
+Valyermo,796
+Coulterville,2857
+Strawberry Valley,1142
+Bonsall,4841
+Goleta,56967
+Monterey,28916
+Wrightwood,3984
+Julian,2223
+Descanso,2235
+Valley Center,18293
+Pacific Palisades,23541
+La Jolla,47801
+Fort Jones,1733
+MI Wuk Village,5933
+Folsom,78159
+Sloughhouse,6999
+Truckee,18279
+Philo,3023
+Shaver Lake,2779
+Dunnigan,5722
+Coarsegold,12361
+Georgetown,7911
+Covelo,2674
+Point Arena,4188
+Warner Springs,3045
+Mammoth Lakes,8169
+La Quinta,34116
+Jamul,19771
+Bridgeport,2444
+Blue Lake,3346
+Laguna Niguel,67181
+Forestville,8376
+Coronado,21172
+Forest Ranch,4753
+Rancho Santa Margarita,36433
+Glenn,1594
+Lakehead,1670
+Pacifica,38984
+Pauma Valley,6925
+Trinidad,2775
+Dunsmuir,2012
+Atascadero,25335
+Raymond,2161
+Lewiston,6613
+Davenport,4684
+Burlingame,42760
+Templeton,14011
+Kings Beach,4202
+Bridgeville,4179
+Silverado,1639
+Penn Valley,5606
+San Ramon,86097
+Arnold,4664
+Solana Beach,12164
+Middletown,7108
+Los Osos,15829
+Wilseyville,2722
+Mount Shasta,6544
+Somes Bar,1834
+Comptche,6135
+Sierra Madre,10932
+Herlong,3209
+Bayside,5229
+Stanford,20872
+Calistoga,6684
+Capitola,11739
+Indian Wells,3942
+Shingle Springs,34244
+Laguna Beach,38088
+Alta,2932
+Guerneville,7577
+Modoc Shasta Klamath for,1261
+Loomis,16427
+Foresthill,6903
+Pollock Pines,12697
+Somerset,5889
+Solvang,6445
+Markleeville,1039
+Forks of Salmon,3625
+Angwin,5288
+Manhattan Beach,35500
+Aliso Viejo,48782
+Camino,3495
+Yountville,2987
+Aptos,31518
+Montgomery Creek,5123
+Rancho Mirage,17140
+Los Gatos,49210
+McKinleyville,17843
+Moss Beach,6108
+Crescent Mills,2510
+Greenbrae,12130
+Cedarville,1307
+Eldorado NTL Forest,3668
+Garberville,3241
+Rancho Palos Verdes,44864
+Murphys,3560
+Foothill Ranch,5662
+San Marino,13194
+Orinda,20468
+Penngrove,5737
+Hopland,2051
+Elk,2210
+Blairsden-Graeagle,1359
+Ben Lomond,8366
+Los Olivos,2620
+Arroyo Grande,25014
+Challenge,4122
+Hayfork,3182
+Corte Madera,11867
+Los Altos,47624
+Newcastle,2979
+Colfax,7188
+Palos Verdes Peninsula,23163
+Cardiff By the Sea,5686
+Southeast Trinity County,894
+Atherton,7168
+Boulder Creek,10622
+Meadow Vista,4875
+Trabuco Canyon,26770
+Cambria,8388
+Occidental,3848
+Topanga,7213
+Pismo Beach,8161
+Saratoga,30858
+Big Bar,2011
+Earp,1312
+Granite Bay,25063
+Hermosa Beach,19539
+Del Mar,22514
+Fairfax,9682
+Danville,49140
+El Dorado,2467
+Glen Ellen,4782
+Janesville,3240
+Belvedere Tiburon,13729
+Newport Coast,13758
+Rescue,9409
+Cayucos,2630
+Scotts Valley,8746
+El Dorado Hills,33927
+Portola Valley,7148
+Herald,2300
+Pilot Hill,5446
+Mill Valley,31047
+Tahoma,415
+Cazadero,3983
+Rough and Ready,5783
+Tahoe City,2117
+Applegate,3350
+Lafayette,29449
+Palo Cedro,6629
+Felton,4781
+Soquel,3229
+Pebble Beach,3991
+Ladera Ranch,27000
+Clayton,14078
+Rancho Santa Fe,4538
+Sunset Beach,919
+Lake Hughes,1631
+Oak Park,8355
+Villa Park,5850
+Larkspur,5857
+Corona del Mar,9843
+Norden,1318
+Point Reyes Station,1641
+San Anselmo,17184
+Carmel,21923
+Stinson Beach,1825
+Pacific Grove,15522
+Penryn,2546
+Alamo,9373
+Moraga,15733
+San Geronimo,3371
+Carnelian Bay,1056
+Universal City,0
+Yosemite National Park,1702
+San Quentin,2649
+Kyburz,94
+Channel Islands,10
+Channel Is Air Guard Station,118
