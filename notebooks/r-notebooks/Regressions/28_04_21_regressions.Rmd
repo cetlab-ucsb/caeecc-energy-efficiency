@@ -1,0 +1,90 @@
+---
+title: "regressions"
+author: "Public Sector UWG Team"
+date: "4/28/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = '~/Desktop/caeecc-energy-efficiency/for github/data')
+```
+
+```{r, load packages}
+library(readr)
+library(data.table)
+library(dplyr)
+library(ggplot2)
+library(tidyverse)
+```
+
+```{r, EE Programs at the County Level}
+#read in data for County EE programs 
+cities <- read.csv("cities_2.csv")
+```
+
+```{r, EE Programs at the City Level}
+#read in data for City EE programs 
+cities <- read.csv("cities_2.csv")
+```
+
+```{r}
+#log-transform the enrollment to account for the skew
+cities$ln_population <- log(cities$total_population)
+#visualize the normal distribution
+hist(cities$ln_population)
+```
+
+```{r}
+#split into groups
+quantile(cities$ln_population)
+
+#group data by ln_population
+cities_lnq1 <- subset(cities, ln_population < 9.076352)
+cities_lnq2 <- subset(cities, ln_population >= 9.076352 & ln_population < 10.124950)
+cities_lnq3 <- subset(cities, ln_population >= 10.124950 & ln_population < 11.129408)
+cities_lnq4 <- subset(cities, ln_population > 11.129408)
+```
+```{r}
+#check the distribution of the predictor varaible of interest (Budget)
+hist(cities_lnq1$Budget)
+hist(cities_lnq2$Budget)
+hist(cities_lnq3$Budget)
+hist(cities_lnq4$Budget)
+```
+```{r}
+#check the distribution of the predictor variable of interest (Energy Savings)
+hist(cities_lnq1$TotalFirstYearGrosskWh)
+hist(cities_lnq2$TotalFirstYearGrosskWh)
+hist(cities_lnq3$TotalFirstYearGrosskWh)
+hist(cities_lnq4$TotalFirstYearGrosskWh)
+```
+
+```{r, K12 Programs}
+#read in data for K-12 EE programs 
+K12 <- read.csv("k-12_counties_1.csv")
+```
+
+```{r}
+#scatter plot matrix to check for correlation
+plot.K12 <- data.frame(K12[,3], K12[,])
+colnames(plot.K12)<-c("num_leaves_in_rosette", "dand_rosette_diam_cm")
+pairs.panels(plot.plant, density = TRUE, cor=FALSE, lm=TRUE)
+```
+
+```{r}
+#log-transform the enrollment to account for the skew
+K12$ln_enrollment <- log(K12$enrollment)
+#visualize the normal distribution
+hist(K12$ln_enrollment)
+```
+
+```{r}
+#split into groups
+quantile(K12$ln_enrollment)
+
+#group data by ln_enrollment
+K12_1 <- subset(K12, ln_enrollment < 8.7)
+
+```
+
