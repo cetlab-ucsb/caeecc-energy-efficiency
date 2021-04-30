@@ -64,7 +64,7 @@ hist(counties_lnq3$TotalFirstYearGrosskWh)
 hist(counties_lnq4$TotalFirstYearGrosskWh)
 ```
 ```{r, county—check}
-#round budget because GLM works best with integers 
+#round y because GLM works best with integers 
 counties_lnq1$rounded_budget <- round(counties_lnq1$Budget, 0)
 counties_lnq2$rounded_budget <- round(counties_lnq2$Budget, 0)
 counties_lnq3$rounded_budget <- round(counties_lnq3$Budget, 0)
@@ -191,6 +191,80 @@ hist(cities_lnq3$TotalFirstYearGrosskWh)
 hist(cities_lnq4$TotalFirstYearGrosskWh)
 ```
 
+```{r, city—check}
+#round y because GLM works best with integers 
+cities_lnq1$rounded_budget <- round(cities_lnq1$Budget, 0)
+cities_lnq2$rounded_budget <- round(cities_lnq2$Budget, 0)
+cities_lnq3$rounded_budget <- round(cities_lnq3$Budget, 0)
+cities_lnq4$rounded_budget <- round(cities_lnq4$Budget, 0)
+
+cities_lnq1$rounded_kWh <- round(cities_lnq1$TotalFirstYearGrosskWh, 0)
+cities_lnq2$rounded_kWh <- round(cities_lnq2$TotalFirstYearGrosskWh, 0)
+cities_lnq3$rounded_kWh <- round(cities_lnq3$TotalFirstYearGrosskWh, 0)
+cities_lnq4$rounded_kWh <- round(cities_lnq4$TotalFirstYearGrosskWh, 0)
+```
+
+```{r, city—check}
+#check which distribution would be best for the budget of the SMALLEST population group
+cities1_pois <- fitdist(cities_lnq1$rounded_budget, "pois") #CHECK
+cities1_nbin <- fitdist(cities_lnq1$rounded_budget, "nbinom") #CHECK
+
+par(mfrow=c(1,2))
+denscomp(list(cities1_pois, cities1_nbin))
+qqcomp(list(cities1_pois, cities1_nbin))
+
+summary(cities1_pois)
+summary(cities1_nbin)
+```
+
+````{r, city}
+#poisson budget regression for q1
+cities_1a.glm <- glm(rounded_budget ~ Total.Tax.Revenue, data = cities_lnq1, family = "poisson")
+cities_1b.glm <- glm(rounded_budget ~ Total.Tax.Revenue + ruca_average, data = cities_lnq1, family = "poisson")
+cities_1c.glm <- glm(rounded_budget ~ Total.Tax.Revenue + ruca_average + ces_score_median, data = cities_lnq1, family = "poisson")
+cities_1d.glm <- glm(rounded_budget ~ Total.Tax.Revenue +  ruca_average + ces_score_median + total_population, data = cities_lnq1, family = "poisson")
+cities_1e.glm <- glm(rounded_budget ~ Total.Tax.Revenue + ruca_average + ces_score_median + total_population + median_household_income_usd, data = cities_lnq1, family = "poisson")
+
+summary(cities_1a.glm) #p-value should be < 0.05 to be significant 
+summary(cities_1b.glm)
+summary(cities_1c.glm)
+summary(cities_1d.glm)
+summary(cities_1e.glm)
+```
+
+````{r, city}
+#poisson energy savings regression for q1
+cities_1f.glm <- glm(rounded_kWh ~ Total.Tax.Revenue, data = cities_lnq1, family = "poisson")
+cities_1g.glm <- glm(rounded_kWh ~ Total.Tax.Revenue + ruca_average, data = cities_lnq1, family = "poisson")
+cities_1h.glm <- glm(rounded_kWh ~ Total.Tax.Revenue + ruca_average + ces_score_median, data = cities_lnq1, family = "poisson")
+cities_1i.glm <- glm(rounded_kWh ~ Total.Tax.Revenue +  ruca_average + ces_score_median + total_population, data = cities_lnq1, family = "poisson")
+cities_1j.glm <- glm(rounded_kWh ~ Total.Tax.Revenue + ruca_average + ces_score_median + total_population + median_household_income_usd, data = cities_lnq1, family = "poisson")
+
+summary(cities_1f.glm) #p-value should be < 0.05 to be significant 
+summary(cities_1g.glm)
+summary(cities_1h.glm)
+summary(cities_1i.glm)
+summary(cities_1j.glm)
+```
+
+```{r, city}
+#regression on ungrouped city programs w/ total_pop; note budget and kWh are not rounded for this
+citiesa.glm <- glm(TotalFirstYearGrosskWh ~ Total.Tax.Revenue + ruca_average + ces_score_median + total_population + median_household_income_usd, data = cities, family = "poisson")
+citiesb.glm <- glm(Budget ~ Total.Tax.Revenue + ruca_average + ces_score_median + total_population + median_household_income_usd, data = cities, family = "poisson")
+
+summary(citiesa.glm)
+summary(citiesb.glm)
+```
+
+```{r, city}
+#regression on ungrouped city programs w/ ln_pop; note budget and kWh are not rounded for this
+citiesc.glm <- glm(TotalFirstYearGrosskWh ~ Total.Tax.Revenue + ruca_average + ces_score_median + ln_population + median_household_income_usd, data = cities, family = "poisson")
+citiesd.glm <- glm(Budget ~ Total.Tax.Revenue + ruca_average + ces_score_median + ln_population + median_household_income_usd, data = cities, family = "poisson")
+
+summary(citiesc.glm)
+summary(citiesd.glm)
+```
+
 ```{r, K12 Programs}
 #read in data for K-12 EE programs 
 K12 <- read.csv("k12_counties_2.csv")
@@ -228,11 +302,90 @@ hist(K12_lnq2$Budget)
 hist(K12_lnq3$Budget)
 hist(K12_lnq4$Budget)
 ```
-```{r, city}
+```{r, K12}
 #check the distribution of the predictor variable of interest (Energy Savings)
 hist(K12_lnq1$TotalFirstYearGrosskWh)
 hist(K12_lnq2$TotalFirstYearGrosskWh)
 hist(K12_lnq3$TotalFirstYearGrosskWh)
 hist(K12_lnq4$TotalFirstYearGrosskWh)
+```
+```{r, K12—check}
+#round y because GLM works best with integers 
+K12_lnq1$rounded_budget <- round(K12_lnq1$Budget, 0)
+K12_lnq2$rounded_budget <- round(K12_lnq2$Budget, 0)
+K12_lnq3$rounded_budget <- round(K12_lnq3$Budget, 0)
+K12_lnq4$rounded_budget <- round(K12_lnq4$Budget, 0)
+
+K12_lnq1$rounded_kWh <- round(K12_lnq1$TotalFirstYearGrosskWh, 0)
+K12_lnq2$rounded_kWh <- round(K12_lnq2$TotalFirstYearGrosskWh, 0)
+K12_lnq3$rounded_kWh <- round(K12_lnq3$TotalFirstYearGrosskWh, 0)
+K12_lnq4$rounded_kWh <- round(K12_lnq4$TotalFirstYearGrosskWh, 0)
+```
+
+```{r, K12—check}
+#check which distribution would be best for the budget of the SMALLEST population group
+K121_pois <- fitdist(K12_lnq1$rounded_budget, "pois") #CHECK
+K121_nbin <- fitdist(K12_lnq1$rounded_budget, "nbinom") #CHECK
+
+par(mfrow=c(1,2))
+denscomp(list(K121_pois, K121_nbin))
+qqcomp(list(K121_pois, K121_nbin))
+
+summary(K121_pois)
+summary(K121_nbin)
+```
+
+````{r, K12}
+#poisson budget regression for q1
+K12_1a.glm <- glm(rounded_budget ~ total_lcff_entitlement + ces_score_median + IRR + median_household_income_usd + enrollment, data = K12_lnq1, family = "poisson")
+K12_1b.glm <- glm(rounded_budget ~ total_lcff_entitlement + ces_score_median + IRR + median_household_income_usd + enrollment + no_title1_status, data = K12_lnq1, family = "poisson")
+K12_1c.glm <- glm(rounded_budget ~ total_lcff_entitlement + ces_score_median + IRR + median_household_income_usd + enrollment + free_meal_count, data = K12_lnq1, family = "poisson")
+K12_1d.glm <- glm(rounded_budget ~ total_lcff_entitlement + ces_score_median + IRR + median_household_income_usd + enrollment + free_meal_count + no_title1_status + frpm_count, data = K12_lnq1, family = "poisson")
+K12_1e.glm <- glm(rounded_budget ~ IRR + ces_score_median + no_title1_status, data = K12_lnq1, family = "poisson")
+
+summary(K12_1a.glm) #p-value should be < 0.05 to be significant 
+summary(K12_1b.glm)
+summary(K12_1c.glm)
+summary(K12_1d.glm)
+summary(K12_1e.glm)
+```
+
+````{r, K12}
+#poisson energy savings regression for q1
+K12_1f.glm <- glm(rounded_kWh ~ total_lcff_entitlement + ces_score_median + IRR + median_household_income_usd + enrollment, data = K12_lnq1, family = "poisson")
+K12_1g.glm <- glm(rounded_kWh ~ total_lcff_entitlement + ces_score_median + IRR + median_household_income_usd + enrollment + no_title1_status, data = K12_lnq1, family = "poisson")
+K12_1h.glm <- glm(rounded_kWh ~ total_lcff_entitlement + ces_score_median + IRR + median_household_income_usd + enrollment + free_meal_count, data = K12_lnq1, family = "poisson")
+K12_1i.glm <- glm(rounded_kWh ~ total_lcff_entitlement + ces_score_median + IRR + median_household_income_usd + enrollment + free_meal_count + no_title1_status + frpm_count, data = K12_lnq1, family = "poisson")
+K12_1j.glm <- glm(rounded_kWh ~ IRR + ces_score_median + no_title1_status, data = K12_lnq1, family = "poisson")
+
+summary(K12_1f.glm) #p-value should be < 0.05 to be significant 
+summary(K12_1g.glm)
+summary(K12_1h.glm)
+summary(K12_1i.glm)
+summary(K12_1j.glm)
+```
+
+```{r, K12}
+#validate your budget model
+anova(K12_1a.glm, K12_1b.glm, K12_1c.glm, K12_1d.glm, K12_1e.glm, test="Chisq") #lower p-value means it explains the variance more which is best
+AIC(K12_1a.glm, K12_1b.glm, K12_1c.glm, K12_1d.glm, K12_1e.glm) #the smaller the value the better
+BIC(K12_1a.glm, K12_1b.glm, K12_1c.glm, K12_1d.glm, K12_1e.glm) #the smaller the value the better
+```
+```{r, K12}
+#validate your energy savings model
+anova(K12_1f.glm, K12_1g.glm, K12_1h.glm, K12_1i.glm, K12_1j.glm, test="Chisq") #lower p-value means it explains the variance more which is best
+AIC(K12_1f.glm, K12_1g.glm, K12_1h.glm, K12_1i.glm, K12_1j.glm) #the smaller the value the better
+BIC(K12_1f.glm, K12_1g.glm, K12_1h.glm, K12_1i.glm, K12_1j.glm) #the smaller the value the better
+```
+
+```{r, K-12—check}
+#negative binomial budget model
+K121a_glm.nb <- glm.nb(rounded_budget ~ total_lcff_entitlement + ces_score_median + IRR + median_household_income_usd + enrollment, data = K12_lnq1)
+summary(K121a_glm.nb)
+```
+```{r, K-12—check}
+#negative binomial energy savings model
+K121b_glm.nb <- glm.nb(rounded_kWh ~ total_lcff_entitlement + ces_score_median + IRR + median_household_income_usd + enrollment, data = K12_lnq1)
+summary(K121b_glm.nb)
 ```
 
