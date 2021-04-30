@@ -16,11 +16,134 @@ library(data.table)
 library(dplyr)
 library(ggplot2)
 library(tidyverse)
+library(psych)
+library(car)
+library(fitdistrplus)
 ```
 
 ```{r, EE Programs at the County Level}
 #read in data for County EE programs 
-cities <- read.csv("cities_2.csv")
+counties <- read.csv("counties_1.csv")
+```
+
+```{r, county—check}
+#scatter plot matrix to check for correlation between county population and investment/energy savings
+plot.counties <- data.frame(counties$County, counties$Population, counties$Budget, counties$TotalFirstYearGrosskWh) #subset out these variables
+colnames(plot.counties)<-c("County", "Population", "Budget", "TotalFirstYearGrosskWh") #change column names back to original
+pairs.panels(plot.counties, density = TRUE, cor=TRUE, lm=TRUE) #scatterplot
+```
+```{r, county}
+#log-transform the population to account for the skew
+counties$ln_Population <- log(counties$Population)
+#visualize the normal distribution
+hist(counties$ln_Population)
+```
+
+```{r, county}
+#split into groups based on quantiles
+quantile(counties$ln_Population)
+
+#gr`oup data by ln_population
+counties_lnq1 <- subset(counties, ln_Population < 10.768725)
+counties_lnq2 <- subset(counties, ln_Population >= 10.768725 & ln_Population < 12.125893)
+counties_lnq3 <- subset(counties, ln_Population >= 12.125893 & ln_Population < 13.439743)
+counties_lnq4 <- subset(counties, ln_Population > 13.439743)
+```
+```{r, county}
+#check the distribution of the predictor variable of interest (Budget)
+hist(counties_lnq1$Budget)
+hist(counties_lnq2$Budget)
+hist(counties_lnq3$Budget)
+hist(counties_lnq4$Budget)
+```
+```{r, county}
+#check the distribution of the predictor variable of interest (Energy Savings)
+hist(counties_lnq1$TotalFirstYearGrosskWh)
+hist(counties_lnq2$TotalFirstYearGrosskWh)
+hist(counties_lnq3$TotalFirstYearGrosskWh)
+hist(counties_lnq4$TotalFirstYearGrosskWh)
+```
+```{r, county—check}
+#round budget because GLM works best with integers 
+counties_lnq1$rounded_budget <- round(counties_lnq1$Budget, 0)
+counties_lnq2$rounded_budget <- round(counties_lnq2$Budget, 0)
+counties_lnq3$rounded_budget <- round(counties_lnq3$Budget, 0)
+counties_lnq4$rounded_budget <- round(counties_lnq4$Budget, 0)
+
+counties_lnq1$rounded_kWh <- round(counties_lnq1$TotalFirstYearGrosskWh, 0)
+counties_lnq2$rounded_kWh <- round(counties_lnq2$TotalFirstYearGrosskWh, 0)
+counties_lnq3$rounded_kWh <- round(counties_lnq3$TotalFirstYearGrosskWh, 0)
+counties_lnq4$rounded_kWh <- round(counties_lnq4$TotalFirstYearGrosskWh, 0)
+```
+
+```{r, county—check}
+#check which distribution would be best for the budget of the SMALLEST population group
+county1_pois <- fitdist(counties_lnq1$rounded_budget, "pois") #CHECK
+county1_nbin <- fitdist(counties_lnq1$rounded_budget, "nbinom") #CHECK
+
+par(mfrow=c(1,2))
+denscomp(list(county1_pois, county1_nbin))
+qqcomp(list(county1_pois, county1_nbin))
+
+summary(county1_pois)
+summary(county1_nbin)
+```
+
+````{r, county}
+#poisson budget regression for q1
+counties_1a.glm <- glm(rounded_budget ~ TotalRevenue, data = counties_lnq1, family = "poisson")
+counties_1b.glm <- glm(rounded_budget ~ TotalRevenue + ces_score_median, data = counties_lnq1, family = "poisson")
+counties_1c.glm <- glm(rounded_budget ~ TotalRevenue + ces_score_median + IRR, data = counties_lnq1, family = "poisson")
+counties_1d.glm <- glm(rounded_budget ~ TotalRevenue + ces_score_median + IRR + Mean.Income, data = counties_lnq1, family = "poisson")
+counties_1e.glm <- glm(rounded_budget ~ TotalRevenue + ces_score_median + IRR + Mean.Income + Population, data = counties_lnq1, family = "poisson")
+
+summary(counties_1a.glm) #p-value should be < 0.05 to be significant 
+summary(counties_1b.glm)
+summary(counties_1c.glm)
+summary(counties_1d.glm)
+summary(counties_1e.glm)
+```
+The code above shows 5 different combinations of variables. For each poisson regression, every variable is significant (weirdly with the same p-value of <2e-16 which is R's way of indicating a very small number) however there are small coefficients. IRR is most significant in this case. 
+
+````{r, county}
+#poisson energy savings regression for q1
+counties_1f.glm <- glm(rounded_kWh ~ TotalRevenue, data = counties_lnq1, family = "poisson")
+counties_1g.glm <- glm(rounded_kWh ~ TotalRevenue + ces_score_median, data = counties_lnq1, family = "poisson")
+counties_1h.glm <- glm(rounded_kWh ~ TotalRevenue + ces_score_median + IRR, data = counties_lnq1, family = "poisson")
+counties_1i.glm <- glm(rounded_kWh ~ TotalRevenue + ces_score_median + IRR + Mean.Income, data = counties_lnq1, family = "poisson")
+counties_1j.glm <- glm(rounded_kWh ~ TotalRevenue + ces_score_median + IRR + Mean.Income + Population, data = counties_lnq1, family = "poisson")
+
+summary(counties_1f.glm) #p-value should be < 0.05 to be significant 
+summary(counties_1g.glm)
+summary(counties_1h.glm)
+summary(counties_1i.glm)
+summary(counties_1j.glm)
+```
+
+```{r, county}
+#validate your budget model
+anova(counties_1a.glm, counties_1b.glm, counties_1c.glm, counties_1d.glm, counties_1e.glm, test="Chisq") #lower p-value means it explains the variance more which is best
+AIC(counties_1a.glm, counties_1b.glm, counties_1c.glm, counties_1d.glm, counties_1e.glm) #the smaller the value the better
+BIC(counties_1a.glm, counties_1b.glm, counties_1c.glm, counties_1d.glm, counties_1e.glm) #the smaller the value the better
+```
+The p-values from the anova gave <2.2e-16 error, but counties_1e.glm is shown to be the best regression based on the AIC and BIC values.
+
+```{r, county}
+#validate your energy savings model
+anova(counties_1f.glm, counties_1g.glm, counties_1h.glm, counties_1i.glm, counties_1j.glm, test="Chisq") #lower p-value means it explains the variance more which is best
+AIC(counties_1f.glm, counties_1g.glm, counties_1h.glm, counties_1i.glm, counties_1j.glm) #the smaller the value the better
+BIC(counties_1f.glm, counties_1g.glm, counties_1h.glm, counties_1i.glm, counties_1j.glm) #the smaller the value the better
+```
+
+```{r, county—check}
+#negative binomial budget model
+counties1a_glm.nb <- glm.nb(rounded_budget ~ TotalRevenue + ces_score_median + IRR + Mean.Income + Population, data = counties_lnq1)
+summary(counties1a_glm.nb)
+```
+```{r, county—check}
+#negative binomial energy savings model
+counties1b_glm.nb <- glm.nb(rounded_kWh ~ TotalRevenue + ces_score_median + IRR + Mean.Income + Population, data = counties_lnq1)
+summary(counties1b_glm.nb)
 ```
 
 ```{r, EE Programs at the City Level}
@@ -28,15 +151,22 @@ cities <- read.csv("cities_2.csv")
 cities <- read.csv("cities_2.csv")
 ```
 
-```{r}
-#log-transform the enrollment to account for the skew
+```{r, city—check}
+#scatter plot matrix to check for correlation between city population and investment/energy savings
+plot.cities <- data.frame(cities$SiteCity, cities$TotalFirstYearGrosskWh, cities$Budget, cities$total_population) #subset out these variables
+colnames(plot.cities)<-c("SiteCity", "TotalFirstYearGrosskWh", "Budget", "total_population") #change column names back to original
+pairs.panels(plot.cities, density = TRUE, cor=TRUE, lm=TRUE) #scatterplot
+```
+
+```{r, city}
+#log-transform the population to account for the skew
 cities$ln_population <- log(cities$total_population)
 #visualize the normal distribution
 hist(cities$ln_population)
 ```
 
-```{r}
-#split into groups
+```{r, city}
+#split into groups based on quantiles
 quantile(cities$ln_population)
 
 #group data by ln_population
@@ -45,14 +175,15 @@ cities_lnq2 <- subset(cities, ln_population >= 9.076352 & ln_population < 10.124
 cities_lnq3 <- subset(cities, ln_population >= 10.124950 & ln_population < 11.129408)
 cities_lnq4 <- subset(cities, ln_population > 11.129408)
 ```
-```{r}
-#check the distribution of the predictor varaible of interest (Budget)
+
+```{r, city}
+#check the distribution of the predictor variable of interest (Budget)
 hist(cities_lnq1$Budget)
 hist(cities_lnq2$Budget)
 hist(cities_lnq3$Budget)
 hist(cities_lnq4$Budget)
 ```
-```{r}
+```{r, city}
 #check the distribution of the predictor variable of interest (Energy Savings)
 hist(cities_lnq1$TotalFirstYearGrosskWh)
 hist(cities_lnq2$TotalFirstYearGrosskWh)
@@ -62,29 +193,46 @@ hist(cities_lnq4$TotalFirstYearGrosskWh)
 
 ```{r, K12 Programs}
 #read in data for K-12 EE programs 
-K12 <- read.csv("k-12_counties_1.csv")
+K12 <- read.csv("k12_counties_2.csv")
 ```
 
-```{r}
-#scatter plot matrix to check for correlation
-plot.K12 <- data.frame(K12[,3], K12[,])
-colnames(plot.K12)<-c("num_leaves_in_rosette", "dand_rosette_diam_cm")
-pairs.panels(plot.plant, density = TRUE, cor=FALSE, lm=TRUE)
+```{r, K12—check}
+#scatter plot matrix to check for correlation between school enrollment and investment/energy savings
+plot.K12 <- data.frame(K12$county_name, K12$TotalFirstYearGrosskWh, K12$Budget, K12$total_lcff_entitlement, K12$enrollment) #subset out these variables
+colnames(plot.K12)<-c("county_name", "TotalFirstYearGrosskWh", "Budget", "total_lcff_entitlement", "enrollment") #change column names back to original
+pairs.panels(plot.K12, density = TRUE, cor=TRUE, lm=TRUE) #scatterplot
 ```
 
-```{r}
+```{r, K12}
 #log-transform the enrollment to account for the skew
 K12$ln_enrollment <- log(K12$enrollment)
 #visualize the normal distribution
 hist(K12$ln_enrollment)
 ```
 
-```{r}
+```{r, K12}
 #split into groups
 quantile(K12$ln_enrollment)
 
-#group data by ln_enrollment
-K12_1 <- subset(K12, ln_enrollment < 8.7)
+#group data by ln_population
+K12_lnq1 <- subset(K12, ln_enrollment < 8.707481)
+K12_lnq2 <- subset(K12, ln_enrollment >= 8.707481 & ln_enrollment < 10.336310)
+K12_lnq3 <- subset(K12, ln_enrollment >= 10.336310 & ln_enrollment < 11.532670)
+K12_lnq4 <- subset(K12, ln_enrollment > 11.532670)
+```
 
+```{r, K12}
+#check the distribution of the predictor variable of interest (Budget)
+hist(K12_lnq1$Budget)
+hist(K12_lnq2$Budget)
+hist(K12_lnq3$Budget)
+hist(K12_lnq4$Budget)
+```
+```{r, city}
+#check the distribution of the predictor variable of interest (Energy Savings)
+hist(K12_lnq1$TotalFirstYearGrosskWh)
+hist(K12_lnq2$TotalFirstYearGrosskWh)
+hist(K12_lnq3$TotalFirstYearGrosskWh)
+hist(K12_lnq4$TotalFirstYearGrosskWh)
 ```
 
