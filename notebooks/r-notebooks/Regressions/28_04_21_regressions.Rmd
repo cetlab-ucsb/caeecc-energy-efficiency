@@ -91,7 +91,7 @@ summary(county1_nbin)
 
 ````{r, county}
 #poisson budget regression for q1
-counties_1a.glm <- glm(rounded_budget ~ TotalRevenue, data = counties_lnq1, family = "poisson")
+counties_1a.glm <- glm(rounded_budget ~ TotalRevenue, data = counties_lnq1, ›family = "poisson")
 counties_1b.glm <- glm(rounded_budget ~ TotalRevenue + ces_score_median, data = counties_lnq1, family = "poisson")
 counties_1c.glm <- glm(rounded_budget ~ TotalRevenue + ces_score_median + IRR, data = counties_lnq1, family = "poisson")
 counties_1d.glm <- glm(rounded_budget ~ TotalRevenue + ces_score_median + IRR + Mean.Income, data = counties_lnq1, family = "poisson")
@@ -104,7 +104,7 @@ summary(counties_1d.glm)
 summary(counties_1e.glm)
 ```
 The code above shows 5 different combinations of variables. For each poisson regression, every variable is significant (weirdly with the same p-value of <2e-16 which is R's way of indicating a very small number) however there are small coefficients. IRR is most significant in this case. 
-
+›
 ````{r, county}
 #poisson energy savings regression for q1
 counties_1f.glm <- glm(rounded_kWh ~ TotalRevenue, data = counties_lnq1, family = "poisson")
@@ -342,6 +342,8 @@ K12_1b.glm <- glm(rounded_budget ~ total_lcff_entitlement + ces_score_median + I
 K12_1c.glm <- glm(rounded_budget ~ total_lcff_entitlement + ces_score_median + IRR + median_household_income_usd + enrollment + free_meal_count, data = K12_lnq1, family = "poisson")
 K12_1d.glm <- glm(rounded_budget ~ total_lcff_entitlement + ces_score_median + IRR + median_household_income_usd + enrollment + free_meal_count + no_title1_status + frpm_count, data = K12_lnq1, family = "poisson")
 K12_1e.glm <- glm(rounded_budget ~ IRR + ces_score_median + no_title1_status, data = K12_lnq1, family = "poisson")
+
+K12_1e.glm <- glm(rounded_budget ~ IRR + ces_score_median + no_title1_status, data = K12_lnq1, family = "poisson") #do percentage
 
 summary(K12_1a.glm) #p-value should be < 0.05 to be significant 
 summary(K12_1b.glm)
