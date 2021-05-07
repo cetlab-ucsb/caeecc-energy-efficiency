@@ -12,13 +12,15 @@ cities <- read.csv('C:/Users/ather/CS Projects/CETLab/caeecc-energy-efficiency/c
 #create ln_pop variable as ln(total_population)
 
 cities$ln_pop = log(cities$total_population)
-hist(cities$ln_pop)
-
 #group data by ln_pop
 cities_lnq1 <- subset(cities, ln_pop < 9.5)
 cities_lnq2 <- subset(cities, ln_pop >= 9.5 & ln_pop < 11.5)
 cities_lnq3 <- subset(cities, ln_pop >= 11.5 & ln_pop < 12.5)
 cities_lnq4 <- subset(cities, ln_pop > 12.5)
+
+cities$budget_per_cap = cities$Budget / cities$total_population
+
+cities$budget_per_taxrev = cities$Budget / cities$Total.Tax.Revenue
 
 ```
 
@@ -42,26 +44,43 @@ hist(cities_lnq4$total_population)
 ```
 
 ```{r}
+#checking which variables would be closer to normal with log transform VST
+hist(log(cities$Total.Tax.Revenue))
+hist(log(cities$total_population))
+hist(cities$ces_score_median)
+hist(log(cities$median_household_income_usd))
+hist(cities$dac_proportion)
+hist(cities$ruca_average)
+hist(log(cities$Budget))
+```
+
+```{r}
 #regressions on groups
-
-lm(Budget ~ total_population + Total.Claims + Total.Tax.Revenue + Total.Programs + ces_score_median + TotalFirstYearGrosskWh, data = cities_lnq1)
-lm(Budget ~ total_population + Total.Claims + Total.Tax.Revenue + Total.Programs + ces_score_median + TotalFirstYearGrosskWh, data = cities_lnq2)
-lm(Budget ~ total_population + Total.Claims + Total.Tax.Revenue + Total.Programs + ces_score_median + TotalFirstYearGrosskWh, data = cities_lnq3)
-lm(Budget ~ total_population + Total.Claims + Total.Tax.Revenue + Total.Programs + ces_score_median + TotalFirstYearGrosskWh, data = cities_lnq4)
-
+log_model = lm(log(Budget) ~ log(Total.Tax.Revenue) + log(total_population) + ces_score_median + log(median_household_income_usd) + dac_proportion + ruca_average, data = cities)
+summary(log_model)
 ```
 
 ```{r}
-#regression ungrouped data with ln_pop
 
-lm(Budget ~ ln_pop + Total.Tax.Revenue + ces_score_median + median_household_income_usd + dac_proportion + ruca_average, data = cities)
+quantile(cities_lnq1$Total.Tax.Revenue, na.rm = TRUE)
+subset1 = subset(cities_lnq1, Total.Tax.Revenue < 6433281)
+subset2 = subset(cities_lnq1, Total.Tax.Revenue >= 6433281 & Total.Tax.Revenue < 13961081)
+subset3 = subset(cities_lnq1, Total.Tax.Revenue >= 13961081 & Total.Tax.Revenue < 37688401)
+subset4 = subset(cities_lnq1, Total.Tax.Revenue >= 37688401)
+
+
+
+t.test(subset1$budget_per_taxrev, subset2$budget_per_taxrev, na.action = na.omit)
+
 
 ```
-
 ```{r}
-#regression ungrouped data with unchanged total_population
+mean(cities_lnq1$budget_per_taxrev, na.rm = TRUE)
+mean(cities_lnq2$budget_per_taxrev, na.rm = TRUE)
+mean(cities_lnq3$budget_per_taxrev)
+mean(cities_lnq4$budget_per_taxrev)
 
-lm(Budget ~ total_population + Total.Tax.Revenue + ces_score_median + median_household_income_usd + dac_proportion + ruca_average, data = cities)
+plot(cities$Total.Tax.Revenue, cities$Budget)
 
 ```
 
