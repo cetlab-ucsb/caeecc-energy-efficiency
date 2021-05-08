@@ -1,0 +1,18 @@
+---
+title: "Poisson"
+author: "Michelle Le"
+date: "4/27/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = '~caeecc-energy-efficieny/notebooks/r-notebooks/counties_1.csv')
+```
+
+```{r}
+#Poisson Regression 
+
+a.glm <- glm()
+
+```

@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 library(readr)
-data<-read.csv("cities_1 - cities_1.csv")
+data <- read.csv('/Users/athervgole/Downloads/cities_1.csv')
 View(data)
 ```
 
@@ -30,6 +30,12 @@ data1 <- data1[complete.cases(data1[,17:18]),]
 data1 <- data1 %>% mutate(pred = predict(tax.pop.lm, .)) %>% 
   mutate(Total.Tax.Revenue = ifelse(is.na(Total.Tax.Revenue),pred,Total.Tax.Revenue)) 
 ```
+
+```{r}
+cities_nona <- cities %>% filter(!is.na(Total.Tax.Revenue))
+taxrev_model <- lm(Total.Tax.Revenue ~ Total.Population, data = cities_nona)
+```
+
 
 ```{r}
 write.csv(data1,'cities_updated.csv')

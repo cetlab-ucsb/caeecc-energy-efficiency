@@ -1,0 +1,254 @@
+---
+title: "county regressions"
+author: "Sydney Litvin"
+date: "4/28/2021"
+output: html_document
+---
+```{r}
+library(readr)
+library(dplyr)
+counties<-read.csv("counties_1.csv")
+View(counties)
+```
+
+```{r}
+counties_g1 <- subset(counties, Population <= 100000)
+counties_g2 <- subset(counties, Population > 100000 & Population <= 200000)
+counties_g3 <- subset(counties, Population > 200000 & Population <= 300000)
+counties_g4 <- subset(counties, Population > 300000)
+```
+
+```{r}
+counties_g <- c(counties_g1, counties_g2, counties_g3, counties_g4)
+
+
+count(counties_g1)
+count(counties_g2)
+count(counties_g3)
+count(counties_g4)
+
+summary(counties_g1$Population)
+summary(counties_g2$Population)
+summary(counties_g3$Population)
+summary(counties_g4$Population)
+
+hist(counties_g1$Population)
+hist(counties_g2$Population)
+hist(counties_g3$Population)
+hist(counties_g4$Population)
+
+```
+
+
+```{r}
+counties_g1 <- na.omit(counties_g1)
+counties_g2 <- na.omit(counties_g2)
+counties_g3 <- na.omit(counties_g3)
+counties_g4 <- na.omit(counties_g4)
+```
+
+```{r}
+library(psych)
+plot.counties<- data.frame(counties[,2], counties[,3], counties[,4], counties[,5], counties[,7])
+colnames(plot.counties)<-c("Population","Mean.Income","IRR","TotalRevenue", "ces_score_median")
+pairs.panels(plot.counties, density=TRUE, cor=TRUE, lm=TRUE) 
+```
+
+
+```{r}
+reg1_g1<-lm(Budget~Population+TotalRevenue+IRR+Mean.Income+ces_score_median, data=counties_g1)
+summary(reg1_g1)
+par(mfrow=c(2,2))
+plot(reg1_g1)
+reg1_g1 <- reg1_g1$residuals 
+shapiro.test(reg1_g1)
+reg1_g2<-lm(Budget~Population+TotalRevenue+IRR+Mean.Income+ces_score_median, data=counties_g2)
+summary(reg1_g2)
+reg1_g3<-lm(Budget~Population+TotalRevenue+IRR+Mean.Income+ces_score_median, data=counties_g3)
+summary(reg1_g3)
+reg1_g4<-lm(Budget~Population+TotalRevenue+IRR+Mean.Income+ces_score_median, data=counties_g4)
+summary(reg1_g4)
+reg1_g5<-lm(Budget~Population+TotalRevenue+IRR+Mean.Income+ces_score_median, data=counties)
+summary(reg1_g5)
+par(mfrow=c(2,2))
+plot(reg1_g5)
+reg1_g5 <- reg1_g5$residuals 
+shapiro.test(reg1_g5)
+```
+```{r}
+result <- AIC(reg1_g1,reg1_g2,reg1_g3,reg1_g4,reg1_g5)
+result1<-BIC(reg1_g1,reg1_g2,reg1_g3,reg1_g4,reg1_g5)
+models <- list(reg1_g1,reg1_g2,reg1_g3,reg1_g4,reg1_g5)
+result$BIC <- sapply(models, BIC)
+model_summary <- lapply(models, summary)
+model_summary
+for(i in 1:length(models)){
+  result$rsq[i] <- model_summary[[i]]$r.squared 
+  result$adj_rsq[i] <- model_summary[[i]]$adj.r.squared 
+} 
+
+library(knitr)
+kable(result, digits = 2, align = "c")
+```
+
+
+```{r}
+reg2_g1<-lm(Budget~Population+TotalRevenue+IRR+Mean.Income, data=counties_g1)
+summary(reg2_g1)
+reg2_g2<-lm(Budget~Population+TotalRevenue+IRR+Mean.Income, data=counties_g2)
+summary(reg2_g2)
+reg2_g3<-lm(Budget~Population+TotalRevenue+IRR+Mean.Income, data=counties_g3)
+summary(reg2_g3)
+reg2_g4<-lm(Budget~Population+TotalRevenue+IRR+Mean.Income, data=counties_g4)
+summary(reg2_g4)
+reg2_g5<-lm(Budget~Population+TotalRevenue+IRR+Mean.Income, data=counties)
+summary(reg2_g5)
+```
+```{r}
+result <- AIC(reg2_g1,reg2_g2,reg2_g3,reg2_g4,reg2_g5)
+result1<-BIC(reg2_g1,reg2_g2,reg2_g3,reg2_g4,reg2_g5)
+models <- list(reg2_g1,reg2_g2,reg2_g3,reg2_g4,reg2_g5)
+result$BIC <- sapply(models, BIC)
+model_summary <- lapply(models, summary)
+model_summary
+for(i in 1:length(models)){
+  result$rsq[i] <- model_summary[[i]]$r.squared 
+  result$adj_rsq[i] <- model_summary[[i]]$adj.r.squared 
+} 
+
+library(knitr)
+kable(result, digits = 2, align = "c")
+```
+
+
+```{r}
+reg3_g1<-lm(Budget~Population+TotalRevenue+IRR, data=counties_g1)
+summary(reg3_g1)
+reg3_g2<-lm(Budget~Population+TotalRevenue+IRR, data=counties_g2)
+summary(reg3_g2)
+reg3_g3<-lm(Budget~Population+TotalRevenue+IRR, data=counties_g3)
+summary(reg3_g3)
+reg3_g4<-lm(Budget~Population+TotalRevenue+IRR, data=counties_g4)
+summary(reg3_g4)
+reg3_g5<-lm(Budget~Population+TotalRevenue+IRR, data=counties)
+summary(reg3_g5)
+```
+```{r}
+result <- AIC(reg3_g1,reg3_g2,reg3_g3,reg3_g4,reg3_g5)
+result1<-BIC(reg3_g1,reg3_g2,reg3_g3,reg3_g4,reg3_g5)
+models <- list(reg3_g1,reg3_g2,reg3_g3,reg3_g4,reg3_g5)
+result$BIC <- sapply(models, BIC)
+model_summary <- lapply(models, summary)
+model_summary
+for(i in 1:length(models)){
+  result$rsq[i] <- model_summary[[i]]$r.squared 
+  result$adj_rsq[i] <- model_summary[[i]]$adj.r.squared 
+} 
+
+library(knitr)
+kable(result, digits = 2, align = "c")
+```
+
+
+```{r}
+reg4_g1<-lm(Budget~Population+TotalRevenue, data=counties_g1)
+summary(reg4_g1)
+reg4_g2<-lm(Budget~Population+TotalRevenue, data=counties_g2)
+summary(reg4_g2)
+reg4_g3<-lm(Budget~Population+TotalRevenue, data=counties_g3)
+summary(reg4_g3)
+reg4_g4<-lm(Budget~Population+TotalRevenue, data=counties_g4)
+summary(reg4_g4)
+reg4_g5<-lm(Budget~Population+TotalRevenue, data=counties)
+summary(reg4_g5)
+```
+```{r}
+result <- AIC(reg4_g1,reg4_g2,reg4_g3,reg4_g4,reg4_g5)
+result1<-BIC(reg4_g1,reg4_g2,reg4_g3,reg4_g4,reg4_g5)
+models <- list(reg4_g1,reg4_g2,reg4_g3,reg4_g4,reg4_g5)
+result$BIC <- sapply(models, BIC)
+model_summary <- lapply(models, summary)
+model_summary
+for(i in 1:length(models)){
+  result$rsq[i] <- model_summary[[i]]$r.squared 
+  result$adj_rsq[i] <- model_summary[[i]]$adj.r.squared 
+} 
+
+library(knitr)
+kable(result, digits = 2, align = "c")
+```
+
+
+```{r}
+reg5_g1<-lm(Budget~Population, data=counties_g1)
+summary(reg5_g1)
+reg5_g2<-lm(Budget~Population, data=counties_g2)
+summary(reg5_g2)
+reg5_g3<-lm(Budget~Population, data=counties_g3)
+summary(reg5_g3)
+reg5_g4<-lm(Budget~Population, data=counties_g4)
+summary(reg5_g4)
+reg5_g5<-lm(Budget~Population, data=counties)
+summary(reg5_g5)
+```
+```{r}
+result <- AIC(reg5_g1,reg5_g2,reg5_g3,reg5_g4,reg5_g5)
+result1<-BIC(reg5_g1,reg5_g2,reg5_g3,reg5_g4,reg5_g5)
+models <- list(reg5_g1,reg5_g2,reg5_g3,reg5_g4,reg5_g5)
+result$BIC <- sapply(models, BIC)
+model_summary <- lapply(models, summary)
+model_summary
+for(i in 1:length(models)){
+  result$rsq[i] <- model_summary[[i]]$r.squared 
+  result$adj_rsq[i] <- model_summary[[i]]$adj.r.squared 
+} 
+
+library(knitr)
+kable(result, digits = 2, align = "c")
+```
+
+```{r}
+counties$ln_pop = log(counties$Population)
+
+counties_lnq1 <- subset(counties, ln_pop < 8)
+counties_lnq2 <- subset(counties, ln_pop >= 8 & ln_pop < 10)
+counties_lnq3 <- subset(counties, ln_pop >= 10 & ln_pop < 12)
+counties_lnq4 <- subset(counties, ln_pop > 12)
+
+counties_lnq <- c(counties_lnq1, counties_lnq2, counties_lnq3, counties_lnq4)
+
+```
+
+```{r}
+counties_lnq1 <- na.omit(counties_lnq1)
+counties_lnq2 <- na.omit(counties_lnq2)
+counties_lnq3 <- na.omit(counties_lnq3)
+counties_lnq4 <- na.omit(counties_lnq4)
+```
+
+```{r}
+reg1_lnq1<-lm(Budget~Population+TotalRevenue+IRR+Mean.Income+ces_score_median, data=counties_lnq1)
+summary(reg1_lnq1)
+reg1_lnq2<-lm(Budget~Population+TotalRevenue+IRR+Mean.Income+ces_score_median, data=counties_lnq2)
+summary(reg1_lnq2)
+reg1_lnq3<-lm(Budget~Population+TotalRevenue+IRR+Mean.Income+ces_score_median, data=counties_lnq3)
+summary(reg1_lnq3)
+reg1_lnq4<-lm(Budget~Population+TotalRevenue+IRR+Mean.Income+ces_score_median, data=counties_lnq4)
+summary(reg1_lnq4)
+```
+```{r}
+result <- AIC(reg1_lnq1,reg1_lnq2,reg1_lnq3,reg1_lnq4)
+result1<-BIC(reg1_lnq1,reg1_lnq2,reg1_lnq3,reg1_lnq4)
+models <- list(reg1_lnq1,reg1_lnq2,reg1_lnq3,reg1_lnq4)
+result$BIC <- sapply(models, BIC)
+model_summary <- lapply(models, summary)
+model_summary
+for(i in 1:length(models)){
+  result$rsq[i] <- model_summary[[i]]$r.squared 
+  result$adj_rsq[i] <- model_summary[[i]]$adj.r.squared 
+} 
+
+library(knitr)
+kable(result, digits = 2, align = "c")
+```
+
