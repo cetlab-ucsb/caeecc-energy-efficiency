@@ -38,6 +38,15 @@ counties$ln_Population <- log(counties$Population)
 #visualize the normal distribution
 hist(counties$ln_Population)
 ```
+
+```{r}
+#log-transform the population to account for the skew
+counties$ln_totalrevenue <- log(counties$TotalRevenue)
+#visualize the normal distribution
+hist(counties$ln_totalrevenue)
+```
+
+
 ```{r}
 #split into groups based on quantiles and population
 counties_g1 <- subset(counties, Population <= 100000)
@@ -51,7 +60,7 @@ counties_g4 <- subset(counties, Population > 300000)
 #split into groups based on quantiles
 quantile(counties$ln_Population)
 
-#gr`oup data by ln_population
+#group data by ln_population
 counties_lnq1 <- subset(counties, ln_Population < 10.768725)
 counties_lnq2 <- subset(counties, ln_Population >= 10.768725 & ln_Population < 12.125893)
 counties_lnq3 <- subset(counties, ln_Population >= 12.125893 & ln_Population < 13.439743)
