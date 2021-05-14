@@ -26,6 +26,9 @@ cities$budget_per_cap = cities$Budget / cities$total_population
 #generate budget per tax dollar
 cities$budget_per_taxrev = cities$Budget / cities$Total.Tax.Revenue
 
+#generate tax revenue per capita
+cities$taxrev_per_cap = cities$Total.Tax.Revenue / cities$total_population
+
 ```
 
 
@@ -64,21 +67,33 @@ hist(log(cities$Budget))
 #this seems to be the best model with the highest adjusted R^2 with log transformations
 
 reg_model = lm(Budget ~ Total.Tax.Revenue + log(total_population) + log(ces_score_median) + log(median_household_income_usd) + dac_proportion + log(ruca_average), data = cities)
-summary(reg_model)
+
+#summary(reg_model)
+
+reg_model_outcome = lm(log(Budget) ~ Total.Tax.Revenue + total_population + ces_score_median + median_household_income_usd + ruca_average, data = cities)
+
+summary(reg_model_outcome)
+
+#plot(reg_model_outcome)
 ```
 
 ```{r}
-#t tests off of subsets by uneven population groups
+budget_pop_model = lm(log(Budget) ~ total_population, data = cities)
+AIC(budget_pop_model)
 
-#for this t-test, I took the first population group (bottom quantile of full data split by population), split into bottom 25% by total first year gross and top 25% total first year gross, and t-tested the budget per capita and budget per tax revenue)
+#AIC based on likelihood,
+#even though based on F-test it shows insignificant var, AIC shows that the larger model is significant
+#log(budget) ~ income, taxrev, ruca, ces_score, population
 
-quantile(cities_lnq1$TotalFirstYearGrosskWh, na.rm = TRUE)
-lngroup1 = subset(cities_lnq1, TotalFirstYearGrosskWh < 7859.121)
-lngroup2 = subset(cities_lnq1, TotalFirstYearGrosskWh >= 7859.121)
+```
+```{r}
+#one with tax rev no population and opposite
 
+taxrev_no_pop = lm(log(Budget) ~ Total.Tax.Revenue + ces_score_median + median_household_income_usd + ruca_average, data = cities)
 
-t.test(lngroup1$budget_per_cap, lngroup2$budget_per_cap, na.action = na.omit)
-#t.test(lngroup1$budget_per_taxrev, lngroup2$budget_per_taxrev, na.action = na.omit)
+pop_no_taxrev = lm(log(Budget) ~ total_population + ces_score_median + median_household_income_usd + ruca_average, data = cities)
+
+#keep taxrevenue, drop population
 
 ```
 
@@ -88,15 +103,31 @@ t.test(lngroup1$budget_per_cap, lngroup2$budget_per_cap, na.action = na.omit)
 #this one is the same t-test as before but with the full ungrouped city dataset
 
 quantile(cities$TotalFirstYearGrosskWh, na.rm = TRUE)
-bottomq = subset(cities, TotalFirstYearGrosskWh <= 22382.8)
-topq = subset(cities, TotalFirstYearGrosskWh > 22382.8)
+bottomq_firstyear = subset(cities, TotalFirstYearGrosskWh <= 22382.8)
+topq_firstyear = subset(cities, TotalFirstYearGrosskWh > 22382.8)
 
 quantile(cities$Budget, na.rm = TRUE)
 bottomq_budget = subset(cities, Budget <= 1.868783e+04)
 topq_budget = subset(cities, Budget > 1.868783e+04)
 
 t.test(bottomq_budget$ruca_average, topq_budget$ruca_average, na.action = na.omit)
-#t.test(bottomq$budget_per_taxrev, topq$budget_per_taxrev, na.action = na.omit)
+t.test(bottomq_firstyear$ruca_average, topq_firstyear$ruca_average, na.action = na.omit)
+
+t.test(bottomq_budget$budget_per_cap, topq_budget$budget_per_cap)
+t.test(bottomq_firstyear$budget_per_cap, topq_firstyear$budget_per_cap)
+
+t.test(bottomq_budget$taxrev_per_cap, topq_budget$taxrev_per_cap)
+t.test(bottomq_firstyear$taxrev_per_cap, topq_firstyear$taxrev_per_cap)
+
+```
+
+```{r}
+
+bottom_omit = na.omit(bottomq_budget)
+top_omit = na.omit(topq_budget)
+
+mean(bottom_omit$taxrev_per_cap)
+mean(top_omit$taxrev_per_cap)
 
 ```
 
