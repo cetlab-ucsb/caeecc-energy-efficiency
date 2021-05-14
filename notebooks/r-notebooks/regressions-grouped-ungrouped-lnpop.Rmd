@@ -4,10 +4,25 @@ output: html_notebook
 ---
 
 ```{r}
-library("dplyr")
-cities <- read.csv('/Users/athervgole/R/cities_2.csv')
+#install Ecdat if you don't have
+install.packages("Ecdat")
+```
 
-#cities <- read.csv('C:/Users/ather/CSProjects/CETLab/caeecc-energy-efficiency/cities_2.csv')
+```{r}
+library("dplyr")
+library("MASS")
+library(splines)
+library(Ecdat)
+```
+
+
+```{r}
+
+#cities <- read.csv('/Users/athervgole/R/cities_2.csv')
+
+cities <- read.csv('C:/Users/ather/CS Projects/CETLab/caeecc-energy-efficiency/cities_2.csv')
+
+cities = na.omit(cities)
 ```
 
 ```{r}
@@ -85,13 +100,22 @@ AIC(budget_pop_model)
 #even though based on F-test it shows insignificant var, AIC shows that the larger model is significant
 #log(budget) ~ income, taxrev, ruca, ces_score, population
 
+#test step AIC to see which variables the evaluation picks
+stepAIC(lm(log(Budget) ~ median_household_income_usd + Total.Tax.Revenue + ruca_average + ces_score_median + total_population + dac_proportion, data = cities))
+
+#this seems to be the best model by AIC
+aic_model = lm(log(Budget) ~ median_household_income_usd + Total.Tax.Revenue + ruca_average + ces_score_median + total_population, data = cities)
+summary(aic_model)
+
+
 ```
+
 ```{r}
-#one with tax rev no population and opposite
+#testing dropping one of the two collinear variables
 
 taxrev_no_pop = lm(log(Budget) ~ Total.Tax.Revenue + ces_score_median + median_household_income_usd + ruca_average, data = cities)
 
-pop_no_taxrev = lm(log(Budget) ~ total_population + ces_score_median + median_household_income_usd + ruca_average, data = cities)
+#pop_no_taxrev = lm(log(Budget) ~ total_population + ces_score_median + median_household_income_usd + ruca_average, data = cities)
 
 #keep taxrevenue, drop population
 
@@ -100,7 +124,7 @@ pop_no_taxrev = lm(log(Budget) ~ total_population + ces_score_median + median_ho
 
 ```{r}
 
-#this one is the same t-test as before but with the full ungrouped city dataset
+#bunch of t-tests on the split data
 
 quantile(cities$TotalFirstYearGrosskWh, na.rm = TRUE)
 bottomq_firstyear = subset(cities, TotalFirstYearGrosskWh <= 22382.8)
@@ -122,12 +146,19 @@ t.test(bottomq_firstyear$taxrev_per_cap, topq_firstyear$taxrev_per_cap)
 ```
 
 ```{r}
+#spline regression testing, using the taxrev_no_pop model
 
-bottom_omit = na.omit(bottomq_budget)
-top_omit = na.omit(topq_budget)
+spline_model = lm(log(Budget) ~ splines::bs(total_population, knots = c(8746, 24958, 68146)) + Total.Tax.Revenue + ces_score_median + median_household_income_usd + ruca_average, data = cities)
 
-mean(bottom_omit$taxrev_per_cap)
-mean(top_omit$taxrev_per_cap)
+summary(spline_model)
 
+population_lims = range(cities$total_population)
+total_population.grid = seq(from=population_lims[1], to=population_lims[2])
+pred = predict(spline_model, newdata = list(total_population = total_population.grid), se=T)
+
+```
+
+```{r}
+plot(spline)
 ```
 
