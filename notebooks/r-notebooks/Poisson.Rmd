@@ -11,8 +11,34 @@ knitr::opts_knit$set(root.dir = '~caeecc-energy-efficieny/notebooks/r-notebooks/
 ```
 
 ```{r}
+#read in data
+localgov <- read.csv("counties_1.csv")
+
+#load in libraries
+library(data.table)
+library(tigris)
+library(ggplot2)
+library(hrbrthemes)
+library(extrafont) 
+library(car)
+library(multcomp)
+library(factoextra)
+library(psych)
+library(colorspace)
+```
+
+```{r}
+#subset out what variables you want to look at 
+localgov_1 <- localgov[,c("Population","TotalRevenue","IRR","Mean.Income","dac_proporation")]
+
+#makes the scatterplot matrix, so you can quickly check for multicollinearity
+pairs.panels(localgov_1)
+```
+
+```{r}
 #Poisson Regression 
 
-a.glm <- glm()
+a.glm <- glm(Budget ~ TotalRevenue)
 
 ```
+

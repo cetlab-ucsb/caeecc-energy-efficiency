@@ -963,7 +963,7 @@ summary(citiesd.glm)
 
 ```{r, K12 Programs}
 #read in data for K-12 EE programs 
-K12 <- read.csv("k12_counties_2.csv")
+K12 <- read.csv("k12_counties3.csv")
 ```
 
 ```{r, K12}
