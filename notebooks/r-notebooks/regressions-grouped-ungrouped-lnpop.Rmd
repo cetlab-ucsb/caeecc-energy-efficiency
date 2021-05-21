@@ -21,6 +21,7 @@ library(Ecdat)
 #cities <- read.csv('/Users/athervgole/R/cities_2.csv')
 
 cities <- read.csv('C:/Users/ather/CS Projects/CETLab/caeecc-energy-efficiency/cities_2.csv')
+demo <- read.csv('C:/Users/ather/R/CETLAB/census_race_combined_by_city.csv')
 
 cities = na.omit(cities)
 ```
@@ -107,6 +108,7 @@ stepAIC(lm(log(Budget) ~ median_household_income_usd + Total.Tax.Revenue + ruca_
 aic_model = lm(log(Budget) ~ median_household_income_usd + Total.Tax.Revenue + ruca_average + ces_score_median + total_population, data = cities)
 summary(aic_model)
 
+plot(aic_model)
 
 ```
 
@@ -160,5 +162,30 @@ pred = predict(spline_model, newdata = list(total_population = total_population.
 
 ```{r}
 plot(spline)
+```
+
+```{r}
+#reshape demo data
+demo_reshape <- reshape(demo, idvar = "city", timevar = "combined_group", direction = "wide")
+cities$SiteCity <- tolower(cities$SiteCity)
+demo_reshape$city <- tolower(demo_reshape$city)
+#join with cities
+cities_demos_joined <- left_join(cities, demo_reshape, by = c("SiteCity" = "city"))
+```
+
+```{r}
+#step AIC including demographics varaibles
+stepAIC(lm(log(Budget) ~ median_household_income_usd + Total.Tax.Revenue + ruca_average + ces_score_median + total_population + dac_proportion + `proportion.Non-white`, data = cities_demos_joined))
+```
+
+
+```{r}
+#demographics regressions:
+aic_with_demo_model = lm(log(Budget) ~ median_household_income_usd + Total.Tax.Revenue + ruca_average + ces_score_median + total_population + `proportion.Non-white`, data = cities_demos_joined)
+summary(aic_with_demo_model)
+
+plot(aic_with_demo_model)
+
+
 ```
 
