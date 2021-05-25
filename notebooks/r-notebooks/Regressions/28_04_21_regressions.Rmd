@@ -7,7 +7,7 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_knit$set(root.dir = '~/Desktop/caeecc-energy-efficiency/for github/data')
+knitr::opts_knit$set(root.dir = '~/Documents/Github/caeecc-energy-efficiency/for github/data')
 ```
 
 ```{r, load packages}
@@ -23,21 +23,24 @@ library(fitdistrplus)
 
 ```{r, EE Programs at the County Level}
 #read in data for County EE programs 
-counties <- read.csv("counties_1.csv")
+counties<-read.csv("counties_1.csv")
 ```
 
 ```{r, county—check}
-#scatter plot matrix to check for correlation between county population and investment/energy savings
-plot.counties <- data.frame(counties$County, counties$Population, counties$Budget, counties$TotalFirstYearGrosskWh, counties$TotalRevenue) #subset out these variables
-colnames(plot.counties)<-c("County", "Population", "Budget", "TotalFirstYearGrosskWh", "Total Revenue") #change column names back to original
+#scatter plot matrix to check for correlation between county specific varaibles and investment/energy savings
+plot.counties <- data.frame(counties$County, counties$Population, counties$Budget, counties$TotalFirstYearGrosskWh, counties$TotalRevenue, counties$Mean.Income, counties$IRR, counties$dac_proportion, counties$ces_score_median, counties$ces_percentile_median, counties$X..OBF.Budget, counties$X..Resource.Budget) #subset out these variables
+colnames(plot.counties)<-c("County", "Population", "Budget", "TotalFirstYearGrosskWh", "Total Revenue", "Mean Income", "IRR", "dac_proportion", "ces_score_median", "ces_percentile_median", "X..OBF.Budget", "X..Resource.Budget" ) #change column names back to original
 pairs.panels(plot.counties, density = TRUE, cor=TRUE, lm=TRUE) #scatterplot
 ```
+
+
 ```{r, county}
 #log-transform the population to account for the skew
 counties$ln_Population <- log(counties$Population)
 #visualize the normal distribution
 hist(counties$ln_Population)
 ```
+
 
 ```{r}
 #log-transform the population to account for the skew
@@ -49,15 +52,33 @@ hist(counties$ln_totalrevenue)
 
 ```{r}
 #split into groups based on quantiles and population
-counties_g1 <- subset(counties, Population <= 100000)
-counties_g2 <- subset(counties, Population > 100000 & Population <= 200000)
-counties_g3 <- subset(counties, Population > 200000 & Population <= 300000)
-counties_g4 <- subset(counties, Population > 300000)
+quantile(counties$Population)
+
+#split into groups based on arbitrary numbers for population 
+counties_g1 <- subset(counties, Population <= 47646.75)
+counties_g2 <- subset(counties, Population > 47646.75 & Population <= 184632.00)
+counties_g3 <- subset(counties, Population > 184632.00 & Population <= 692750.75)
+counties_g4 <- subset(counties, Population > 692750.75)
 ```
 
+```{r, county grouped w/ population}
+#check the distribution of the predictor variable of interest (Budget)
+hist(counties_g1$Budget)
+hist(counties_g2$Budget)
+hist(counties_g3$Budget)
+hist(counties_g4$Budget)
+```
 
-```{r, county}
-#split into groups based on quantiles
+```{r, county grouped w/ population}
+#check the distribution of the predictor variable of interest (Energy Savings)
+hist(counties_g1$TotalFirstYearGrosskWh)
+hist(counties_g2$TotalFirstYearGrosskWh)
+hist(counties_g3$TotalFirstYearGrosskWh)
+hist(counties_g4$TotalFirstYearGrosskWh)
+```
+
+```{r, county quantiles w/ ln(pop)}
+#split into groups based on quantiles of ln_pop
 quantile(counties$ln_Population)
 
 #group data by ln_population
@@ -66,14 +87,16 @@ counties_lnq2 <- subset(counties, ln_Population >= 10.768725 & ln_Population < 1
 counties_lnq3 <- subset(counties, ln_Population >= 12.125893 & ln_Population < 13.439743)
 counties_lnq4 <- subset(counties, ln_Population > 13.439743)
 ```
-```{r, county}
+
+```{r, county quantiles w/ ln(pop)}
 #check the distribution of the predictor variable of interest (Budget)
 hist(counties_lnq1$Budget)
 hist(counties_lnq2$Budget)
 hist(counties_lnq3$Budget)
 hist(counties_lnq4$Budget)
 ```
-```{r, county}
+
+```{r, county quantiles w/ ln(pop)}
 #check the distribution of the predictor variable of interest (Energy Savings)
 hist(counties_lnq1$TotalFirstYearGrosskWh)
 hist(counties_lnq2$TotalFirstYearGrosskWh)
@@ -81,8 +104,8 @@ hist(counties_lnq3$TotalFirstYearGrosskWh)
 hist(counties_lnq4$TotalFirstYearGrosskWh)
 ```
 
-```{r}
-#round y because GLM works best with integers using quantiles split by just population 
+```{r, county grouped w/ population}
+#round y because GLM works best with integers using groups based on arbitrary numbers for population  
 counties_g1$rounded_budget <- round(counties_g1$Budget, 0)
 counties_g2$rounded_budget <- round(counties_g2$Budget, 0)
 counties_g3$rounded_budget <- round(counties_g3$Budget, 0)
@@ -94,7 +117,7 @@ counties_g3$rounded_kWh <- round(counties_g3$TotalFirstYearGrosskWh, 0)
 counties_g4$rounded_kWh <- round(counties_g4$TotalFirstYearGrosskWh, 0)
 ```
 
-```{r}
+```{r, county grouped w/ population}
 #check which distribution would be best for the budget of the SMALLEST population group
 library(fitdistrplus)
 counties1_pois <- fitdist(counties_g1$rounded_budget, "pois") #CHECK
@@ -108,7 +131,7 @@ summary(counties1_pois)
 summary(counties1_nbin)
 ```
 
-```{r}
+```{r, county grouped w/ population}
 #check which distribution would be best for the budget of the second SMALLEST population group
 library(fitdistrplus)
 counties2_pois <- fitdist(counties_g2$rounded_budget, "pois") #CHECK
@@ -122,7 +145,7 @@ summary(counties2_pois)
 summary(counties2_nbin)
 ```
 
-```{r}
+```{r, county grouped w/ population}
 #check which distribution would be best for the budget of the second LARGEST population group
 library(fitdistrplus)
 counties3_pois <- fitdist(counties_g3$rounded_budget, "pois") #CHECK
@@ -136,7 +159,7 @@ summary(counties3_pois)
 summary(counties3_nbin)
 ```
 
-```{r}
+```{r, county grouped w/ population}
 #check which distribution would be best for the budget of the LARGEST population group
 library(fitdistrplus)
 counties4_pois <- fitdist(counties_g4$rounded_budget, "pois") #CHECK
@@ -151,7 +174,7 @@ summary(counties4_nbin)
 ```
 
 
-```{r, county—check}
+```{r, county quantiles w/ ln(pop)}
 #round y because GLM works best with integers using quantiles split by log of population
 counties_lnq1$rounded_budget <- round(counties_lnq1$Budget, 0)
 counties_lnq2$rounded_budget <- round(counties_lnq2$Budget, 0)
@@ -164,7 +187,7 @@ counties_lnq3$rounded_kWh <- round(counties_lnq3$TotalFirstYearGrosskWh, 0)
 counties_lnq4$rounded_kWh <- round(counties_lnq4$TotalFirstYearGrosskWh, 0)
 ```
 
-```{r, county—check}
+```{r, county quantiles w/ ln(pop)—check}
 #check which distribution would be best for the budget of the SMALLEST population group
 library(fitdistrplus)
 county1_pois <- fitdist(counties_lnq1$rounded_budget, "pois") #CHECK
@@ -177,7 +200,7 @@ qqcomp(list(county1_pois, county1_nbin))
 summary(county1_pois)
 summary(county1_nbin)
 ```
-```{r}
+```{r, county quantiles w/ ln(pop)}
 #check which distribution would be best for the budget of the second SMALLEST population group
 library(fitdistrplus)
 county2_pois <- fitdist(counties_lnq2$rounded_budget, "pois") #CHECK
@@ -191,7 +214,7 @@ summary(county2_pois)
 summary(county2_nbin)
 ```
 
-```{r}
+```{r, county quantiles w/ ln(pop)}
 #check which distribution would be best for the budget of the second LARGEST population group
 library(fitdistrplus)
 county3_pois <- fitdist(counties_lnq3$rounded_budget, "pois") #CHECK
@@ -205,7 +228,7 @@ summary(county3_pois)
 summary(county3_nbin)
 ```
 
-```{r}
+```{r, county quantiles w/ ln(pop)}
 #check which distribution would be best for the budget of the LARGEST population group
 library(fitdistrplus)
 county4_pois <- fitdist(counties_lnq4$rounded_budget, "pois") #CHECK
@@ -218,26 +241,65 @@ qqcomp(list(county4_pois, county4_nbin))
 summary(county4_pois)
 summary(county4_nbin)
 ```
+```{r, county ungrouped}
+#check the distributions
+hist(counties$Budget)
+hist(counties$TotalFirstYearGrosskWh)
 
-```{r}
-#Regression just using county data, not split into quantiles yet
-counties1.glm <- glm(Budget ~ TotalRevenue, data = counties, family = "poisson")
-counties2.glm <- glm(Budget ~ TotalRevenue + ces_score_median, data = counties, family = "poisson")
-counties3.glm <- glm(Budget ~ TotalRevenue + ces_score_median + IRR, data = counties, family = "poisson")
-counties4.glm <- glm(Budget ~ TotalRevenue + ces_score_median + IRR + Mean.Income, data = counties, family = "poisson")
-counties5.glm <- glm(Budget ~ TotalRevenue + ces_score_median + IRR + Mean.Income + Population, data = counties, family = "poisson")
+#round the budget and kWh
+counties$rounded_budget <- round(counties$Budget, 0)
+counties$rounded_kWh <- round(counties$TotalFirstYearGrosskWh, 0)
+```
+
+```{r, county ungrouped}
+#poisson regression for budget just using county data, not split into quantiles/groups yet
+counties1.glm <- glm(rounded_budget ~ TotalRevenue, data = counties, family = "poisson")
+counties2.glm <- glm(rounded_budget ~ TotalRevenue + ces_score_median, data = counties, family = "poisson")
+counties3.glm <- glm(rounded_budget ~ TotalRevenue + ces_score_median + IRR, data = counties, family = "poisson")
+counties4.glm <- glm(rounded_budget ~ TotalRevenue + ces_score_median + IRR + Mean.Income, data = counties, family = "poisson")
+counties5.glm <- glm(rounded_budget ~ TotalRevenue + ces_score_median + IRR + Mean.Income + Population, data = counties, family = "poisson")
+counties6.glm <- glm(rounded_budget ~ ces_score_median + IRR + Mean.Income + Population, data = counties, family = "poisson")
+counties7.glm <- glm(rounded_budget ~ ces_score_median + IRR + Mean.Income, data = counties, family = "poisson")
+counties8.glm <- glm(rounded_budget ~ TotalRevenue + IRR + Mean.Income, data = counties, family = "poisson")
+counties9.glm <- glm(rounded_budget ~ IRR + Mean.Income + Population, data = counties, family = "poisson")
 
 summary(counties1.glm) #p-value should be < 0.05 to be significant 
 summary(counties2.glm)
 summary(counties3.glm)
 summary(counties4.glm)
 summary(counties5.glm)
+summary(counties6.glm)
+summary(counties7.glm)
+summary(counties8.glm)
+summary(counties9.glm)
+```
+```{r, county ungrouped}
+#poisson regression for kWh just using county data, not split into quantiles/groups yet
+counties10.glm <- glm(rounded_kWh ~ TotalRevenue, data = counties, family = "poisson")
+counties12.glm <- glm(rounded_kWh ~ TotalRevenue + ces_score_median, data = counties, family = "poisson")
+counties13.glm <- glm(rounded_kWh ~ TotalRevenue + ces_score_median + IRR, data = counties, family = "poisson")
+counties14.glm <- glm(rounded_kWh ~ TotalRevenue + ces_score_median + IRR + Mean.Income, data = counties, family = "poisson")
+counties15.glm <- glm(rounded_kWh ~ TotalRevenue + ces_score_median + IRR + Mean.Income + Population, data = counties, family = "poisson")
+counties16.glm <- glm(rounded_kWh ~ ces_score_median + IRR + Mean.Income + Population, data = counties, family = "poisson")
+counties17.glm <- glm(rounded_kWh ~ ces_score_median + IRR + Mean.Income, data = counties, family = "poisson")
+counties18.glm <- glm(rounded_kWh ~ TotalRevenue + IRR + Mean.Income, data = counties, family = "poisson")
+counties19.glm <- glm(rounded_kWh ~ IRR + Mean.Income + Population, data = counties, family = "poisson")
+
+summary(counties10.glm) #p-value should be < 0.05 to be significant 
+summary(counties12.glm)
+summary(counties13.glm)
+summary(counties14.glm)
+summary(counties15.glm)
+summary(counties16.glm)
+summary(counties17.glm)
+summary(counties18.glm)
+summary(counties19.glm)
 ```
 
 ```{r}
-result <- AIC(counties1.glm, counties2.glm, counties3.glm, counties4.glm, counties5.glm)
-result1<-BIC(counties1.glm, counties2.glm, counties3.glm, counties4.glm, counties5.glm)
-models <- list(counties1.glm, counties2.glm, counties3.glm, counties4.glm, counties5.glm)
+result <- AIC(counties1.glm, counties2.glm, counties3.glm, counties4.glm, counties5.glm, counties6.glm, counties7.glm,  counties8.glm, counties9.glm)
+result1<-BIC(counties1.glm, counties2.glm, counties3.glm, counties4.glm, counties5.glm, counties6.glm, counties7.glm,  counties8.glm, counties9.glm)
+models <- list(counties1.glm, counties2.glm, counties3.glm, counties4.glm, counties5.glm, counties6.glm, counties7.glm,  counties8.glm, counties9.glm)
 result$BIC <- sapply(models, BIC)
 model_summary <- lapply(models, summary)
 model_summary
@@ -250,34 +312,50 @@ library(knitr)
 kable(result, digits = 2, align = "c")
 ```
 
-```{r}
+```{r, county grouped w/ population}
 #poisson budget regression for q1 using just population
 counties1a.glm <- glm(rounded_budget ~ TotalRevenue, data = counties_g1, family = "poisson")
 counties1b.glm <- glm(rounded_budget ~ TotalRevenue + ces_score_median, data = counties_g1, family = "poisson")
 counties1c.glm <- glm(rounded_budget ~ TotalRevenue + ces_score_median + IRR, data = counties_g1, family = "poisson")
 counties1d.glm <- glm(rounded_budget ~ TotalRevenue + ces_score_median + IRR + Mean.Income, data = counties_g1, family = "poisson")
 counties1e.glm <- glm(rounded_budget ~ TotalRevenue + ces_score_median + IRR + Mean.Income + Population, data = counties_g1, family = "poisson")
+counties1f.glm <- glm(rounded_budget ~ ces_score_median + IRR + Mean.Income + Population, data = counties_g1, family = "poisson")
+counties1g.glm <- glm(rounded_budget ~ ces_score_median + IRR + Mean.Income, data = counties_g1, family = "poisson")
+counties1h.glm <- glm(rounded_budget ~ TotalRevenue + IRR + Mean.Income, data = counties_g1, family = "poisson")
+counties1i.glm <- glm(rounded_budget ~ IRR + Mean.Income + Population, data = counties_g1, family = "poisson")
 
 summary(counties1a.glm) #p-value should be < 0.05 to be significant 
 summary(counties1b.glm)
 summary(counties1c.glm)
 summary(counties1d.glm)
 summary(counties1e.glm)
-```
-
-```{r}
-#poisson energy savings regression for q1 with quantiles based on just population
-counties1f.glm <- glm(rounded_kWh ~ TotalRevenue, data = counties_g1, family = "poisson")
-counties1g.glm <- glm(rounded_kWh ~ TotalRevenue + ces_score_median, data = counties_g1, family = "poisson")
-counties1h.glm <- glm(rounded_kWh ~ TotalRevenue + ces_score_median + IRR, data = counties_g1, family = "poisson")
-counties1i.glm <- glm(rounded_kWh ~ TotalRevenue + ces_score_median + IRR + Mean.Income, data = counties_g1, family = "poisson")
-counties1j.glm <- glm(rounded_kWh ~ TotalRevenue + ces_score_median + IRR + Mean.Income + Population, data = counties_g1, family = "poisson")
-
-summary(counties1f.glm) #p-value should be < 0.05 to be significant 
+summary(counties1f.glm)
 summary(counties1g.glm)
 summary(counties1h.glm)
 summary(counties1i.glm)
-summary(counties1j.glm)
+```
+
+```{r, county grouped w/ population}
+#poisson energy savings regression for q1 with quantiles based on just population
+counties1j.glm <- glm(rounded_kWh ~ TotalRevenue, data = counties_g1, family = "poisson")
+counties1k.glm <- glm(rounded_kWh ~ TotalRevenue + ces_score_median, data = counties_g1, family = "poisson")
+counties1l.glm <- glm(rounded_kWh ~ TotalRevenue + ces_score_median + IRR, data = counties_g1, family = "poisson")
+counties1m.glm <- glm(rounded_kWh ~ TotalRevenue + ces_score_median + IRR + Mean.Income, data = counties_g1, family = "poisson")
+counties1n.glm <- glm(rounded_kWh ~ TotalRevenue + ces_score_median + IRR + Mean.Income + Population, data = counties_g1, family = "poisson")
+counties1o.glm <- glm(rounded_kWh ~ ces_score_median + IRR + Mean.Income + Population, data = counties_g1, family = "poisson")
+counties1p.glm <- glm(rounded_kWh ~ ces_score_median + IRR + Mean.Income, data = counties_g1, family = "poisson")
+counties1q.glm <- glm(rounded_kWh ~ TotalRevenue + IRR + Mean.Income, data = counties_g1, family = "poisson")
+counties1r.glm <- glm(rounded_kWh ~ IRR + Mean.Income + Population, data = counties_g1, family = "poisson")
+
+summary(counties1j.glm) #p-value should be < 0.05 to be significant 
+summary(counties1k.glm)
+summary(counties1l.glm)
+summary(counties1m.glm)
+summary(counties1n.glm)
+summary(counties1o.glm)
+summary(counties1p.glm)
+summary(counties1q.glm)
+summary(counties1r.glm)
 ```
 
 ```{r}
@@ -287,27 +365,43 @@ counties2b.glm <- glm(rounded_budget ~ TotalRevenue + ces_score_median, data = c
 counties2c.glm <- glm(rounded_budget ~ TotalRevenue + ces_score_median + IRR, data = counties_g2, family = "poisson")
 counties2d.glm <- glm(rounded_budget ~ TotalRevenue + ces_score_median + IRR + Mean.Income, data = counties_g2, family = "poisson")
 counties2e.glm <- glm(rounded_budget ~ TotalRevenue + ces_score_median + IRR + Mean.Income + Population, data = counties_g2, family = "poisson")
+counties2f.glm <- glm(rounded_budget ~ ces_score_median + IRR + Mean.Income + Population, data = counties_g2, family = "poisson")
+counties2g.glm <- glm(rounded_budget ~ ces_score_median + IRR + Mean.Income, data = counties_g2, family = "poisson")
+counties2h.glm <- glm(rounded_budget ~ TotalRevenue + IRR + Mean.Income, data = counties_g2, family = "poisson")
+counties2i.glm <- glm(rounded_budget ~ IRR + Mean.Income + Population, data = counties_g2, family = "poisson")
 
 summary(counties2a.glm) #p-value should be < 0.05 to be significant 
 summary(counties2b.glm)
 summary(counties2c.glm)
 summary(counties2d.glm)
 summary(counties2e.glm)
+summary(counties2f.glm)
+summary(counties2g.glm)
+summary(counties2h.glm)
+summary(counties2i.glm)
 ```
 
 ```{r}
 #poisson energy savings regression for q2 with quantiles based on just population
-counties2f.glm <- glm(rounded_kWh ~ TotalRevenue, data = counties_g2, family = "poisson")
-counties2g.glm <- glm(rounded_kWh ~ TotalRevenue + ces_score_median, data = counties_g2, family = "poisson")
-counties2h.glm <- glm(rounded_kWh ~ TotalRevenue + ces_score_median + IRR, data = counties_g2, family = "poisson")
-counties2i.glm <- glm(rounded_kWh ~ TotalRevenue + ces_score_median + IRR + Mean.Income, data = counties_g2, family = "poisson")
-counties2j.glm <- glm(rounded_kWh ~ TotalRevenue + ces_score_median + IRR + Mean.Income + Population, data = counties_g2, family = "poisson")
+counties2j.glm <- glm(rounded_kWh ~ TotalRevenue, data = counties_g2, family = "poisson")
+counties2k.glm <- glm(rounded_kWh ~ TotalRevenue + ces_score_median, data = counties_g2, family = "poisson")
+counties2l.glm <- glm(rounded_kWh ~ TotalRevenue + ces_score_median + IRR, data = counties_g2, family = "poisson")
+counties2m.glm <- glm(rounded_kWh ~ TotalRevenue + ces_score_median + IRR + Mean.Income, data = counties_g2, family = "poisson")
+counties2n.glm <- glm(rounded_kWh ~ TotalRevenue + ces_score_median + IRR + Mean.Income + Population, data = counties_g2, family = "poisson")
+counties2o.glm <- glm(rounded_kWh ~ ces_score_median + IRR + Mean.Income + Population, data = counties_g2, family = "poisson")
+counties2p.glm <- glm(rounded_kWh ~ ces_score_median + IRR + Mean.Income, data = counties_g2, family = "poisson")
+counties2q.glm <- glm(rounded_kWh ~ TotalRevenue + IRR + Mean.Income, data = counties_g2, family = "poisson")
+counties2r.glm <- glm(rounded_kWh ~ IRR + Mean.Income + Population, data = counties_g2, family = "poisson")
 
-summary(counties2f.glm) #p-value should be < 0.05 to be significant 
-summary(counties2g.glm)
-summary(counties2h.glm)
-summary(counties2i.glm)
-summary(counties2j.glm)
+summary(counties2j.glm) #p-value should be < 0.05 to be significant 
+summary(counties2k.glm)
+summary(counties2l.glm)
+summary(counties2m.glm)
+summary(counties2n.glm)
+summary(counties2o.glm)
+summary(counties2p.glm)
+summary(counties2q.glm)
+summary(counties2r.glm)
 ```
 
 ```{r}
@@ -317,27 +411,43 @@ counties3b.glm <- glm(rounded_budget ~ TotalRevenue + ces_score_median, data = c
 counties3c.glm <- glm(rounded_budget ~ TotalRevenue + ces_score_median + IRR, data = counties_g3, family = "poisson")
 counties3d.glm <- glm(rounded_budget ~ TotalRevenue + ces_score_median + IRR + Mean.Income, data = counties_g3, family = "poisson")
 counties3e.glm <- glm(rounded_budget ~ TotalRevenue + ces_score_median + IRR + Mean.Income + Population, data = counties_g3, family = "poisson")
+counties3f.glm <- glm(rounded_budget ~ ces_score_median + IRR + Mean.Income + Population, data = counties_g3, family = "poisson")
+counties3g.glm <- glm(rounded_budget ~ ces_score_median + IRR + Mean.Income, data = counties_g3, family = "poisson")
+counties3h.glm <- glm(rounded_budget ~ TotalRevenue + IRR + Mean.Income, data = counties_g3, family = "poisson")
+counties3i.glm <- glm(rounded_budget ~ IRR + Mean.Income + Population, data = counties_g3, family = "poisson")
 
 summary(counties3a.glm) #p-value should be < 0.05 to be significant 
 summary(counties3b.glm)
 summary(counties3c.glm)
 summary(counties3d.glm)
 summary(counties3e.glm)
+summary(counties3f.glm)
+summary(counties3g.glm)
+summary(counties3h.glm)
+summary(counties3i.glm)
 ```
 
 ```{r}
 #poisson energy savings regression for q3 with quantiles based on just population
-counties3f.glm <- glm(rounded_kWh ~ TotalRevenue, data = counties_g3, family = "poisson")
-counties3g.glm <- glm(rounded_kWh ~ TotalRevenue + ces_score_median, data = counties_g3, family = "poisson")
-counties3h.glm <- glm(rounded_kWh ~ TotalRevenue + ces_score_median + IRR, data = counties_g3, family = "poisson")
-counties3i.glm <- glm(rounded_kWh ~ TotalRevenue + ces_score_median + IRR + Mean.Income, data = counties_g3, family = "poisson")
-counties3j.glm <- glm(rounded_kWh ~ TotalRevenue + ces_score_median + IRR + Mean.Income + Population, data = counties_g3, family = "poisson")
+counties3j.glm <- glm(rounded_kWh ~ TotalRevenue, data = counties_g3, family = "poisson")
+counties3k.glm <- glm(rounded_kWh ~ TotalRevenue + ces_score_median, data = counties_g3, family = "poisson")
+counties3l.glm <- glm(rounded_kWh ~ TotalRevenue + ces_score_median + IRR, data = counties_g3, family = "poisson")
+counties3m.glm <- glm(rounded_kWh ~ TotalRevenue + ces_score_median + IRR + Mean.Income, data = counties_g3, family = "poisson")
+counties3n.glm <- glm(rounded_kWh ~ TotalRevenue + ces_score_median + IRR + Mean.Income + Population, data = counties_g3, family = "poisson")
+counties3o.glm <- glm(rounded_kWh ~ ces_score_median + IRR + Mean.Income + Population, data = counties_g3, family = "poisson")
+counties3p.glm <- glm(rounded_kWh ~ ces_score_median + IRR + Mean.Income, data = counties_g3, family = "poisson")
+counties3q.glm <- glm(rounded_kWh ~ TotalRevenue + IRR + Mean.Income, data = counties_g3, family = "poisson")
+counties3ir.glm <- glm(rounded_kWh ~ IRR + Mean.Income + Population, data = counties_g3, family = "poisson")
 
-summary(counties3f.glm) #p-value should be < 0.05 to be significant 
-summary(counties3g.glm)
-summary(counties3h.glm)
-summary(counties3i.glm)
-summary(counties3j.glm)
+summary(counties3j.glm) #p-value should be < 0.05 to be significant 
+summary(counties3k.glm)
+summary(counties3l.glm)
+summary(counties3m.glm)
+summary(counties3n.glm)
+summary(counties3o.glm)
+summary(counties3p.glm)
+summary(counties3q.glm)
+summary(counties3r.glm)
 ```
 
 ```{r}
@@ -347,27 +457,43 @@ counties4b.glm <- glm(rounded_budget ~ TotalRevenue + ces_score_median, data = c
 counties4c.glm <- glm(rounded_budget ~ TotalRevenue + ces_score_median + IRR, data = counties_g4, family = "poisson")
 counties4d.glm <- glm(rounded_budget ~ TotalRevenue + ces_score_median + IRR + Mean.Income, data = counties_g4, family = "poisson")
 counties4e.glm <- glm(rounded_budget ~ TotalRevenue + ces_score_median + IRR + Mean.Income + Population, data = counties_g4, family = "poisson")
+counties4f.glm <- glm(rounded_budget ~ ces_score_median + IRR + Mean.Income + Population, data = counties_g3, family = "poisson")
+counties4g.glm <- glm(rounded_budget ~ ces_score_median + IRR + Mean.Income, data = counties_g4, family = "poisson")
+counties4h.glm <- glm(rounded_budget ~ TotalRevenue + IRR + Mean.Income, data = counties_g4, family = "poisson")
+counties4i.glm <- glm(rounded_budget ~ IRR + Mean.Income + Population, data = counties_g4, family = "poisson")
 
 summary(counties4a.glm) #p-value should be < 0.05 to be significant 
 summary(counties4b.glm)
 summary(counties4c.glm)
 summary(counties4d.glm)
 summary(counties4e.glm)
+summary(counties4f.glm)
+summary(counties4g.glm)
+summary(counties4h.glm)
+summary(counties4i.glm)
 ```
 
 ```{r}
 #poisson energy savings regression for q3 with quantiles based on just population
-counties4f.glm <- glm(rounded_kWh ~ TotalRevenue, data = counties_g4, family = "poisson")
-counties4g.glm <- glm(rounded_kWh ~ TotalRevenue + ces_score_median, data = counties_g4, family = "poisson")
-counties4h.glm <- glm(rounded_kWh ~ TotalRevenue + ces_score_median + IRR, data = counties_g4, family = "poisson")
-counties4i.glm <- glm(rounded_kWh ~ TotalRevenue + ces_score_median + IRR + Mean.Income, data = counties_g4, family = "poisson")
-counties4j.glm <- glm(rounded_kWh ~ TotalRevenue + ces_score_median + IRR + Mean.Income + Population, data = counties_g4, family = "poisson")
+counties4j.glm <- glm(rounded_kWh ~ TotalRevenue, data = counties_g4, family = "poisson")
+counties4k.glm <- glm(rounded_kWh ~ TotalRevenue + ces_score_median, data = counties_g4, family = "poisson")
+counties4l.glm <- glm(rounded_kWh ~ TotalRevenue + ces_score_median + IRR, data = counties_g4, family = "poisson")
+counties4m.glm <- glm(rounded_kWh ~ TotalRevenue + ces_score_median + IRR + Mean.Income, data = counties_g4, family = "poisson")
+counties4n.glm <- glm(rounded_kWh ~ TotalRevenue + ces_score_median + IRR + Mean.Income + Population, data = counties_g4, family = "poisson")
+counties4o.glm <- glm(rounded_kWh ~ ces_score_median + IRR + Mean.Income + Population, data = counties_g4, family = "poisson")
+counties4p.glm <- glm(rounded_kWh ~ ces_score_median + IRR + Mean.Income, data = counties_g4, family = "poisson")
+counties4q.glm <- glm(rounded_kWh ~ TotalRevenue + IRR + Mean.Income, data = counties_g4, family = "poisson")
+counties4ir.glm <- glm(rounded_kWh ~ IRR + Mean.Income + Population, data = counties_g4, family = "poisson")
 
-summary(counties4f.glm) #p-value should be < 0.05 to be significant 
-summary(counties4g.glm)
-summary(counties4h.glm)
-summary(counties4i.glm)
-summary(counties4j.glm)
+summary(counties4j.glm) #p-value should be < 0.05 to be significant 
+summary(counties4k.glm)
+summary(counties4l.glm)
+summary(counties4m.glm)
+summary(counties4n.glm)
+summary(counties4o.glm)
+summary(counties4p.glm)
+summary(counties4q.glm)
+summary(counties4r.glm)
 ```
 
 ````{r, county}
@@ -403,6 +529,7 @@ kable(result, digits = 2, align = "c")
 ```
 
 ```{r}
+#a way to try an verify if this model is actually a good fit for the data 
 with(counties_1a.glm, cbind(res.deviance = deviance, df = df.residual,
   p = pchisq(deviance, df.residual, lower.tail=FALSE)))
 with(counties_1b.glm, cbind(res.deviance = deviance, df = df.residual,
@@ -432,7 +559,7 @@ summary(counties_1j.glm)
 ```
 
 ```{r, county}
-#validate your budget model
+#validate your budget model for q1
 anova(counties_1a.glm, counties_1b.glm, counties_1c.glm, counties_1d.glm, counties_1e.glm, test="Chisq") #lower p-value means it explains the variance more which is best
 AIC(counties_1a.glm, counties_1b.glm, counties_1c.glm, counties_1d.glm, counties_1e.glm) #the smaller the value the better
 BIC(counties_1a.glm, counties_1b.glm, counties_1c.glm, counties_1d.glm, counties_1e.glm) #the smaller the value the better
@@ -440,7 +567,7 @@ BIC(counties_1a.glm, counties_1b.glm, counties_1c.glm, counties_1d.glm, counties
 The p-values from the anova gave <2.2e-16 error, but counties_1e.glm is shown to be the best regression based on the AIC and BIC values.
 
 ```{r, county}
-#validate your energy savings model
+#validate your energy savings modelfor q1
 anova(counties_1f.glm, counties_1g.glm, counties_1h.glm, counties_1i.glm, counties_1j.glm, test="Chisq") #lower p-value means it explains the variance more which is best
 AIC(counties_1f.glm, counties_1g.glm, counties_1h.glm, counties_1i.glm, counties_1j.glm) #the smaller the value the better
 BIC(counties_1f.glm, counties_1g.glm, counties_1h.glm, counties_1i.glm, counties_1j.glm) #the smaller the value the better
@@ -462,7 +589,7 @@ summary(counties_2e.glm)
 ```
 
 ```{r}
-#validate your budget model
+#validate your budget model for q2
 anova(counties_2a.glm, counties_2b.glm, counties_2c.glm, counties_2d.glm, counties_2e.glm, test="Chisq") #lower p-value means it explains the variance more which is best
 AIC(counties_2a.glm, counties_2b.glm, counties_2c.glm, counties_2d.glm, counties_2e.glm) #the smaller the value the better
 BIC(counties_2a.glm, counties_2b.glm, counties_2c.glm, counties_2d.glm, counties_2e.glm) #the smaller the value the better
@@ -484,7 +611,7 @@ summary(counties_2j.glm)
 ```
 
 ```{r}
-#validate your energy savings model
+#validate your energy savings model for q2
 anova(counties_2f.glm, counties_2g.glm, counties_2h.glm, counties_2i.glm, counties_2j.glm, test="Chisq") #lower p-value means it explains the variance more which is best
 AIC(counties_2f.glm, counties_2g.glm, counties_2h.glm, counties_2i.glm, counties_2j.glm) #the smaller the value the better
 BIC(counties_2f.glm, counties_2g.glm, counties_2h.glm, counties_2i.glm, counties_2j.glm) #the smaller the value the better
@@ -506,7 +633,7 @@ summary(counties_3e.glm)
 ```
 
 ```{r}
-#validate your budget model
+#validate your budget model for q3
 anova(counties_3a.glm, counties_3b.glm, counties_3c.glm, counties_3d.glm, counties_3e.glm, test="Chisq") #lower p-value means it explains the variance more which is best
 AIC(counties_3a.glm, counties_3b.glm, counties_3c.glm, counties_3d.glm, counties_3e.glm) #the smaller the value the better
 BIC(counties_3a.glm, counties_3b.glm, counties_3c.glm, counties_3d.glm, counties_3e.glm) #the smaller the value the better
@@ -528,7 +655,7 @@ summary(counties_3j.glm)
 ```
 
 ```{r}
-#validate your energy savings model
+#validate your energy savings model for q3
 anova(counties_3f.glm, counties_3g.glm, counties_3h.glm, counties_3i.glm, counties_3j.glm, test="Chisq") #lower p-value means it explains the variance more which is best
 AIC(counties_3f.glm, counties_3g.glm, counties_3h.glm, counties_3i.glm, counties_3j.glm) #the smaller the value the better
 BIC(counties_3f.glm, counties_3g.glm, counties_3h.glm, counties_3i.glm, counties_3j.glm) #the smaller the value the better
@@ -550,7 +677,7 @@ summary(counties_4e.glm)
 ```
 
 ```{r}
-#validate your budget model
+#validate your budget model for q4
 anova(counties_4a.glm, counties_4b.glm, counties_4c.glm, counties_4d.glm, counties_4e.glm, test="Chisq") #lower p-value means it explains the variance more which is best
 AIC(counties_4a.glm, counties_4b.glm, counties_4c.glm, counties_4d.glm, counties_4e.glm) #the smaller the value the better
 BIC(counties_4a.glm, counties_4b.glm, counties_4c.glm, counties_4d.glm, counties_4e.glm) #the smaller the value the better
@@ -572,14 +699,14 @@ summary(counties_4j.glm)
 ```
 
 ```{r}
-#validate your energy savings model
+#validate your energy savings model for q4
 anova(counties_4f.glm, counties_4g.glm, counties_4h.glm, counties_4i.glm, counties_4j.glm, test="Chisq") #lower p-value means it explains the variance more which is best
 AIC(counties_4f.glm, counties_4g.glm, counties_4h.glm, counties_4i.glm, counties_4j.glm) #the smaller the value the better
 BIC(counties_4f.glm, counties_4g.glm, counties_4h.glm, counties_4i.glm, counties_4j.glm) #the smaller the value the better
 ```
 
 ```{r}
-#negative binomial budget model
+#negative binomial budget model for all county data
 counties1_glm.nb <- glm.nb(Budget ~ TotalRevenue + ces_score_median + IRR + Mean.Income + Population, data = counties)
 counties2_glm.nb <- glm.nb(Budget ~ TotalRevenue + ces_score_median + IRR + Mean.Income, data = counties)
 counties3_glm.nb <- glm.nb(Budget ~ TotalRevenue + ces_score_median + IRR, data = counties)
@@ -594,9 +721,16 @@ summary(counties4_glm.nb)
 summary(counties5_glm.nb)
 ```
 
+```{r}
+#validate your budget model for all county data
+anova(counties1_glm.nb, counties2_glm.nb, counties3_glm.nb, counties4_glm.nb, counties5_glm.nb, test="Chisq") #lower p-value means it explains the variance more which is best
+AIC(counties1_glm.nb, counties2_glm.nb, counties3_glm.nb, counties4_glm.nb, counties5_glm.nb) #the smaller the value the better
+BIC(counties1_glm.nb, counties2_glm.nb, counties3_glm.nb, counties4_glm.nb, counties5_glm.nb) #the smaller the value the better
+```
+
 
 ```{r, county—check}
-#negative binomial budget model
+#negative binomial budget model for q1
 counties1a_glm.nb <- glm.nb(rounded_budget ~ TotalRevenue + ces_score_median + IRR + Mean.Income + Population, data = counties_lnq1)
 counties1b_glm.nb <- glm.nb(rounded_budget ~ TotalRevenue + ces_score_median + IRR + Mean.Income, data = counties_lnq1)
 counties1c_glm.nb <- glm.nb(rounded_budget ~ TotalRevenue + ces_score_median + IRR, data = counties_lnq1)
@@ -612,7 +746,15 @@ summary(counties1e_glm.nb)
 ```
 
 ```{r}
-#Checking to see if the regression actually fits the dat
+#validate your budget model for q1
+anova(counties1a_glm.nb, counties1b_glm.nb, counties1c_glm.nb, counties1d_glm.nb, counties1e_glm.nb, test="Chisq") #lower p-value means it explains the variance more which is best
+AIC(counties1a_glm.nb, counties1b_glm.nb, counties1c_glm.nb, counties1d_glm.nb, counties1e_glm.nb) #the smaller the value the better
+BIC(counties1a_glm.nb, counties1b_glm.nb, counties1c_glm.nb, counties1d_glm.nb, counties1e_glm.nb) #the smaller the value the better
+```
+
+
+```{r}
+#Checking to see if the regression actually fits the data
 with(counties1a_glm.nb, cbind(res.deviance = deviance, df = df.residual,
   p = pchisq(deviance, df.residual, lower.tail=TRUE)))
 with(counties1b_glm.nb, cbind(res.deviance = deviance, df = df.residual,
@@ -627,7 +769,7 @@ with(counties1e_glm.nb, cbind(res.deviance = deviance, df = df.residual,
 
 
 ```{r, county—check}
-#negative binomial energy savings model
+#negative binomial energy savings model for q1
 counties1f_glm.nb <- glm.nb(rounded_kWh ~ TotalRevenue + ces_score_median + IRR + Mean.Income + Population, data = counties_lnq1)
 counties1g_glm.nb <- glm.nb(rounded_kWh ~ TotalRevenue + ces_score_median + IRR + Mean.Income, data = counties_lnq1)
 counties1h_glm.nb <- glm.nb(rounded_kWh ~ TotalRevenue + ces_score_median + IRR, data = counties_lnq1)
@@ -642,7 +784,15 @@ summary(counties1j_glm.nb)
 ```
 
 ```{r}
-#negative binomial budget model
+#validate your energy savings model for q1
+anova(counties1f_glm.nb, counties1g_glm.nb, counties1h_glm.nb, counties1i_glm.nb, counties1j_glm.nb, test="Chisq") #lower p-value means it explains the variance more which is best
+AIC(counties1f_glm.nb, counties1g_glm.nb, counties1h_glm.nb, counties1i_glm.nb, counties1j_glm.nb) #the smaller the value the better
+BIC(counties1f_glm.nb, counties1g_glm.nb, counties1h_glm.nb, counties1i_glm.nb, counties1j_glm.nb) #the smaller the value the better
+```
+
+
+```{r}
+#negative binomial budget model for q2
 counties2a_glm.nb <- glm.nb(rounded_budget ~ TotalRevenue + ces_score_median + IRR + Mean.Income + Population, data = counties_lnq2)
 counties2b_glm.nb <- glm.nb(rounded_budget ~ TotalRevenue + ces_score_median + IRR + Mean.Income, data = counties_lnq2)
 counties2c_glm.nb <- glm.nb(rounded_budget ~ TotalRevenue + ces_score_median + IRR, data = counties_lnq2)
@@ -658,7 +808,14 @@ summary(counties2e_glm.nb)
 ```
 
 ```{r}
-#negative binomial energy savings model
+#validate your budget model for q2
+anova(counties2a_glm.nb, counties2b_glm.nb, counties2c_glm.nb, counties2d_glm.nb, counties2e_glm.nb, test="Chisq") #lower p-value means it explains the variance more which is best
+AIC(counties2a_glm.nb, counties2b_glm.nb, counties2c_glm.nb, counties2d_glm.nb, counties2e_glm.nb) #the smaller the value the better
+BIC(counties2a_glm.nb, counties2b_glm.nb, counties2c_glm.nb, counties2d_glm.nb, counties2e_glm.nb) #the smaller the value the better
+```
+
+```{r}
+#negative binomial energy savings model for q2
 counties2f_glm.nb <- glm.nb(rounded_kWh ~ TotalRevenue + ces_score_median + IRR + Mean.Income + Population, data = counties_lnq2)
 counties2g_glm.nb <- glm.nb(rounded_kWh ~ TotalRevenue + ces_score_median + IRR + Mean.Income, data = counties_lnq2)
 counties2h_glm.nb <- glm.nb(rounded_kWh ~ TotalRevenue + ces_score_median + IRR, data = counties_lnq2)
@@ -673,7 +830,14 @@ summary(counties2j_glm.nb)
 ```
 
 ```{r}
-#negative binomial budget model
+#validate your energy savings model for q12
+anova(counties2f_glm.nb, counties2g_glm.nb, counties2h_glm.nb, counties2i_glm.nb, counties2j_glm.nb, test="Chisq") #lower p-value means it explains the variance more which is best
+AIC(counties2f_glm.nb, counties2g_glm.nb, counties2h_glm.nb, counties2i_glm.nb, counties1j_glm.nb) #the smaller the value the better
+BIC(counties2f_glm.nb, counties2g_glm.nb, counties2h_glm.nb, counties2i_glm.nb, counties2j_glm.nb) #the smaller the value the better
+```
+
+```{r}
+#negative binomial budget model for q3
 counties3a_glm.nb <- glm.nb(rounded_budget ~ TotalRevenue + ces_score_median + IRR + Mean.Income + Population, data = counties_lnq3)
 counties3b_glm.nb <- glm.nb(rounded_budget ~ TotalRevenue + ces_score_median + IRR + Mean.Income, data = counties_lnq3)
 counties3c_glm.nb <- glm.nb(rounded_budget ~ TotalRevenue + ces_score_median + IRR, data = counties_lnq3)
@@ -689,7 +853,7 @@ summary(counties3e_glm.nb)
 ```
 
 ```{r}
-#negative binomial energy savings model
+#negative binomial energy savings model for q3
 counties3f_glm.nb <- glm.nb(rounded_kWh ~ TotalRevenue + ces_score_median + IRR + Mean.Income + Population, data = counties_lnq3)
 counties3g_glm.nb <- glm.nb(rounded_kWh ~ TotalRevenue + ces_score_median + IRR + Mean.Income, data = counties_lnq3)
 counties3h_glm.nb <- glm.nb(rounded_kWh ~ TotalRevenue + ces_score_median + IRR, data = counties_lnq3)
@@ -704,7 +868,7 @@ summary(counties3j_glm.nb)
 ```
 
 ```{r}
-#negative binomial budget model
+#negative binomial budget model for q4
 counties4a_glm.nb <- glm.nb(rounded_budget ~ TotalRevenue + ces_score_median + IRR + Mean.Income + Population, data = counties_lnq4)
 counties4b_glm.nb <- glm.nb(rounded_budget ~ TotalRevenue + ces_score_median + IRR + Mean.Income, data = counties_lnq4)
 counties4c_glm.nb <- glm.nb(rounded_budget ~ TotalRevenue + ces_score_median + IRR, data = counties_lnq4)
@@ -720,7 +884,7 @@ summary(counties4e_glm.nb)
 ```
 
 ```{r}
-#negative binomial energy savings model
+#negative binomial energy savings model for q4
 counties4f_glm.nb <- glm.nb(rounded_kWh ~ TotalRevenue + ces_score_median + IRR + Mean.Income + Population, data = counties_lnq4)
 counties4g_glm.nb <- glm.nb(rounded_kWh ~ TotalRevenue + ces_score_median + IRR + Mean.Income, data = counties_lnq4)
 counties4h_glm.nb <- glm.nb(rounded_kWh ~ TotalRevenue + ces_score_median + IRR, data = counties_lnq4)
@@ -732,6 +896,335 @@ summary(counties4g_glm.nb)
 summary(counties4h_glm.nb)
 summary(counties4i_glm.nb)
 summary(counties4j_glm.nb)
+```
+
+```{r}
+#scatter plot matrix to check for correlation between county specific varaibles and investment/energy savings
+plot.counties.lm <- data.frame(counties$Budget, counties$TotalFirstYearGrosskWh, counties$TotalRevenue, counties$Population, counties$Mean.Income, counties$IRR, counties$ces_score_median) #subset out these variables
+colnames(plot.counties.lm)<-c("Budget", "TotalFirstYearGrosskWh", "Total Revenue", "Population", "Mean Income", "IRR", "ces_score_median") #change column names back to original
+pairs.panels(plot.counties.lm, density = TRUE, cor=TRUE, lm=TRUE) #scatterplot
+```
+
+
+```{r}
+#linear regressions to see if data works using regular linear regressions using the natural log of population quantiles 
+
+ln_TotalFirstYearGrosskWh<-log(counties_lnq1$TotalLifecycleGrosskWh+1)
+counties1a_lm<-lm(ln_TotalFirstYearGrosskWh~TotalRevenue+IRR+Mean.Income+ces_score_median, data=counties_lnq1)
+par(mfrow=c(2,2))
+plot(counties1a_lm)
+res.counties1a_lm <- counties1a_lm$residuals#fetching residuals 
+qqPlot(counties1a_lm)
+shapiro.test(res.counties1a_lm) #seeing if data is normal
+#data is not normal and variance is not equal
+summary(counties1a_lm)
+
+counties1aa_lm<-lm(ln_TotalFirstYearGrosskWh~Population+IRR+Mean.Income+ces_score_median, data=counties_lnq1)
+par(mfrow=c(2,2))
+plot(counties1aa_lm)
+res.counties1aa_lm <- counties1aa_lm$residuals#fetching residuals 
+qqPlot(counties1aa_lm)
+shapiro.test(res.counties1aa_lm) #seeing if data is normal
+
+
+counties1b_lm<-lm(ln_TotalFirstYearGrosskWh~TotalRevenue+IRR+Mean.Income, data=counties_lnq1)
+par(mfrow=c(2,2))
+plot(counties1b_lm)
+res.counties1b_lm <- counties1b_lm$residuals #fetching residuals
+shapiro.test(res.counties1b_lm)#seeing if data is normal
+#data is not normal and variance is not equal
+summary(counties1b_lm)
+
+counties1c_lm<-lm(ln_TotalFirstYearGrosskWh~TotalRevenue+IRR, data=counties_lnq1)
+par(mfrow=c(2,2))
+plot(counties1c_lm)
+res.counties1c_lm <- counties1c_lm$residuals #fetching residuals
+shapiro.test(res.counties1c_lm)#seeing if data is normal
+#data is not normal and variance is not equal
+summary(counties1c_lm)
+
+counties1d_lm<-lm(ln_TotalFirstYearGrosskWh~TotalRevenue, data=counties_lnq1)
+par(mfrow=c(2,2))
+plot(counties1d_lm)
+res.counties1d_lm <- counties1d_lm$residuals #fetching residuals
+shapiro.test(res.counties1d_lm)#seeing if data is normal
+#data is not normal and variance is not equal
+summary(counties1d_lm)
+```
+
+```{r}
+#validate your energy savings model for q1 using linear regression
+anova(counties1a_lm, counties1aa_lm) #lower p-value means it explains the variance more which is best
+AIC(counties1a_lm, counties1aa_lm) #the smaller the value the better
+BIC(counties1a_lm, counties1aa_lm) #the smaller the value the better
+#total rev better
+```
+
+```{r}
+ln2_TotalFirstYearGrosskWh<-log(counties_lnq2$TotalLifecycleGrosskWh+1)
+counties2aa_lm<-lm(ln2_TotalFirstYearGrosskWh~Population+IRR+Mean.Income+ces_score_median, data=counties_lnq2)
+counties2a_lm<-lm(ln2_TotalFirstYearGrosskWh~TotalRevenue+IRR+Mean.Income+ces_score_median, data=counties_lnq2)
+par(mfrow=c(2,2))
+plot(counties2a_lm)
+res.counties2a_lm <- counties2a_lm$residuals#fetching residuals 
+qqPlot(counties2a_lm)
+shapiro.test(res.counties2a_lm) #seeing if data is normal
+#data is not normal and variance is not equal
+summary(counties2a_lm)
+```
+
+```{r}
+#validate your energy savings model for q1 using linear regression
+anova(counties2a_lm, counties2aa_lm) #lower p-value means it explains the variance more which is best
+AIC(counties2a_lm, counties2aa_lm) #the smaller the value the better
+BIC(counties2a_lm, counties2aa_lm) #the smaller the value the better
+#total rev better
+```
+
+```{r}
+ln3_TotalFirstYearGrosskWh<-log(counties_lnq3$TotalLifecycleGrosskWh+1)
+counties3aa_lm<-lm(ln3_TotalFirstYearGrosskWh~Population+IRR+Mean.Income+ces_score_median, data=counties_lnq3)
+counties3a_lm<-lm(ln3_TotalFirstYearGrosskWh~TotalRevenue+IRR+Mean.Income+ces_score_median, data=counties_lnq3)
+par(mfrow=c(2,2))
+plot(counties3a_lm)
+res.counties3a_lm <- counties3a_lm$residuals#fetching residuals 
+qqPlot(counties3a_lm)
+shapiro.test(res.counties3a_lm) #seeing if data is normal
+#data is not normal and variance is not equal
+summary(counties3a_lm)
+```
+
+```{r}
+#validate your energy savings model for q1 using linear regression
+anova(counties3a_lm, counties3aa_lm) #lower p-value means it explains the variance more which is best
+AIC(counties3a_lm, counties3aa_lm) #the smaller the value the better
+BIC(counties3a_lm, counties3aa_lm) #the smaller the value the better
+#total rev better
+```
+
+```{r}
+ln4_TotalFirstYearGrosskWh<-log(counties_lnq4$TotalLifecycleGrosskWh+1)
+counties4aa_lm<-lm(ln4_TotalFirstYearGrosskWh~TotalRevenue+IRR+Mean.Income+ces_score_median, data=counties_lnq4)
+counties4a_lm<-lm(ln4_TotalFirstYearGrosskWh~Population+IRR+Mean.Income+ces_score_median, data=counties_lnq4)
+par(mfrow=c(2,2))
+plot(counties4a_lm)
+res.counties4a_lm <- counties4a_lm$residuals#fetching residuals 
+qqPlot(counties4a_lm)
+shapiro.test(res.counties4a_lm) #seeing if data is normal
+#data is not normal and variance is not equal
+summary(counties4a_lm)
+```
+
+```{r}
+#validate your energy savings model for q1 using linear regression
+anova(counties4a_lm, counties4aa_lm) #lower p-value means it explains the variance more which is best
+AIC(counties4a_lm, counties4aa_lm) #the smaller the value the better
+BIC(counties4a_lm, counties4aa_lm) #the smaller the value the better
+#population better
+```
+
+
+```{r}
+ln_budget<-log(counties_lnq1$Budget+1)
+counties1e_lm<-lm(ln_budget~TotalRevenue+IRR+Mean.Income+ces_score_median, data=counties_lnq1)
+par(mfrow=c(2,2))
+plot(counties1e_lm)
+res.counties1e_lm <- counties1e_lm$residuals#fetching residuals 
+qqPlot(counties1e_lm)
+shapiro.test(res.counties1e_lm) #seeing if data is normal
+summary(counties1e_lm)
+
+counties1f_lm<-lm(ln_budget~TotalRevenue+IRR+Mean.Income, data=counties_lnq1)
+par(mfrow=c(2,2))
+plot(counties1f_lm)
+res.counties1f_lm <- counties1f_lm$residuals#fetching residuals 
+qqPlot(counties1f_lm)
+shapiro.test(res.counties1f_lm) #seeing if data is normal
+summary(counties1f_lm)
+
+counties1g_lm<-lm(ln_budget~TotalRevenue+IRR, data=counties_lnq1)
+par(mfrow=c(2,2))
+plot(counties1g_lm)
+res.counties1g_lm <- counties1g_lm$residuals#fetching residuals 
+qqPlot(counties1g_lm)
+shapiro.test(res.counties1g_lm) #seeing if data is normal
+summary(counties1g_lm)
+
+counties1h_lm<-lm(ln_budget~TotalRevenue, data=counties_lnq1)
+par(mfrow=c(2,2))
+plot(counties1h_lm)
+res.counties1h_lm <- counties1h_lm$residuals#fetching residuals 
+qqPlot(counties1h_lm)
+shapiro.test(res.counties1h_lm) #seeing if data is normal
+summary(counties1h_lm)
+```
+
+```{r}
+#validate your budget for q1 using linear regression
+anova(counties1e_lm, counties1f_lm, counties1g_lm, counties1h_lm) #lower p-value means it explains the variance more which is best
+AIC(counties1e_lm, counties1f_lm, counties1g_lm, counties1h_lm) #the smaller the value the better
+BIC(counties1e_lm, counties1f_lm, counties1g_lm, counties1h_lm) #the smaller the value the better
+#without ces is the best fit 
+```
+
+```{r}
+counties1ff_lm<-lm(ln_budget~Population+IRR+Mean.Income, data=counties_lnq1)
+par(mfrow=c(2,2))
+plot(counties1ff_lm)
+res.counties1ff_lm <- counties1ff_lm$residuals#fetching residuals 
+qqPlot(counties1ff_lm)
+shapiro.test(res.counties1ff_lm) #seeing if data is normal
+summary(counties1ff_lm)
+```
+
+```{r}
+#validate your budget for q1 using linear regression
+anova(counties1ff_lm, counties1f_lm) #lower p-value means it explains the variance more which is best
+AIC(counties1ff_lm, counties1f_lm) #the smaller the value the better
+BIC(counties1ff_lm, counties1f_lm) #the smaller the value the better
+#population is better fit 
+```
+
+```{r}
+ln2_budget<-log(counties_lnq2$Budget+1)
+counties2ee_lm<-lm(ln2_budget~Population+IRR+Mean.Income+ces_score_median, data=counties_lnq2)
+counties2e_lm<-lm(ln2_budget~TotalRevenue+IRR+Mean.Income+ces_score_median, data=counties_lnq2)
+par(mfrow=c(2,2))
+plot(counties2e_lm)
+res.counties2e_lm <- counties2e_lm$residuals#fetching residuals 
+qqPlot(counties2e_lm)
+shapiro.test(res.counties2e_lm) #seeing if data is normal
+summary(counties2e_lm)
+#only fit that is normally distributed
+
+counties2f_lm<-lm(ln2_budget~TotalRevenue+IRR+Mean.Income, data=counties_lnq2)
+par(mfrow=c(2,2))
+plot(counties2f_lm)
+res.counties2f_lm <- counties2f_lm$residuals#fetching residuals 
+qqPlot(counties2f_lm)
+shapiro.test(res.counties2f_lm) #seeing if data is normal
+summary(counties2f_lm)
+
+counties2g_lm<-lm(ln2_budget~TotalRevenue+IRR, data=counties_lnq2)
+par(mfrow=c(2,2))
+plot(counties2g_lm)
+res.counties2g_lm <- counties2g_lm$residuals#fetching residuals 
+qqPlot(counties2g_lm)
+shapiro.test(res.counties2g_lm) #seeing if data is normal
+summary(counties2g_lm)
+
+counties2h_lm<-lm(ln2_budget~TotalRevenue, data=counties_lnq2)
+par(mfrow=c(2,2))
+plot(counties2h_lm)
+res.counties2h_lm <- counties2h_lm$residuals#fetching residuals 
+qqPlot(counties2h_lm)
+shapiro.test(res.counties2h_lm) #seeing if data is normal
+summary(countie21h_lm)
+```
+
+```{r}
+#validate your budget for q1 using linear regression
+anova(counties2ee_lm, counties2e_lm) #lower p-value means it explains the variance more which is best
+AIC(counties2ee_lm, counties2e_lm) #the smaller the value the better
+BIC(counties2ee_lm, counties2e_lm) #the smaller the value the better
+#population is better fit 
+```
+
+```{r}
+ln3_budget<-log(counties_lnq3$Budget+1)
+counties3ee_lm<-lm(ln3_budget~Population+IRR+Mean.Income+ces_score_median, data=counties_lnq3)
+counties3e_lm<-lm(ln3_budget~TotalRevenue+IRR+Mean.Income+ces_score_median, data=counties_lnq3)
+par(mfrow=c(2,2))
+plot(counties3e_lm)
+res.counties3e_lm <- counties3e_lm$residuals#fetching residuals 
+qqPlot(counties3e_lm)
+shapiro.test(res.counties3e_lm) #seeing if data is normal
+summary(counties3e_lm)
+#only fit that is normally distributed
+
+counties3f_lm<-lm(ln3_budget~TotalRevenue+IRR+Mean.Income, data=counties_lnq3)
+par(mfrow=c(2,2))
+plot(counties3f_lm)
+res.counties3f_lm <- counties3f_lm$residuals#fetching residuals 
+qqPlot(counties3f_lm)
+shapiro.test(res.counties3f_lm) #seeing if data is normal
+summary(counties3f_lm)
+
+counties3g_lm<-lm(ln3_budget~TotalRevenue+IRR, data=counties_lnq3)
+par(mfrow=c(2,2))
+plot(counties3g_lm)
+res.counties3g_lm <- counties3g_lm$residuals#fetching residuals 
+qqPlot(counties3g_lm)
+shapiro.test(res.counties3g_lm) #seeing if data is normal
+summary(counties3g_lm)
+
+counties3h_lm<-lm(ln3_budget~TotalRevenue, data=counties_lnq3)
+par(mfrow=c(2,2))
+plot(counties3h_lm)
+res.counties3h_lm <- counties3h_lm$residuals#fetching residuals 
+qqPlot(counties3h_lm)
+shapiro.test(res.counties3h_lm) #seeing if data is normal
+summary(counties3h_lm)
+```
+
+```{r}
+#validate your budget for q1 using linear regression
+anova(counties3h_lm, counties3e_lm) #lower p-value means it explains the variance more which is best
+AIC(counties3h_lm, counties3e_lm) #the smaller the value the better
+BIC(counties3h_lm, counties3e_lm) #the smaller the value the better
+#first regression is better 
+```
+
+```{r}
+#validate your budget for q1 using linear regression
+anova(counties3ee_lm, counties3e_lm) #lower p-value means it explains the variance more which is best
+AIC(counties3ee_lm, counties3e_lm) #the smaller the value the better
+BIC(counties3ee_lm, counties3e_lm) #the smaller the value the better
+#population is better
+```
+
+```{r}
+ln4_budget<-log(counties_lnq4$Budget+1)
+counties4e_lm<-lm(ln4_budget~TotalRevenue+IRR+Mean.Income+ces_score_median, data=counties_lnq4)
+par(mfrow=c(2,2))
+plot(counties4e_lm)
+res.counties4e_lm <- counties4e_lm$residuals#fetching residuals 
+qqPlot(counties4e_lm)
+shapiro.test(res.counties4e_lm) #seeing if data is normal
+summary(counties4e_lm)
+
+counties4f_lm<-lm(ln4_budget~TotalRevenue+IRR+Mean.Income, data=counties_lnq4)
+par(mfrow=c(2,2))
+plot(counties4f_lm)
+res.counties4f_lm <- counties4f_lm$residuals#fetching residuals 
+qqPlot(counties4f_lm)
+shapiro.test(res.counties4f_lm) #seeing if data is normal
+summary(counties4f_lm)
+
+counties4g_lm<-lm(ln4_budget~TotalRevenue+IRR, data=counties_lnq4)
+par(mfrow=c(2,2))
+plot(counties4g_lm)
+res.counties4g_lm <- counties4g_lm$residuals#fetching residuals 
+qqPlot(counties4g_lm)
+shapiro.test(res.counties4g_lm) #seeing if data is normal
+summary(counties4g_lm)
+
+counties4hh_lm<-lm(ln4_budget~Population, data=counties_lnq4)
+counties4h_lm<-lm(ln4_budget~TotalRevenue, data=counties_lnq4)
+par(mfrow=c(2,2))
+plot(counties4h_lm)
+res.counties4h_lm <- counties4h_lm$residuals#fetching residuals 
+qqPlot(counties4h_lm)
+shapiro.test(res.counties4h_lm) #seeing if data is normal
+summary(counties4h_lm)
+```
+
+```{r}
+#validate your budget for q1 using linear regression
+anova(counties4hh_lm, counties4h_lm) #lower p-value means it explains the variance more which is best
+AIC(counties4hh_lm, counties4h_lm) #the smaller the value the better
+BIC(counties4hh_lm, counties4h_lm) #the smaller the value the better
+#tax revenue is better
 ```
 
 ```{r, EE Programs at the City Level}
@@ -858,10 +1351,10 @@ summary(citiesd.glm)
 K12 <- read.csv("k12_counties_2.csv")
 ```
 
-```{r, K12—check}
+```{r, K12}
 #scatter plot matrix to check for correlation between school enrollment and investment/energy savings
-plot.K12 <- data.frame(K12$county_name, K12$TotalFirstYearGrosskWh, K12$Budget, K12$total_lcff_entitlement, K12$enrollment) #subset out these variables
-colnames(plot.K12)<-c("county_name", "TotalFirstYearGrosskWh", "Budget", "total_lcff_entitlement", "enrollment") #change column names back to original
+plot.K12 <- data.frame(K12$county_name, K12$TotalFirstYearGrosskWh, K12$Budget, K12$total_lcff_entitlement, K12$enrollment, K12$perc_title1_status, K12$perc_eligible_frpm, K12$perc_eligible_free, K12$mean_household_income_usd, counties$IRR, K12$dac_proportion, K12$ces_score_median, K12$ces_percentile_median, K12$perc_obf_budget, K12$perc_resource_budget) #subset out these variables
+colnames(plot.K12)<-c("county_name", "TotalFirstYearGrosskWh", "Budget", "total_lcff_entitlement", "enrollment","perc_title1_status", "perc_eligible_frpm", "perc_eligible_free", "mean_household_income_usd", "IRR","dac_proportion", "ces_score_median", "ces_percentile_median", "perc_obf_budget","perc_resource_budget") #change column names back to original
 pairs.panels(plot.K12, density = TRUE, cor=TRUE, lm=TRUE) #scatterplot
 ```
 
@@ -897,6 +1390,16 @@ hist(K12_lnq2$TotalFirstYearGrosskWh)
 hist(K12_lnq3$TotalFirstYearGrosskWh)
 hist(K12_lnq4$TotalFirstYearGrosskWh)
 ```
+
+```{r, K12}
+#check the distribution of the predictor variable of interest (Budget)
+hist(K12$Budget)
+```
+```{r, K12}
+#check the distribution of the predictor variable of interest (Energy Savings)
+hist(K12$TotalFirstYearGrosskWh)
+```
+
 ```{r, K12—check}
 #round y because GLM works best with integers 
 K12_lnq1$rounded_budget <- round(K12_lnq1$Budget, 0)
@@ -908,6 +1411,9 @@ K12_lnq1$rounded_kWh <- round(K12_lnq1$TotalFirstYearGrosskWh, 0)
 K12_lnq2$rounded_kWh <- round(K12_lnq2$TotalFirstYearGrosskWh, 0)
 K12_lnq3$rounded_kWh <- round(K12_lnq3$TotalFirstYearGrosskWh, 0)
 K12_lnq4$rounded_kWh <- round(K12_lnq4$TotalFirstYearGrosskWh, 0)
+
+K12$rounded_budget <- round(K12$Budget, 0)
+K12$rounded_kWh <- round(K12$TotalFirstYearGrosskWh, 0)
 ```
 
 ```{r, K12—check}
@@ -924,12 +1430,27 @@ summary(K121_nbin)
 ```
 
 ````{r, K12}
+#poisson budget regression for entire population
+K12_1.glm <- glm(rounded_budget ~ total_lcff_entitlement + ces_score_median + IRR + median_household_income_usd, data = K12, family = "poisson")
+K12_2.glm <- glm(rounded_budget ~ total_lcff_entitlement + ces_score_median + IRR + median_household_income_usd +  perc_title1_status, data = K12, family = "poisson")
+K12_3.glm <- glm(rounded_budget ~ total_lcff_entitlement + ces_score_median + IRR + median_household_income_usd + enrollment + perc_eligible_free, data = K12, family = "poisson")
+K12_4.glm <- glm(rounded_budget ~ total_lcff_entitlement + ces_score_median + IRR + median_household_income_usd + perc_title1_status + perc_eligible_frpm, data = K12, family = "poisson")
+K12_5.glm <- glm(rounded_budget ~ IRR + ces_score_median + perc_title1_status, data = K12, family = "poisson")
+
+summary(K12_1.glm) #p-value should be < 0.05 to be significant 
+summary(K12_2.glm)
+summary(K12_3.glm)
+summary(K12_4.glm)
+summary(K12_5.glm)
+```
+
+````{r, K12}
 #poisson budget regression for q1
-K12_1a.glm <- glm(rounded_budget ~ total_lcff_entitlement + ces_score_median + IRR + median_household_income_usd + enrollment, data = K12_lnq1, family = "poisson")
-K12_1b.glm <- glm(rounded_budget ~ total_lcff_entitlement + ces_score_median + IRR + median_household_income_usd + enrollment + no_title1_status, data = K12_lnq1, family = "poisson")
-K12_1c.glm <- glm(rounded_budget ~ total_lcff_entitlement + ces_score_median + IRR + median_household_income_usd + enrollment + free_meal_count, data = K12_lnq1, family = "poisson")
-K12_1d.glm <- glm(rounded_budget ~ total_lcff_entitlement + ces_score_median + IRR + median_household_income_usd + enrollment + free_meal_count + no_title1_status + frpm_count, data = K12_lnq1, family = "poisson")
-K12_1e.glm <- glm(rounded_budget ~ IRR + ces_score_median + no_title1_status, data = K12_lnq1, family = "poisson")
+K12_1a.glm <- glm(rounded_budget ~ total_lcff_entitlement + ces_score_median + IRR + median_household_income_usd, data = K12_lnq1, family = "poisson")
+K12_1b.glm <- glm(rounded_budget ~ total_lcff_entitlement + ces_score_median + IRR + median_household_income_usd +  perc_title1_status, data = K12_lnq1, family = "poisson")
+K12_1c.glm <- glm(rounded_budget ~ total_lcff_entitlement + ces_score_median + IRR + median_household_income_usd + enrollment + perc_eligible_free, data = K12_lnq1, family = "poisson")
+K12_1d.glm <- glm(rounded_budget ~ total_lcff_entitlement + ces_score_median + IRR + median_household_income_usd + enrollment + perc_eligible_free + perc_title1_status + perc_eligible_frpm, data = K12_lnq1, family = "poisson")
+K12_1e.glm <- glm(rounded_budget ~ IRR + ces_score_median + perc_title1_status, data = K12_lnq1, family = "poisson")
 
 summary(K12_1a.glm) #p-value should be < 0.05 to be significant 
 summary(K12_1b.glm)

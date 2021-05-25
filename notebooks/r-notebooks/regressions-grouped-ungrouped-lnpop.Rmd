@@ -5,20 +5,26 @@ output: html_notebook
 
 ```{r}
 library("dplyr")
-cities <- read.csv('C:/Users/ather/CS Projects/CETLab/caeecc-energy-efficiency/cities_2.csv')
+cities <- read.csv('/Users/athervgole/R/cities_2.csv')
+
+#cities <- read.csv('C:/Users/ather/CSProjects/CETLab/caeecc-energy-efficiency/cities_2.csv')
 ```
 
 ```{r}
 #create ln_pop variable as ln(total_population)
-
 cities$ln_pop = log(cities$total_population)
-hist(cities$ln_pop)
 
 #group data by ln_pop
 cities_lnq1 <- subset(cities, ln_pop < 9.5)
 cities_lnq2 <- subset(cities, ln_pop >= 9.5 & ln_pop < 11.5)
 cities_lnq3 <- subset(cities, ln_pop >= 11.5 & ln_pop < 12.5)
 cities_lnq4 <- subset(cities, ln_pop > 12.5)
+
+#generate budget per capita
+cities$budget_per_cap = cities$Budget / cities$total_population
+
+#generate budget per tax dollar
+cities$budget_per_taxrev = cities$Budget / cities$Total.Tax.Revenue
 
 ```
 
@@ -42,26 +48,55 @@ hist(cities_lnq4$total_population)
 ```
 
 ```{r}
+#checking which variables would be closer to normal with log transform VST
+hist(log(cities$Total.Tax.Revenue))
+hist(log(cities$total_population))
+hist(cities$ces_score_median)
+hist(log(cities$median_household_income_usd))
+hist(cities$dac_proportion)
+hist(cities$ruca_average)
+hist(log(cities$Budget))
+```
+
+```{r}
 #regressions on groups
 
-lm(Budget ~ total_population + Total.Claims + Total.Tax.Revenue + Total.Programs + ces_score_median + TotalFirstYearGrosskWh, data = cities_lnq1)
-lm(Budget ~ total_population + Total.Claims + Total.Tax.Revenue + Total.Programs + ces_score_median + TotalFirstYearGrosskWh, data = cities_lnq2)
-lm(Budget ~ total_population + Total.Claims + Total.Tax.Revenue + Total.Programs + ces_score_median + TotalFirstYearGrosskWh, data = cities_lnq3)
-lm(Budget ~ total_population + Total.Claims + Total.Tax.Revenue + Total.Programs + ces_score_median + TotalFirstYearGrosskWh, data = cities_lnq4)
+#this seems to be the best model with the highest adjusted R^2 with log transformations
 
+reg_model = lm(Budget ~ Total.Tax.Revenue + log(total_population) + log(ces_score_median) + log(median_household_income_usd) + dac_proportion + log(ruca_average), data = cities)
+summary(reg_model)
 ```
 
 ```{r}
-#regression ungrouped data with ln_pop
+#t tests off of subsets by uneven population groups
 
-lm(Budget ~ ln_pop + Total.Tax.Revenue + ces_score_median + median_household_income_usd + dac_proportion + ruca_average, data = cities)
+#for this t-test, I took the first population group (bottom quantile of full data split by population), split into bottom 25% by total first year gross and top 25% total first year gross, and t-tested the budget per capita and budget per tax revenue)
+
+quantile(cities_lnq1$TotalFirstYearGrosskWh, na.rm = TRUE)
+lngroup1 = subset(cities_lnq1, TotalFirstYearGrosskWh < 7859.121)
+lngroup2 = subset(cities_lnq1, TotalFirstYearGrosskWh >= 7859.121)
+
+
+t.test(lngroup1$budget_per_cap, lngroup2$budget_per_cap, na.action = na.omit)
+#t.test(lngroup1$budget_per_taxrev, lngroup2$budget_per_taxrev, na.action = na.omit)
 
 ```
 
-```{r}
-#regression ungrouped data with unchanged total_population
 
-lm(Budget ~ total_population + Total.Tax.Revenue + ces_score_median + median_household_income_usd + dac_proportion + ruca_average, data = cities)
+```{r}
+
+#this one is the same t-test as before but with the full ungrouped city dataset
+
+quantile(cities$TotalFirstYearGrosskWh, na.rm = TRUE)
+bottomq = subset(cities, TotalFirstYearGrosskWh <= 22382.8)
+topq = subset(cities, TotalFirstYearGrosskWh > 22382.8)
+
+quantile(cities$Budget, na.rm = TRUE)
+bottomq_budget = subset(cities, Budget <= 1.868783e+04)
+topq_budget = subset(cities, Budget > 1.868783e+04)
+
+t.test(bottomq_budget$ruca_average, topq_budget$ruca_average, na.action = na.omit)
+#t.test(bottomq$budget_per_taxrev, topq$budget_per_taxrev, na.action = na.omit)
 
 ```
 
