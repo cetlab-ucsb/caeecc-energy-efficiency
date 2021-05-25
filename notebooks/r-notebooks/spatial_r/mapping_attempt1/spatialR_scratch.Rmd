@@ -20,6 +20,7 @@ library(USAboundaries)
 library(maptools)
 library(tidyverse)
 library(stringr)
+library(viridis)
 ```
 
 ```{r, load data}
@@ -138,6 +139,7 @@ ggplot(data = merged_data)+
   coord_fixed(1.3)+
   ggtitle("Mean Household Income by County")+ #change title from plot to plot
   theme_classic()+ #order matters in ggplot
+  scale_fill_viridis()
   theme(axis.title.x = element_blank(),
                            axis.title.y = element_blank(),
                            axis.text=element_blank(),
@@ -158,7 +160,7 @@ ggplot(data = merged_data)+
   geom_polygon(aes(x = long, y = lat, group = group, fill= `log_pop`))+ 
   coord_fixed(1.3)+
   ggtitle("County Population (LOG)")+ 
-  scale_color_viridis_d(option="viridis")+
+  scale_fill_viridis()
   theme(axis.title.x = element_blank(),
                            axis.title.y = element_blank(),
                            axis.text=element_blank(),
