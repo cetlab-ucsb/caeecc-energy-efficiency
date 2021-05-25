@@ -1,0 +1,191 @@
+---
+title: "Grouped/Ungrouped Regressions with ln(population) to account for skew"
+output: html_notebook
+---
+
+```{r}
+#install Ecdat if you don't have
+install.packages("Ecdat")
+```
+
+```{r}
+library("dplyr")
+library("MASS")
+library(splines)
+library(Ecdat)
+```
+
+
+```{r}
+
+#cities <- read.csv('/Users/athervgole/R/cities_2.csv')
+
+cities <- read.csv('C:/Users/ather/CS Projects/CETLab/caeecc-energy-efficiency/cities_2.csv')
+demo <- read.csv('C:/Users/ather/R/CETLAB/census_race_combined_by_city.csv')
+
+cities = na.omit(cities)
+```
+
+```{r}
+#create ln_pop variable as ln(total_population)
+cities$ln_pop = log(cities$total_population)
+
+#group data by ln_pop
+cities_lnq1 <- subset(cities, ln_pop < 9.5)
+cities_lnq2 <- subset(cities, ln_pop >= 9.5 & ln_pop < 11.5)
+cities_lnq3 <- subset(cities, ln_pop >= 11.5 & ln_pop < 12.5)
+cities_lnq4 <- subset(cities, ln_pop > 12.5)
+
+#generate budget per capita
+cities$budget_per_cap = cities$Budget / cities$total_population
+
+#generate budget per tax dollar
+cities$budget_per_taxrev = cities$Budget / cities$Total.Tax.Revenue
+
+#generate tax revenue per capita
+cities$taxrev_per_cap = cities$Total.Tax.Revenue / cities$total_population
+
+```
+
+
+```{r}
+#group information (count, means/ranges, visualization)
+count(cities_lnq1)
+count(cities_lnq2)
+count(cities_lnq3)
+count(cities_lnq4)
+
+summary(cities_lnq1$total_population)
+summary(cities_lnq2$total_population)
+summary(cities_lnq3$total_population)
+summary(cities_lnq4$total_population)
+
+hist(cities_lnq1$total_population)
+hist(cities_lnq2$total_population)
+hist(cities_lnq3$total_population)
+hist(cities_lnq4$total_population)
+```
+
+```{r}
+#checking which variables would be closer to normal with log transform VST
+hist(log(cities$Total.Tax.Revenue))
+hist(log(cities$total_population))
+hist(cities$ces_score_median)
+hist(log(cities$median_household_income_usd))
+hist(cities$dac_proportion)
+hist(cities$ruca_average)
+hist(log(cities$Budget))
+```
+
+```{r}
+#regressions on groups
+
+#this seems to be the best model with the highest adjusted R^2 with log transformations
+
+reg_model = lm(Budget ~ Total.Tax.Revenue + log(total_population) + log(ces_score_median) + log(median_household_income_usd) + dac_proportion + log(ruca_average), data = cities)
+
+#summary(reg_model)
+
+reg_model_outcome = lm(log(Budget) ~ Total.Tax.Revenue + total_population + ces_score_median + median_household_income_usd + ruca_average, data = cities)
+
+summary(reg_model_outcome)
+
+#plot(reg_model_outcome)
+```
+
+```{r}
+budget_pop_model = lm(log(Budget) ~ total_population, data = cities)
+AIC(budget_pop_model)
+
+#AIC based on likelihood,
+#even though based on F-test it shows insignificant var, AIC shows that the larger model is significant
+#log(budget) ~ income, taxrev, ruca, ces_score, population
+
+#test step AIC to see which variables the evaluation picks
+stepAIC(lm(log(Budget) ~ median_household_income_usd + Total.Tax.Revenue + ruca_average + ces_score_median + total_population + dac_proportion, data = cities))
+
+#this seems to be the best model by AIC
+aic_model = lm(log(Budget) ~ median_household_income_usd + Total.Tax.Revenue + ruca_average + ces_score_median + total_population, data = cities)
+summary(aic_model)
+
+plot(aic_model)
+
+```
+
+```{r}
+#testing dropping one of the two collinear variables
+
+taxrev_no_pop = lm(log(Budget) ~ Total.Tax.Revenue + ces_score_median + median_household_income_usd + ruca_average, data = cities)
+
+#pop_no_taxrev = lm(log(Budget) ~ total_population + ces_score_median + median_household_income_usd + ruca_average, data = cities)
+
+#keep taxrevenue, drop population
+
+```
+
+
+```{r}
+
+#bunch of t-tests on the split data
+
+quantile(cities$TotalFirstYearGrosskWh, na.rm = TRUE)
+bottomq_firstyear = subset(cities, TotalFirstYearGrosskWh <= 22382.8)
+topq_firstyear = subset(cities, TotalFirstYearGrosskWh > 22382.8)
+
+quantile(cities$Budget, na.rm = TRUE)
+bottomq_budget = subset(cities, Budget <= 1.868783e+04)
+topq_budget = subset(cities, Budget > 1.868783e+04)
+
+t.test(bottomq_budget$ruca_average, topq_budget$ruca_average, na.action = na.omit)
+t.test(bottomq_firstyear$ruca_average, topq_firstyear$ruca_average, na.action = na.omit)
+
+t.test(bottomq_budget$budget_per_cap, topq_budget$budget_per_cap)
+t.test(bottomq_firstyear$budget_per_cap, topq_firstyear$budget_per_cap)
+
+t.test(bottomq_budget$taxrev_per_cap, topq_budget$taxrev_per_cap)
+t.test(bottomq_firstyear$taxrev_per_cap, topq_firstyear$taxrev_per_cap)
+
+```
+
+```{r}
+#spline regression testing, using the taxrev_no_pop model
+
+spline_model = lm(log(Budget) ~ splines::bs(total_population, knots = c(8746, 24958, 68146)) + Total.Tax.Revenue + ces_score_median + median_household_income_usd + ruca_average, data = cities)
+
+summary(spline_model)
+
+population_lims = range(cities$total_population)
+total_population.grid = seq(from=population_lims[1], to=population_lims[2])
+pred = predict(spline_model, newdata = list(total_population = total_population.grid), se=T)
+
+```
+
+```{r}
+plot(spline)
+```
+
+```{r}
+#reshape demo data
+demo_reshape <- reshape(demo, idvar = "city", timevar = "combined_group", direction = "wide")
+cities$SiteCity <- tolower(cities$SiteCity)
+demo_reshape$city <- tolower(demo_reshape$city)
+#join with cities
+cities_demos_joined <- left_join(cities, demo_reshape, by = c("SiteCity" = "city"))
+```
+
+```{r}
+#step AIC including demographics varaibles
+stepAIC(lm(log(Budget) ~ median_household_income_usd + Total.Tax.Revenue + ruca_average + ces_score_median + total_population + dac_proportion + `proportion.Non-white`, data = cities_demos_joined))
+```
+
+
+```{r}
+#demographics regressions:
+aic_with_demo_model = lm(log(Budget) ~ median_household_income_usd + Total.Tax.Revenue + ruca_average + ces_score_median + total_population + `proportion.Non-white`, data = cities_demos_joined)
+summary(aic_with_demo_model)
+
+plot(aic_with_demo_model)
+
+
+```
+

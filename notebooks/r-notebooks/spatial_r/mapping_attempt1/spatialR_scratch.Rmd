@@ -185,11 +185,14 @@ ggplot(data = merged_data)+
 
 ```{r, visualize}
 
+log_energysavings <- log(merged_data$TotalFirstYearGrosskWh + 1)
+merged_data$log_energysavings <- log(merged_data$TotalFirstYearGrosskWh + 1)
+
 #Energy Savings
 ggplot(data = merged_data)+
-  geom_polygon(aes(x = long, y = lat, group = group, fill= `TotalFirstYearGrosskWh`))+ 
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `log_energysavings`))+ 
   coord_fixed(1.3)+
-  ggtitle("Energy Savings by County")+ 
+  ggtitle("Energy Savings by County (LOG)")+ 
   theme_classic()+ 
   theme(axis.title.x = element_blank(),
                            axis.title.y = element_blank(),
@@ -201,11 +204,14 @@ ggplot(data = merged_data)+
 
 ```{r, visualize}
 
+log_budget <- log(merged_data$Budget + 1)
+merged_data$log_budget <- log(merged_data$Budget + 1)
+
 #Budget
 ggplot(data = merged_data)+
-  geom_polygon(aes(x = long, y = lat, group = group, fill= `Budget`))+ 
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `log_budget`))+ 
   coord_fixed(1.3)+
-  ggtitle("Budget by County")+ 
+  ggtitle("Budget by County (LOG)")+ 
   theme_classic()+ 
   theme(axis.title.x = element_blank(),
                            axis.title.y = element_blank(),
@@ -232,11 +238,14 @@ ggplot(data = merged_data)+
 
 ```{r, visualize}
 
+log_taxrev <- log(merged_data$`Tax Revenue (2016-2018)` + 1)
+merged_data$log_taxrev <- log(merged_data$`Tax Revenue (2016-2018)` + 1)
+
 #Tax Revenue
 ggplot(data = merged_data)+
-  geom_polygon(aes(x = long, y = lat, group = group, fill= `Tax Revenue (2016-2018)`))+ 
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `log_taxrev`))+ 
   coord_fixed(1.3)+
-  ggtitle("Tax Revenue by County")+ 
+  ggtitle("Tax Revenue by County (LOG)")+ 
   theme_classic()+ 
   theme(axis.title.x = element_blank(),
                            axis.title.y = element_blank(),

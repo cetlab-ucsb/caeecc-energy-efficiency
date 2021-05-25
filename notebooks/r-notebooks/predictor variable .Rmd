@@ -1,0 +1,21 @@
+---
+title: "predictor variable"
+author: "Sydney Litvin"
+date: "4/14/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(readr)
+data<-read.csv("cities_1 - cities_1.csv")
+View(data)
+```
+
+```{r}
+tax.pop.lm<-(Total.Tax.Revenue~total_population, data=data)
+```
+
