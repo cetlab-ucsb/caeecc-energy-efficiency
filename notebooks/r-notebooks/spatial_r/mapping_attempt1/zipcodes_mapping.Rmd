@@ -1,0 +1,116 @@
+---
+title: "Zipcodes"
+author: "Austin Covey"
+date: "5/14/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, load packages}
+library(sf)
+library(data.table)
+library(tigris)
+library(ggplot2)
+library(maps)
+library(tmap)
+library(USAboundaries)
+library(maptools)
+library(tidyverse)
+library(stringr)
+library(viridis)
+```
+
+```{r, load data}
+zip_codes_shape <- st_read("zipcodes/ZCTA2010.shp")
+zip_centroid <- read_csv("zipcode_centroid.csv")
+```
+
+```{r, object type and CRS}
+#st_geometry_type(zip_codes_shape)
+st_crs(zip_codes_shape)
+```
+
+```{r, find extent}
+st_bbox(zip_codes_shape)
+```
+
+```{r, plot the shape of zip codes}
+ggplot() +
+  geom_sf(data = zip_codes_shape,
+          color = "black",
+          fill = "cyan1") +
+  ggtitle("Zip codes CA shape") +
+  coord_s
+```
+
+```{r, investigate centroids}
+#class(zip_centroid)
+#str(zip_centroid)
+```
+
+```{r, try to map without using st_as_sf}
+#does not work
+ggplot() +
+  geom_sf(zip_centroid,
+       aes(x = "Longitude", y = "Latitude"))
+
+```
+
+```{r, change CSV into a spatial object}
+CA_albs <- st_crs(zip_codes_shape)
+zip_centroid_sf <- st_as_sf(zip_centroid,
+                            coords = c('Longitude', 'Latitude'),
+                            crs = 4326) #WGS84datum ESPG code = 4326
+
+zip_centroid_sf_2 <- st_transform(zip_centroid_sf, crs = CA_albs)
+# CA Albers / NAD83 datum ? ESPG = 4269
+# Check that this produced a simple feature
+st_crs(zip_centroid_sf_2)
+```
+
+```{r, try writing zip_centroid_sf to a shapefile}
+# st_write(zip_centroid_sf,
+        # "test_sf.shp",
+        # drive = "ESRI Shapefile")
+
+#Aboce produces insanely long error message
+```
+
+```{r, check bounding box}
+st_bbox(zip_centroid_sf)
+```
+
+```{r, cehck long and lat}
+min(zip_centroid$Longitude)
+max(zip_centroid$Longitude)
+min(zip_centroid$Latitude)
+max(zip_centroid$Latitude)
+```
+
+
+
+```{r, plot centroids}
+ggplot()+
+  geom_sf(data = zip_centroid_sf_2) +
+  coord_sf()
+```
+
+```{r, plot both polygons and centroids}
+ggplot() +
+  geom_sf(data = zip_codes_shape,
+          color = "grey",
+          fill = "cyan1") +
+  geom_sf(data = zip_centroid_sf_2,
+          size = 0.1) +
+  ggtitle("Zip codes and centroids") +
+  coord_sf()
+```
+
+
+
+
+
+
