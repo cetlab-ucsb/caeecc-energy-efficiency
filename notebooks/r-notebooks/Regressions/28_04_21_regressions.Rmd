@@ -19,6 +19,9 @@ library(tidyverse)
 library(psych)
 library(car)
 library(fitdistrplus)
+library(pscl)
+library(countreg)
+library(dplyr)
 ```
 
 ```{r, EE Programs at the County Level}
@@ -1348,17 +1351,103 @@ summary(citiesd.glm)
 
 ```{r, K12 Programs}
 #read in data for K-12 EE programs 
-K12 <- read.csv("k12_counties_2.csv")
+K12 <- read.csv("k12_counties3.csv")
 ```
 
-```{r, K12}
+```{r, K12.1}
 #scatter plot matrix to check for correlation between school enrollment and investment/energy savings
-plot.K12 <- data.frame(K12$county_name, K12$TotalFirstYearGrosskWh, K12$Budget, K12$total_lcff_entitlement, K12$enrollment, K12$perc_title1_status, K12$perc_eligible_frpm, K12$perc_eligible_free, K12$mean_household_income_usd, counties$IRR, K12$dac_proportion, K12$ces_score_median, K12$ces_percentile_median, K12$perc_obf_budget, K12$perc_resource_budget) #subset out these variables
-colnames(plot.K12)<-c("county_name", "TotalFirstYearGrosskWh", "Budget", "total_lcff_entitlement", "enrollment","perc_title1_status", "perc_eligible_frpm", "perc_eligible_free", "mean_household_income_usd", "IRR","dac_proportion", "ces_score_median", "ces_percentile_median", "perc_obf_budget","perc_resource_budget") #change column names back to original
+plot.K12 <- data.frame(K12$budget, K12$kWh, K12$enrollment, K12$tot_lcff, K12$perc_title1_status, K12$perc_eligible_frpm, K12$perc_eligible_free, K12$median_household_income_usd, K12$irr, K12$dac_proportion, K12$ces_score_median, K12$ces_percentile_median, K12$perc_obf, K12$perc_resource) #subset out these variables
+colnames(plot.K12)<-c( "budget","kWh","enrollment","lcff", "perc_title1_status", "perc_eligible_frpm", "perc_eligible_free", "income", "IRR","dac_proportion", "ces_score_median", "ces_percentile_median", "perc_obf_budget","perc_resource_budget") #change column names back to original
 pairs.panels(plot.K12, density = TRUE, cor=TRUE, lm=TRUE) #scatterplot
 ```
 
-```{r, K12}
+```{r, K12.2}
+#check the distribution of the predictor variable of interest (Budget)
+hist(K12$budget)
+#check the distribution of the predictor variable of interest (Energy Savings)
+hist(K12$kWh)
+```
+
+```{r, K12.3}
+#log-transform budget to account for the skew
+K12$ln_budget <- log(K12$budget + 1)
+#visualize the normal distribution
+hist(K12$ln_budget)
+
+#log-transform kWh to account for the skew
+K12$ln_kWh <- log(K12$kWh + 1)
+#visualize the normal distribution
+hist(K12$ln_kWh)
+```
+
+```{r, K12.4}
+#checking if poisson works in this case on full dataset
+
+#round y variable because poisson only works with integers 
+K12$rounded_budget <- round(K12$budget, 0)
+#fit the model to poisson
+K12_pois <- glm(rounded_budget ~ tot_lcff + perc_title1_status + perc_eligible_frpm + irr + dac_proportion, data = K12, family = "poisson")
+summary(K12_pois)
+# predict expected mean count
+mu <- predict(K12_pois, type = "response")
+# sum the probabilities of a 0 count for each mean
+exp <- sum(dpois(x = 0, lambda = mu))
+# predicted number of 0's based on model 
+round(exp) 
+# observed number of 0's
+sum(K12$budget < 1) 
+
+#we can see that we’re severely underfitting zero counts because we observed 26 zero counts but our model predicts + the summary is not telling us much either; in this case let's try a hurdle model 
+```
+
+```{r, K12.5}
+#to learn more about hurdle models: https://data.library.virginia.edu/getting-started-with-hurdle-models/
+K12_hurdle <- hurdle(rounded_budget ~ tot_lcff + perc_title1_status + perc_eligible_frpm + irr + dac_proportion, data = K12)
+summary(K12_hurdle)
+#rootogram(K12_hurdle, max = 3929627)
+```
+
+```{r, K-12—check}
+#negative binomial budget model on full dataset
+K12.nbglm <- glm.nb(rounded_budget ~ tot_lcff + perc_title1_status + perc_eligible_frpm + irr + dac_proportion, data = K12)
+summary(K12.nbglm)
+```
+
+```{r, K12.6}
+#subset out counties that participated 
+participating.K12 <- filter(K12, budget > 0)
+```
+
+```{r, K12.7}
+#visualize
+hist(participating.K12$ln_budget)
+hist(participating.K12$ln_kWh)
+```
+
+```{r, K12.9}
+#checking if regular works in this case on participating counties 
+
+#fit the model 
+participating.K12_glm <- glm(ln_budget ~ tot_lcff + perc_title1_status + perc_eligible_frpm + irr + dac_proportion, data = participating.K12)
+summary(participating.K12_glm)
+```
+
+```{r, K12.10}
+#checking if regular works in this case on participating counties for racial characteristics
+
+#fit the model 
+participating.K12_glmr <- glm(ln_budget ~ perc_na + perc_aa + perc_wa + perc_ba + perc_ia, data = participating.K12)
+summary(participating.K12_glmr)
+
+#fit the model 
+participating.K12_glmallb <- glm(ln_budget ~ tot_lcff + perc_title1_status + perc_eligible_frpm + irr + dac_proportion + perc_na + perc_aa + perc_wa + perc_ba + perc_ia, data = participating.K12)
+summary(participating.K12_glmallb)
+
+participating.K12_glmalle <- glm(ln_kWh ~ tot_lcff + perc_title1_status + perc_eligible_frpm + irr + dac_proportion + perc_na + perc_aa + perc_wa + perc_ba + perc_ia, data = participating.K12)
+summary(participating.K12_glmalle)
+```
+
+```{r, K12 quantiles}
 #log-transform the enrollment to account for the skew
 K12$ln_enrollment <- log(K12$enrollment)
 #visualize the normal distribution
@@ -1391,17 +1480,8 @@ hist(K12_lnq3$TotalFirstYearGrosskWh)
 hist(K12_lnq4$TotalFirstYearGrosskWh)
 ```
 
-```{r, K12}
-#check the distribution of the predictor variable of interest (Budget)
-hist(K12$Budget)
-```
-```{r, K12}
-#check the distribution of the predictor variable of interest (Energy Savings)
-hist(K12$TotalFirstYearGrosskWh)
-```
-
 ```{r, K12—check}
-#round y because GLM works best with integers 
+#round y because poisson model works best with integers 
 K12_lnq1$rounded_budget <- round(K12_lnq1$Budget, 0)
 K12_lnq2$rounded_budget <- round(K12_lnq2$Budget, 0)
 K12_lnq3$rounded_budget <- round(K12_lnq3$Budget, 0)
@@ -1487,14 +1567,5 @@ AIC(K12_1f.glm, K12_1g.glm, K12_1h.glm, K12_1i.glm, K12_1j.glm) #the smaller the
 BIC(K12_1f.glm, K12_1g.glm, K12_1h.glm, K12_1i.glm, K12_1j.glm) #the smaller the value the better
 ```
 
-```{r, K-12—check}
-#negative binomial budget model
-K121a_glm.nb <- glm.nb(rounded_budget ~ total_lcff_entitlement + ces_score_median + IRR + median_household_income_usd + enrollment, data = K12_lnq1)
-summary(K121a_glm.nb)
-```
-```{r, K-12—check}
-#negative binomial energy savings model
-K121b_glm.nb <- glm.nb(rounded_kWh ~ total_lcff_entitlement + ces_score_median + IRR + median_household_income_usd + enrollment, data = K12_lnq1)
-summary(K121b_glm.nb)
-```
+
 

@@ -4,3 +4,6 @@
 .Ruserdata
 
 figures/*.png
+for github/.DS_Store
+.DS_Store
+notebooks/r-notebooks/.DS_Store
