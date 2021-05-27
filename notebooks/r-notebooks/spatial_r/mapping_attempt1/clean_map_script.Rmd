@@ -331,7 +331,12 @@ centroids <- st_centroid(polygons)
 plot(centroids)
 
 #merge
-centroids_w_subregion<- left_join(centroids, CA_counties, by = c("group"="group")) #the left_join takes all the unique values from left one and only add the matches from the right (doesn't matter in this case because they WILL match since we checked already)
+centroids_w_subregion<- inner_join(centroids, CA_counties, by = "group") #the left_join takes all the unique values from left one and only add the matches from the right (doesn't matter in this case because they WILL match since we checked already)
+dim(centroids_w_subregion) 
+```
+```{r}
+#merge
+centroids_w_subregion = merge(centroids, CA_counties, by = "group", all.y = FALSE) #the left_join takes all the unique values from left one and only add the matches from the right (doesn't matter in this case because they WILL match since we checked already)
 dim(centroids_w_subregion) 
 ```
 
