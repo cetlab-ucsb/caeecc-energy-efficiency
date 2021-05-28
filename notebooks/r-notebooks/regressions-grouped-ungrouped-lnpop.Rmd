@@ -22,8 +22,14 @@ library(Ecdat)
 
 cities <- read.csv('C:/Users/ather/CS Projects/CETLab/caeecc-energy-efficiency/cities_2.csv')
 demo <- read.csv('C:/Users/ather/R/CETLAB/census_race_combined_by_city.csv')
+demoall <- read.csv('C:/Users/ather/R/CETLAB/census_race_group_by_city.csv')
 
-cities = na.omit(cities)
+cities <- na.omit(cities)
+summary(cities)
+
+#dropping large outlier cities with LA and SF
+#cities <- subset(cities, SiteCity != "LOS ANGELES")
+#cities <- subset(cities, SiteCity != "SAN FRANCISCO")
 ```
 
 ```{r}
@@ -78,48 +84,94 @@ hist(log(cities$Budget))
 ```
 
 ```{r}
-#regressions on groups
+#regressions on full cities data with log transform variance stabilizing function
 
-#this seems to be the best model with the highest adjusted R^2 with log transformations
+#this seems to be the best model with the highest adjusted R^2 with some log transformations but others left alone, this was just through testing to see which variables, when log transformed, resulted in more normal distributions
 
 reg_model = lm(Budget ~ Total.Tax.Revenue + log(total_population) + log(ces_score_median) + log(median_household_income_usd) + dac_proportion + log(ruca_average), data = cities)
 
-#summary(reg_model)
+summary(reg_model)
+plot(reg_model)
+
+#by recommendation of professor, this model log transforms the outcome variable and not the predictors, this model is made without the final predictor variables in order to compare the difference in significance and R-squared values
 
 reg_model_outcome = lm(log(Budget) ~ Total.Tax.Revenue + total_population + ces_score_median + median_household_income_usd + ruca_average, data = cities)
 
 summary(reg_model_outcome)
+plot(reg_model_outcome)
+```
 
-#plot(reg_model_outcome)
+
+```{r}
+#testing dropping one of the two colinear variables
+
+taxrev_no_pop = lm(log(Budget) ~ Total.Tax.Revenue + ces_score_median + median_household_income_usd + ruca_average, data = cities)
+summary(taxrev_no_pop)
+
+pop_no_taxrev = lm(log(Budget) ~ total_population + ces_score_median + median_household_income_usd + ruca_average, data = cities)
+summary(pop_no_taxrev)
+
+#keep taxrevenue, drop population
+
 ```
 
 ```{r}
-budget_pop_model = lm(log(Budget) ~ total_population, data = cities)
-AIC(budget_pop_model)
+#quick note:
+#before adding the %'s of budget/resource budget, according to the step AIc we did with prof Tatum,
+
+#this seems to be the best Budget model by AIC before adding %'s of budget
+#aic_model_budget = lm(log(Budget) ~ median_household_income_usd + Total.Tax.Revenue + ruca_average + ces_score_median, data = cities)
+
+#same model but with TotalFirstYearGrosskWh as outcome:
+aic_model_kwh_old = lm(TotalFirstYearGrosskWh ~ median_household_income_usd + Total.Tax.Revenue + ruca_average + ces_score_median, data = cities)
+summary(aic_model_kwh_old)
+plot(aic_model_kwh_old)
+```
+
+
+```{r}
 
 #AIC based on likelihood,
 #even though based on F-test it shows insignificant var, AIC shows that the larger model is significant
 #log(budget) ~ income, taxrev, ruca, ces_score, population
 
-#test step AIC to see which variables the evaluation picks
-stepAIC(lm(log(Budget) ~ median_household_income_usd + Total.Tax.Revenue + ruca_average + ces_score_median + total_population + dac_proportion, data = cities))
+#test step AIC to see which variables the step validation picks
+aic_model_budget = stepAIC(lm(log(Budget) ~ median_household_income_usd + Total.Tax.Revenue + ruca_average + ces_score_median + dac_proportion + `X..OBF.Budget` + `X..Resource.Budget`, data = cities))
 
-#this seems to be the best model by AIC
-aic_model = lm(log(Budget) ~ median_household_income_usd + Total.Tax.Revenue + ruca_average + ces_score_median + total_population, data = cities)
-summary(aic_model)
+summary(aic_model_budget)
+plot(aic_model_budget)
 
-plot(aic_model)
+
+aic_model_firstyear = stepAIC(lm(TotalFirstYearGrosskWh ~ median_household_income_usd + Total.Tax.Revenue + ruca_average + ces_score_median + dac_proportion + `X..OBF.Budget` + `X..Resource.Budget`, data = cities))
+
+summary(aic_model_firstyear)
+plot(aic_model_firstyear)
+
 
 ```
 
 ```{r}
-#testing dropping one of the two collinear variables
+#running AIC on our different ln population groups:
 
-taxrev_no_pop = lm(log(Budget) ~ Total.Tax.Revenue + ces_score_median + median_household_income_usd + ruca_average, data = cities)
+step_lnq1 = stepAIC(lm(log(Budget) ~ median_household_income_usd + Total.Tax.Revenue + ruca_average + ces_score_median + dac_proportion + `X..OBF.Budget` + `X..Resource.Budget`, data = cities_lnq1))
 
-#pop_no_taxrev = lm(log(Budget) ~ total_population + ces_score_median + median_household_income_usd + ruca_average, data = cities)
+summary(step_lnq1)
+plot(step_lnq1)
 
-#keep taxrevenue, drop population
+step_lnq2 = stepAIC(lm(log(Budget) ~ median_household_income_usd + Total.Tax.Revenue + ruca_average + ces_score_median + dac_proportion + `X..OBF.Budget` + `X..Resource.Budget`, data = cities_lnq2))
+
+summary(step_lnq2)
+plot(step_lnq2)
+
+step_lnq3 = stepAIC(lm(log(Budget) ~ median_household_income_usd + Total.Tax.Revenue + ruca_average + ces_score_median + dac_proportion + `X..OBF.Budget` + `X..Resource.Budget`, data = cities_lnq3))
+
+summary(step_lnq3)
+plot(step_lnq3)
+
+step_lnq4 = stepAIC(lm(log(Budget) ~ median_household_income_usd + Total.Tax.Revenue + ruca_average + ces_score_median + dac_proportion + `X..OBF.Budget` + `X..Resource.Budget`, data = cities_lnq4))
+
+summary(step_lnq4)
+plot(step_lnq4)
 
 ```
 
@@ -165,8 +217,9 @@ plot(spline)
 ```
 
 ```{r}
-#reshape demo data
+#this section of demographic data is of non-white and white proportions, since theyre recorded in separate rows, this reshapes into columns instead
 demo_reshape <- reshape(demo, idvar = "city", timevar = "combined_group", direction = "wide")
+
 cities$SiteCity <- tolower(cities$SiteCity)
 demo_reshape$city <- tolower(demo_reshape$city)
 #join with cities
@@ -174,8 +227,21 @@ cities_demos_joined <- left_join(cities, demo_reshape, by = c("SiteCity" = "city
 ```
 
 ```{r}
+demoall = na.omit(demoall)
+#this section of demographic data is of all race groups, similarly to previous chunk, it will need to be reshaped and then included in the AIC regression
+demoall_reshape <- reshape(demoall, idvar = "city", timevar = "group",direction = "wide")
+
+cities$SiteCity <- tolower(cities$SiteCity)
+demoall_reshape$city <- tolower(demo_reshape$city)
+#join with cities
+cities_demos_joined <- left_join(cities, demoall_reshape, by = c("SiteCity" = "city"))
+
+```
+
+
+```{r}
 #step AIC including demographics varaibles
-stepAIC(lm(log(Budget) ~ median_household_income_usd + Total.Tax.Revenue + ruca_average + ces_score_median + total_population + dac_proportion + `proportion.Non-white`, data = cities_demos_joined))
+stepAIC(lm(log(Budget) ~ median_household_income_usd + Total.Tax.Revenue + ruca_average + ces_score_median + total_population + dac_proportion + `proportion.Non-white` + `X..OBF.Budget` + `X..Resource.Budget`, data = cities_demos_joined))
 ```
 
 
