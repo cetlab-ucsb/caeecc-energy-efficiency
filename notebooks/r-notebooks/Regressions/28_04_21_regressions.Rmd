@@ -1230,34 +1230,64 @@ BIC(counties4hh_lm, counties4h_lm) #the smaller the value the better
 ```
 
 ```{r}
-#t tests on different quantiles for budget
-t.test(counties_lnq1$Budget, counties_lnq2$Budget)
-t.test(counties_lnq2$Budget, counties_lnq3$Budget)
-t.test(counties_lnq3$Budget, counties_lnq4$Budget)
-t.test(counties_lnq1$Budget, counties_lnq3$Budget)
+#t tests on different quantiles based on population for budget
+t.test(counties_g1$Budget, counties_g4$Budget)
+#significantly different means so should be run as different tests
+
+#t tests on different quantiles based on population for energy savings
+t.test(counties_g1$TotalFirstYearGrosskWh, counties_g4$TotalFirstYearGrosskWh)
+#significantly different means so should be run as different tests
+
+#t tests on different quantiles based on log of population for budget
 t.test(counties_lnq1$Budget, counties_lnq4$Budget)
-t.test(counties_lnq2$Budget, counties_lnq4$Budget)
+#significantly different means so should be run as different tests
 
-#t tests on different quantiles for energy savings
-t.test(counties_lnq1$TotalFirstYearGrosskWh, counties_lnq2$TotalFirstYearGrosskWh)
-t.test(counties_lnq1$TotalFirstYearGrosskWh, counties_lnq3$TotalFirstYearGrosskWh)
+#t tests on different quantiles based on log of population for energy savings
 t.test(counties_lnq1$TotalFirstYearGrosskWh, counties_lnq4$TotalFirstYearGrosskWh)
-t.test(counties_lnq2$TotalFirstYearGrosskWh, counties_lnq3$TotalFirstYearGrosskWh)
-t.test(counties_lnq2$TotalFirstYearGrosskWh, counties_lnq4$TotalFirstYearGrosskWh)
-t.test(counties_lnq3$TotalFirstYearGrosskWh, counties_lnq4$TotalFirstYearGrosskWh)
+#significantly different means so should be run as different tests
 ```
 
 ```{r}
 #create step aic to see which combination of variables is the best fit 
-stepAIC(lm(ln_budget ~ Mean.Income + TotalRevenue + IRR + ces_score_median + dac_proportion, data = counties))
-#looks like the first set of variables that has all of them is the best set 
+stepAIC(lm(ln_budget ~ Mean.Income + TotalRevenue + Population + IRR + ces_score_median + dac_proportion, data = counties))
+```
+
+```{r}
+#spline model using variables recommended by step aic
+spline2_model = lm(ln_budget ~ splines::bs(ln_Population, knots = c(10.768725,12.125893, 13.439743)) + ces_score_median + dac_proportion + IRR, data = counties)
+summary(spline2_model)
+```
+
+```{r}
+#chi-squared to see if it predicts value
+exp(summary(spline2_model)$coefficients[,1])
+counties$predict_value <- predict(spline2_model, counties, type = "response")
+
+chisq.test(counties$ln_budget, counties$predict_value)
+#the predicted values for this fit are about equal in accuracy as the other fit, both are very close and for some values this one is more accurate, and for other values the other fit is more accurate
 ```
 
 ```{r}
 #create step aic to see which combination of variables is the best fit 
-ln_TotalFirstYearGrosskWh<-log(counties$TotalFirstYearGrosskWh+1)
+counties$ln_TotalFirstYearGrosskWh<-log(counties$TotalFirstYearGrosskWh+1)
 stepAIC(lm(ln_TotalFirstYearGrosskWh ~ Mean.Income + TotalRevenue + IRR + ces_score_median + dac_proportion, data = counties))
-#looks like the first set of variables that has all of them is the best set 
+```
+
+```{r}
+#created spline split up into four different quantiles based on the log of population because that gets rid of skew and creates specific fits for each section
+#spline using step aic recommendation
+library(splines)
+spline3_model = lm(ln_TotalFirstYearGrosskWh ~ splines::bs(ln_Population, knots = c(10.768725,12.125893, 13.439743)) + IRR, data = counties)
+summary(spline3_model)
+```
+
+```{r}
+#chi-squared to see if it predicts value
+exp(summary(spline3_model)$coefficients[,1])
+counties$predict_value3 <- predict(spline3_model, counties, type = "response")
+
+chisq.test(counties$ln_TotalFirstYearGrosskWh, counties$predict_value3)
+#other fit predicts the values more accurately so other fit is better model to use
 ```
 
 ```{r}
@@ -1265,30 +1295,115 @@ stepAIC(lm(ln_TotalFirstYearGrosskWh ~ Mean.Income + TotalRevenue + IRR + ces_sc
 library(splines)
 spline1_model = lm(ln_TotalFirstYearGrosskWh ~ splines::bs(ln_Population, knots = c(10.768725,12.125893, 13.439743)) + TotalRevenue + ces_score_median + dac_proportion + Mean.Income + IRR, data = counties)
 summary(spline1_model)
+#looking r-squared value, this is better fit
+```
+
+```{r}
+#chi-squared to see if it predicts value
+exp(summary(spline1_model)$coefficients[,1])
+counties$predict_value2 <- predict(spline1_model, counties, type = "response")
+
+chisq.test(counties$ln_TotalFirstYearGrosskWh, counties$predict_value2)
+#this fit has better predicted values based on chi-squared so this is a better fit
 ```
 
 ```{r}
 #created spline split up into four different quantiles based on the log of population because that gets rid of skew and creates specific fits for each section
 library(splines)
-ln_budget<-log(counties$Budget+1)
+counties$ln_budget<-log(counties$Budget+1)
 spline_model = lm(ln_budget ~ splines::bs(ln_Population, knots = c(10.768725,12.125893, 13.439743)) + TotalRevenue + ces_score_median + Mean.Income + IRR + dac_proportion, data = counties)
 summary(spline_model)
 plot(spline_model)
 #estimates make sense except for total revenue 
+#this spline is better fit when looking at r-squared value
+```
+
+```{r}
+#chi-squared to see if it predicts value
+exp(summary(spline_model)$coefficients[,1])
+counties$predict_value1 <- predict(spline_model, counties, type = "response")
+
+chisq.test(counties$ln_budget, counties$predict_value1)
+##the predicted values for this fit are about equal in accuracy as the other fit, both are very close and for some values this one is more accurate, and for other values the other fit is more accurate
 ```
 
 ```{r}
 #put in demographic variables and see how that fits in to step aic
 stepAIC(lm(ln_budget ~ Mean.Income + TotalRevenue + IRR + ces_score_median + dac_proportion + perc_wa_avg + perc_ba_avg + perc_ia_avg + perc_aa_avg + perc_na_avg, data = counties))
-#still showing highest aic for the fit with the most amount of variables but idk if thats too many??
+```
+
+```{r}
+#put in demographic variables and see how that fits in to spline (spline using step aic recommendation)
+spline4_model = lm(ln_budget ~ splines::bs(ln_Population, knots = c(10.768725,12.125893, 13.439743)) + IRR + perc_ia_avg, data = counties)
+summary(spline4_model)
+#no variables seem significant and estimates are interesting
+```
+
+```{r}
+#chi-squared to see if it predicts value
+exp(summary(spline4_model)$coefficients[,1])
+counties$predict_value4 <- predict(spline4_model, counties, type = "response")
+
+chisq.test(counties$ln_budget, counties$predict_value4)
+#the fit with all the demographic varirables predicts log of budget better
 ```
 
 ```{r}
 #put in demographic variables and see how that fits in to spline
-spline2_model = lm(ln_budget ~ splines::bs(ln_Population, knots = c(10.768725,12.125893, 13.439743)) + TotalRevenue + ces_score_median + Mean.Income + IRR + dac_proportion + perc_wa_avg + perc_ba_avg + perc_ia_avg + perc_aa_avg + perc_na_avg, data = counties)
-summary(spline2_model)
+spline5_model = lm(ln_budget ~ splines::bs(ln_Population, knots = c(10.768725,12.125893, 13.439743)) + TotalRevenue + ces_score_median + Mean.Income + IRR + dac_proportion + perc_wa_avg + perc_ba_avg + perc_ia_avg + perc_aa_avg + perc_na_avg, data = counties)
+summary(spline5_model)
 #no variables seem significant and estimates are interesting
+#this is better fit when looking at r-squared value
 ```
+
+```{r}
+#chi-squared to see if it predicts value
+exp(summary(spline5_model)$coefficients[,1])
+counties$predict_value5 <- predict(spline5_model, counties, type = "response")
+
+chisq.test(counties$ln_budget, counties$predict_value5)
+#spline 5 predicts the values better than spline 4, which means the model with all variables predicts the values better than the fit the step aic predicts, but the models without the demographics are better than the fit with the demographics
+```
+
+```{r}
+#put in demographic variables and see how that fits in to step aic
+stepAIC(lm(ln_TotalFirstYearGrosskWh ~ Mean.Income + TotalRevenue + IRR + ces_score_median + dac_proportion + perc_wa_avg + perc_ba_avg + perc_ia_avg + perc_aa_avg + perc_na_avg, data = counties))
+#still showing highest aic for the fit with the most amount of variables but idk if thats too many??
+```
+
+```{r}
+#spline using all of the variables 
+spline6_model = lm(ln_TotalFirstYearGrosskWh ~ splines::bs(ln_Population, knots = c(10.768725,12.125893, 13.439743)) + TotalRevenue + ces_score_median + Mean.Income + IRR + dac_proportion + perc_wa_avg + perc_ba_avg + perc_ia_avg + perc_aa_avg + perc_na_avg, data = counties)
+summary(spline6_model)
+#this is better fit when looking at r-squared value
+```
+
+```{r}
+#chi-squared to see if it predicts value
+exp(summary(spline6_model)$coefficients[,1])
+counties$predict_value6 <- predict(spline6_model, counties, type = "response")
+
+chisq.test(counties$ln_TotalFirstYearGrosskWh, counties$predict_value6)
+#this a better predictor but the regression without the demographic variables is still better
+```
+
+```{r}
+#spline using the variables that step aic predicted
+spline7_model = lm(ln_TotalFirstYearGrosskWh ~ splines::bs(ln_Population, knots = c(10.768725,12.125893, 13.439743)) + IRR + perc_ia_avg, data = counties)
+summary(spline7_model)
+```
+
+```{r}
+#chi-squared to see if it predicts value
+exp(summary(spline7_model)$coefficients[,1])
+counties$predict_value7 <- predict(spline7_model, counties, type = "response")
+
+chisq.test(counties$ln_TotalFirstYearGrosskWh, counties$predict_value7)
+#does not predict well
+```
+
+Overall for both budget and energy savings the splines with all the variables are better than the splines that use the step AIC predicted variables but when comparing the splines with the demographic variables to the splines without the demographic variables, the splines without the demographic are better fits
+In conclusion the two best splines are budget with all economic variables but not demographic variables and energy savings with all economic variables but not demographic variables
 
 ```{r, EE Programs at the City Level}
 #read in data for City EE programs 
