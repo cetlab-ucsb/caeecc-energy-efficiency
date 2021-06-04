@@ -1405,6 +1405,40 @@ chisq.test(counties$ln_TotalFirstYearGrosskWh, counties$predict_value7)
 Overall for both budget and energy savings the splines with all the variables are better than the splines that use the step AIC predicted variables but when comparing the splines with the demographic variables to the splines without the demographic variables, the splines without the demographic are better fits
 In conclusion the two best splines are budget with all economic variables but not demographic variables and energy savings with all economic variables but not demographic variables
 
+```{r}
+#split up budget in to quantiles and then create a group of the smallest budgets and largest budgets
+quantile(counties$Budget)
+bottomq_budget = subset(counties, Budget <= 168429.5)
+topq_budget = subset(counties, Budget > 3441408.1)
+
+mean(bottomq_budget$perc_wa_avg) #86.4427%
+mean(topq_budget$perc_wa_avg) #69.49446%
+mean(bottomq_budget$perc_ba_avg) #1.91%
+mean(topq_budget$perc_ba_avg) #6.03%%
+mean(bottomq_budget$perc_aa_avg) #1.71%
+mean(topq_budget$perc_aa_avg) #17.88%
+mean(bottomq_budget$perc_ia_avg) #5.90%
+mean(topq_budget$perc_ia_avg) #1.60%
+mean(bottomq_budget$perc_na_avg) #0.277%
+mean(topq_budget$perc_na_avg) #0.594%
+
+#split up energy savings in to quantiles and then create a group of the smallest energy savings and largest energy savings
+quantile(counties$TotalFirstYearGrosskWh)
+bottomq_energy = subset(counties, Budget <= 152553.2)
+topq_energy = subset(counties, Budget > 6333300.1)
+
+mean(bottomq_energy$perc_wa_avg)#86.16%
+mean(topq_energy$perc_wa_avg) #63.53%
+mean(bottomq_energy$perc_ba_avg) #1.89%
+mean(topq_energy$perc_ba_avg) #7.88%%
+mean(bottomq_energy$perc_aa_avg) #1.73%
+mean(topq_energy$perc_aa_avg) #22.10%
+mean(bottomq_energy$perc_ia_avg) #6.16%
+mean(topq_energy$perc_ia_avg)#1.38%
+mean(bottomq_energy$perc_na_avg) #0.277%
+mean(topq_energy$perc_na_avg) #0.589%
+```
+
 ```{r, EE Programs at the City Level}
 #read in data for City EE programs 
 cities <- read.csv("cities_2.csv")
