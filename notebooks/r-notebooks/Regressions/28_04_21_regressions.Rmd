@@ -34,6 +34,43 @@ colnames(plot.counties)<-c("County", "Population", "Budget", "TotalFirstYearGros
 pairs.panels(plot.counties, density = TRUE, cor=TRUE, lm=TRUE) #scatterplot
 ```
 
+```{r}
+counties_subset <- subset(counties, Budget > 0)
+counties_x <- counties_subset[!(counties_subset$County %in% c("LOS ANGELES", "SAN FRANCISCO", "SAN DIEGO")),]
+hist(counties_x$Budget)
+counties_x$ln_budget <- log(counties_x$Budget+1)
+hist(counties_x$ln_budget)
+counties_x_lm<-lm(ln_budget~Population+IRR+Mean.Income+ces_score_median, data=counties_x)
+res.counties_x<-counties_x_lm$residuals
+qqPlot(counties_x_lm)
+shapiro.test(res.counties_x) 
+```
+
+```{r}
+#going through steps to see if budget per cap will make data normal and if we should use that as our y value
+counties$budget_per_cap = counties$Budget / counties$Population
+hist(counties$budget_per_cap)
+counties$ln_budget_per_cap <- log(counties$budget_per_cap+1)
+counties_percap_lm<-lm(ln_budget_per_cap~TotalRevenue+IRR+Mean.Income+ces_score_median+dac_proportion, data=counties)
+res.counties_percap<-counties_percap_lm$residuals
+qqPlot(counties_percap_lm)
+shapiro.test(res.counties_percap) 
+summary(counties_percap_lm)
+```
+
+```{r}
+#use step aic to see which configuration of models is best
+stepAIC(lm(ln_budget_per_cap ~ Mean.Income + TotalRevenue + Population + IRR + ces_score_median + dac_proportion, data = counties))
+```
+
+```{r}
+#best model, using full county data and budget per capita
+counties_percap_lm1<-lm(ln_budget_per_cap~Population+IRR+ces_score_median+dac_proportion, data=counties)
+res.counties_percap1<-counties_percap_lm1$residuals
+qqPlot(counties_percap_lm1)
+shapiro.test(res.counties_percap1) 
+summary(counties_percap_lm1)
+```
 
 ```{r, county}
 #log-transform the population to account for the skew
@@ -909,63 +946,36 @@ pairs.panels(plot.counties.lm, density = TRUE, cor=TRUE, lm=TRUE) #scatterplot
 
 
 ```{r}
-#linear regressions to see if data works using regular linear regressions using the natural log of population quantiles 
+#do step aic to see which fit is best
+stepAIC(lm(ln_TotalFirstYearGrosskWh ~ Mean.Income + TotalRevenue + Population + IRR + ces_score_median + dac_proportion, data = counties_lnq1))
 
-ln_TotalFirstYearGrosskWh<-log(counties_lnq1$TotalLifecycleGrosskWh+1)
-counties1a_lm<-lm(ln_TotalFirstYearGrosskWh~TotalRevenue+IRR+Mean.Income+ces_score_median, data=counties_lnq1)
+#fit with all variables
+counties1a_lm<-lm(ln_TotalFirstYearGrosskWh~TotalRevenue+IRR+Mean.Income+ces_score_median+dac_proportion, data=counties_lnq1)
 par(mfrow=c(2,2))
 plot(counties1a_lm)
 res.counties1a_lm <- counties1a_lm$residuals#fetching residuals 
 qqPlot(counties1a_lm)
-shapiro.test(res.counties1a_lm) #seeing if data is normal
-#data is not normal and variance is not equal
+shapiro.test(res.counties1a_lm)#seeing if data is normal
 summary(counties1a_lm)
+#no variables are significant
 
-counties1aa_lm<-lm(ln_TotalFirstYearGrosskWh~Population+IRR+Mean.Income+ces_score_median, data=counties_lnq1)
-par(mfrow=c(2,2))
-plot(counties1aa_lm)
-res.counties1aa_lm <- counties1aa_lm$residuals#fetching residuals 
-qqPlot(counties1aa_lm)
-shapiro.test(res.counties1aa_lm) #seeing if data is normal
-
-
-counties1b_lm<-lm(ln_TotalFirstYearGrosskWh~TotalRevenue+IRR+Mean.Income, data=counties_lnq1)
+#fit with suggested variables
+counties1b_lm<-lm(ln_TotalFirstYearGrosskWh~TotalRevenue+ces_score_median, data=counties_lnq1)
 par(mfrow=c(2,2))
 plot(counties1b_lm)
 res.counties1b_lm <- counties1b_lm$residuals #fetching residuals
 shapiro.test(res.counties1b_lm)#seeing if data is normal
 #data is not normal and variance is not equal
 summary(counties1b_lm)
-
-counties1c_lm<-lm(ln_TotalFirstYearGrosskWh~TotalRevenue+IRR, data=counties_lnq1)
-par(mfrow=c(2,2))
-plot(counties1c_lm)
-res.counties1c_lm <- counties1c_lm$residuals #fetching residuals
-shapiro.test(res.counties1c_lm)#seeing if data is normal
-#data is not normal and variance is not equal
-summary(counties1c_lm)
-
-counties1d_lm<-lm(ln_TotalFirstYearGrosskWh~TotalRevenue, data=counties_lnq1)
-par(mfrow=c(2,2))
-plot(counties1d_lm)
-res.counties1d_lm <- counties1d_lm$residuals #fetching residuals
-shapiro.test(res.counties1d_lm)#seeing if data is normal
-#data is not normal and variance is not equal
-summary(counties1d_lm)
+#total rev and ces score are significant
 ```
 
-```{r}
-#validate your energy savings model for q1 using linear regression
-anova(counties1a_lm, counties1aa_lm) #lower p-value means it explains the variance more which is best
-AIC(counties1a_lm, counties1aa_lm) #the smaller the value the better
-BIC(counties1a_lm, counties1aa_lm) #the smaller the value the better
-#total rev better
-```
 
 ```{r}
 ln2_TotalFirstYearGrosskWh<-log(counties_lnq2$TotalLifecycleGrosskWh+1)
-counties2aa_lm<-lm(ln2_TotalFirstYearGrosskWh~Population+IRR+Mean.Income+ces_score_median, data=counties_lnq2)
-counties2a_lm<-lm(ln2_TotalFirstYearGrosskWh~TotalRevenue+IRR+Mean.Income+ces_score_median, data=counties_lnq2)
+stepAIC(lm(ln2_TotalFirstYearGrosskWh ~ Mean.Income + TotalRevenue + Population + IRR + ces_score_median + dac_proportion, data = counties_lnq2))
+
+counties2a_lm<-lm(ln2_TotalFirstYearGrosskWh~TotalRevenue+IRR+Mean.Income+ces_score_median+dac_proportion, data=counties_lnq2)
 par(mfrow=c(2,2))
 plot(counties2a_lm)
 res.counties2a_lm <- counties2a_lm$residuals#fetching residuals 
@@ -973,20 +983,25 @@ qqPlot(counties2a_lm)
 shapiro.test(res.counties2a_lm) #seeing if data is normal
 #data is not normal and variance is not equal
 summary(counties2a_lm)
+#nothing is significant 
+
+counties2b_lm<-lm(ln2_TotalFirstYearGrosskWh~TotalRevenue+IRR+dac_proportion, data=counties_lnq2)
+par(mfrow=c(2,2))
+plot(counties2b_lm)
+res.counties2b_lm <- counties2b_lm$residuals#fetching residuals 
+qqPlot(counties2b_lm)
+shapiro.test(res.counties2b_lm) #seeing if data is normal
+#data is not normal and variance is not equal
+summary(counties2b_lm)
+#dac_prop is the most significant IRR estimate is largest 
 ```
 
-```{r}
-#validate your energy savings model for q1 using linear regression
-anova(counties2a_lm, counties2aa_lm) #lower p-value means it explains the variance more which is best
-AIC(counties2a_lm, counties2aa_lm) #the smaller the value the better
-BIC(counties2a_lm, counties2aa_lm) #the smaller the value the better
-#total rev better
-```
 
 ```{r}
 ln3_TotalFirstYearGrosskWh<-log(counties_lnq3$TotalLifecycleGrosskWh+1)
-counties3aa_lm<-lm(ln3_TotalFirstYearGrosskWh~Population+IRR+Mean.Income+ces_score_median, data=counties_lnq3)
-counties3a_lm<-lm(ln3_TotalFirstYearGrosskWh~TotalRevenue+IRR+Mean.Income+ces_score_median, data=counties_lnq3)
+stepAIC(lm(ln3_TotalFirstYearGrosskWh ~ Mean.Income + TotalRevenue + Population + IRR + ces_score_median + dac_proportion, data = counties_lnq3))
+
+counties3a_lm<-lm(ln3_TotalFirstYearGrosskWh~Population+TotalRevenue+IRR+Mean.Income+ces_score_median+dac_proportion, data=counties_lnq3)
 par(mfrow=c(2,2))
 plot(counties3a_lm)
 res.counties3a_lm <- counties3a_lm$residuals#fetching residuals 
@@ -994,20 +1009,26 @@ qqPlot(counties3a_lm)
 shapiro.test(res.counties3a_lm) #seeing if data is normal
 #data is not normal and variance is not equal
 summary(counties3a_lm)
+#none are significant, dac proportion is closest to being significant and irr and dac have highest and more valuable estimates
+
+counties3b_lm<-lm(ln3_TotalFirstYearGrosskWh~TotalRevenue, data=counties_lnq3)
+par(mfrow=c(2,2))
+plot(counties3b_lm)
+res.counties3b_lm <- counties3b_lm$residuals#fetching residuals 
+qqPlot(counties3b_lm)
+shapiro.test(res.counties3b_lm) #seeing if data is normal
+#data is not normal and variance is not equal
+summary(counties3b_lm)
+#not significant
 ```
 
-```{r}
-#validate your energy savings model for q1 using linear regression
-anova(counties3a_lm, counties3aa_lm) #lower p-value means it explains the variance more which is best
-AIC(counties3a_lm, counties3aa_lm) #the smaller the value the better
-BIC(counties3a_lm, counties3aa_lm) #the smaller the value the better
-#total rev better
-```
 
 ```{r}
 ln4_TotalFirstYearGrosskWh<-log(counties_lnq4$TotalLifecycleGrosskWh+1)
-counties4aa_lm<-lm(ln4_TotalFirstYearGrosskWh~TotalRevenue+IRR+Mean.Income+ces_score_median, data=counties_lnq4)
-counties4a_lm<-lm(ln4_TotalFirstYearGrosskWh~Population+IRR+Mean.Income+ces_score_median, data=counties_lnq4)
+stepAIC(lm(ln3_TotalFirstYearGrosskWh ~ Mean.Income + TotalRevenue + Population + IRR + ces_score_median + dac_proportion, data = counties_lnq3))
+
+
+counties4a_lm<-lm(ln4_TotalFirstYearGrosskWh~TotalRevenue+Population+IRR+Mean.Income+ces_score_median+dac_proportion, data=counties_lnq4)
 par(mfrow=c(2,2))
 plot(counties4a_lm)
 res.counties4a_lm <- counties4a_lm$residuals#fetching residuals 
@@ -1015,241 +1036,60 @@ qqPlot(counties4a_lm)
 shapiro.test(res.counties4a_lm) #seeing if data is normal
 #data is not normal and variance is not equal
 summary(counties4a_lm)
+#this one is normal but other is not so we must use this
+#total rev, population and irr are all significant
+
+counties4b_lm<-lm(ln4_TotalFirstYearGrosskWh~TotalRevenue, data=counties_lnq4)
+par(mfrow=c(2,2))
+plot(counties4b_lm)
+res.counties4b_lm <- counties4b_lm$residuals#fetching residuals 
+qqPlot(counties4b_lm)
+shapiro.test(res.counties4b_lm) #seeing if data is normal
+#data is not normal and variance is not equal
+summary(counties4b_lm)
+#not normal data
 ```
 
 ```{r}
-#validate your energy savings model for q1 using linear regression
-anova(counties4a_lm, counties4aa_lm) #lower p-value means it explains the variance more which is best
-AIC(counties4a_lm, counties4aa_lm) #the smaller the value the better
-BIC(counties4a_lm, counties4aa_lm) #the smaller the value the better
-#population better
-```
+#Create quantiles of budget
+quantile(counties$Budget)
 
+#create top and bottom quantile
+bottomq_budget = subset(counties, Budget <= 168429.5)
+topq_budget = subset(counties, Budget > 3441408.1)
 
-```{r}
-ln_budget<-log(counties_lnq1$Budget+1)
-counties1e_lm<-lm(ln_budget~TotalRevenue+IRR+Mean.Income+ces_score_median, data=counties_lnq1)
-par(mfrow=c(2,2))
-plot(counties1e_lm)
-res.counties1e_lm <- counties1e_lm$residuals#fetching residuals 
-qqPlot(counties1e_lm)
-shapiro.test(res.counties1e_lm) #seeing if data is normal
-summary(counties1e_lm)
+#create quantiles of energy savings
+quantile(counties$TotalFirstYearGrosskWh)
 
-counties1f_lm<-lm(ln_budget~TotalRevenue+IRR+Mean.Income, data=counties_lnq1)
-par(mfrow=c(2,2))
-plot(counties1f_lm)
-res.counties1f_lm <- counties1f_lm$residuals#fetching residuals 
-qqPlot(counties1f_lm)
-shapiro.test(res.counties1f_lm) #seeing if data is normal
-summary(counties1f_lm)
+#create top and bottom quantile
+bottomq_energy = subset(counties, TotalFirstYearGrosskWh <= 152553.2)
+topq_energy = subset(counties, TotalFirstYearGrosskWh > 6333300.1)
 
-counties1g_lm<-lm(ln_budget~TotalRevenue+IRR, data=counties_lnq1)
-par(mfrow=c(2,2))
-plot(counties1g_lm)
-res.counties1g_lm <- counties1g_lm$residuals#fetching residuals 
-qqPlot(counties1g_lm)
-shapiro.test(res.counties1g_lm) #seeing if data is normal
-summary(counties1g_lm)
+#t tests to compare means of irr in top and bottom
+t.test(bottomq_budget$IRR, topq_budget$IRR, na.action = na.omit)
+t.test(bottomq_energy$IRR, topq_energy$IRR, na.action = na.omit)
 
-counties1h_lm<-lm(ln_budget~TotalRevenue, data=counties_lnq1)
-par(mfrow=c(2,2))
-plot(counties1h_lm)
-res.counties1h_lm <- counties1h_lm$residuals#fetching residuals 
-qqPlot(counties1h_lm)
-shapiro.test(res.counties1h_lm) #seeing if data is normal
-summary(counties1h_lm)
-```
+#t tests to compare means of budget per capita in top and bottom
+t.test(bottomq_budget$budget_per_cap, topq_budget$budget_per_cap)
+t.test(bottomq_energy$budget_per_cap, topq_energy$budget_per_cap)
 
-```{r}
-#validate your budget for q1 using linear regression
-anova(counties1e_lm, counties1f_lm, counties1g_lm, counties1h_lm) #lower p-value means it explains the variance more which is best
-AIC(counties1e_lm, counties1f_lm, counties1g_lm, counties1h_lm) #the smaller the value the better
-BIC(counties1e_lm, counties1f_lm, counties1g_lm, counties1h_lm) #the smaller the value the better
-#without ces is the best fit 
-```
-
-```{r}
-counties1ff_lm<-lm(ln_budget~Population+IRR+Mean.Income, data=counties_lnq1)
-par(mfrow=c(2,2))
-plot(counties1ff_lm)
-res.counties1ff_lm <- counties1ff_lm$residuals#fetching residuals 
-qqPlot(counties1ff_lm)
-shapiro.test(res.counties1ff_lm) #seeing if data is normal
-summary(counties1ff_lm)
-```
-
-```{r}
-#validate your budget for q1 using linear regression
-anova(counties1ff_lm, counties1f_lm) #lower p-value means it explains the variance more which is best
-AIC(counties1ff_lm, counties1f_lm) #the smaller the value the better
-BIC(counties1ff_lm, counties1f_lm) #the smaller the value the better
-#population is better fit 
-```
-
-```{r}
-ln2_budget<-log(counties_lnq2$Budget+1)
-counties2ee_lm<-lm(ln2_budget~Population+IRR+Mean.Income+ces_score_median, data=counties_lnq2)
-counties2e_lm<-lm(ln2_budget~TotalRevenue+IRR+Mean.Income+ces_score_median, data=counties_lnq2)
-par(mfrow=c(2,2))
-plot(counties2e_lm)
-res.counties2e_lm <- counties2e_lm$residuals#fetching residuals 
-qqPlot(counties2e_lm)
-shapiro.test(res.counties2e_lm) #seeing if data is normal
-summary(counties2e_lm)
-#only fit that is normally distributed
-
-counties2f_lm<-lm(ln2_budget~TotalRevenue+IRR+Mean.Income, data=counties_lnq2)
-par(mfrow=c(2,2))
-plot(counties2f_lm)
-res.counties2f_lm <- counties2f_lm$residuals#fetching residuals 
-qqPlot(counties2f_lm)
-shapiro.test(res.counties2f_lm) #seeing if data is normal
-summary(counties2f_lm)
-
-counties2g_lm<-lm(ln2_budget~TotalRevenue+IRR, data=counties_lnq2)
-par(mfrow=c(2,2))
-plot(counties2g_lm)
-res.counties2g_lm <- counties2g_lm$residuals#fetching residuals 
-qqPlot(counties2g_lm)
-shapiro.test(res.counties2g_lm) #seeing if data is normal
-summary(counties2g_lm)
-
-counties2h_lm<-lm(ln2_budget~TotalRevenue, data=counties_lnq2)
-par(mfrow=c(2,2))
-plot(counties2h_lm)
-res.counties2h_lm <- counties2h_lm$residuals#fetching residuals 
-qqPlot(counties2h_lm)
-shapiro.test(res.counties2h_lm) #seeing if data is normal
-summary(countie21h_lm)
-```
-
-```{r}
-#validate your budget for q1 using linear regression
-anova(counties2ee_lm, counties2e_lm) #lower p-value means it explains the variance more which is best
-AIC(counties2ee_lm, counties2e_lm) #the smaller the value the better
-BIC(counties2ee_lm, counties2e_lm) #the smaller the value the better
-#population is better fit 
-```
-
-```{r}
-ln3_budget<-log(counties_lnq3$Budget+1)
-counties3ee_lm<-lm(ln3_budget~Population+IRR+Mean.Income+ces_score_median, data=counties_lnq3)
-counties3e_lm<-lm(ln3_budget~TotalRevenue+IRR+Mean.Income+ces_score_median, data=counties_lnq3)
-par(mfrow=c(2,2))
-plot(counties3e_lm)
-res.counties3e_lm <- counties3e_lm$residuals#fetching residuals 
-qqPlot(counties3e_lm)
-shapiro.test(res.counties3e_lm) #seeing if data is normal
-summary(counties3e_lm)
-#only fit that is normally distributed
-
-counties3f_lm<-lm(ln3_budget~TotalRevenue+IRR+Mean.Income, data=counties_lnq3)
-par(mfrow=c(2,2))
-plot(counties3f_lm)
-res.counties3f_lm <- counties3f_lm$residuals#fetching residuals 
-qqPlot(counties3f_lm)
-shapiro.test(res.counties3f_lm) #seeing if data is normal
-summary(counties3f_lm)
-
-counties3g_lm<-lm(ln3_budget~TotalRevenue+IRR, data=counties_lnq3)
-par(mfrow=c(2,2))
-plot(counties3g_lm)
-res.counties3g_lm <- counties3g_lm$residuals#fetching residuals 
-qqPlot(counties3g_lm)
-shapiro.test(res.counties3g_lm) #seeing if data is normal
-summary(counties3g_lm)
-
-counties3h_lm<-lm(ln3_budget~TotalRevenue, data=counties_lnq3)
-par(mfrow=c(2,2))
-plot(counties3h_lm)
-res.counties3h_lm <- counties3h_lm$residuals#fetching residuals 
-qqPlot(counties3h_lm)
-shapiro.test(res.counties3h_lm) #seeing if data is normal
-summary(counties3h_lm)
-```
-
-```{r}
-#validate your budget for q1 using linear regression
-anova(counties3h_lm, counties3e_lm) #lower p-value means it explains the variance more which is best
-AIC(counties3h_lm, counties3e_lm) #the smaller the value the better
-BIC(counties3h_lm, counties3e_lm) #the smaller the value the better
-#first regression is better 
-```
-
-```{r}
-#validate your budget for q1 using linear regression
-anova(counties3ee_lm, counties3e_lm) #lower p-value means it explains the variance more which is best
-AIC(counties3ee_lm, counties3e_lm) #the smaller the value the better
-BIC(counties3ee_lm, counties3e_lm) #the smaller the value the better
-#population is better
-```
-
-```{r}
-ln4_budget<-log(counties_lnq4$Budget+1)
-counties4e_lm<-lm(ln4_budget~TotalRevenue+IRR+Mean.Income+ces_score_median, data=counties_lnq4)
-par(mfrow=c(2,2))
-plot(counties4e_lm)
-res.counties4e_lm <- counties4e_lm$residuals#fetching residuals 
-qqPlot(counties4e_lm)
-shapiro.test(res.counties4e_lm) #seeing if data is normal
-summary(counties4e_lm)
-
-counties4f_lm<-lm(ln4_budget~TotalRevenue+IRR+Mean.Income, data=counties_lnq4)
-par(mfrow=c(2,2))
-plot(counties4f_lm)
-res.counties4f_lm <- counties4f_lm$residuals#fetching residuals 
-qqPlot(counties4f_lm)
-shapiro.test(res.counties4f_lm) #seeing if data is normal
-summary(counties4f_lm)
-
-counties4g_lm<-lm(ln4_budget~TotalRevenue+IRR, data=counties_lnq4)
-par(mfrow=c(2,2))
-plot(counties4g_lm)
-res.counties4g_lm <- counties4g_lm$residuals#fetching residuals 
-qqPlot(counties4g_lm)
-shapiro.test(res.counties4g_lm) #seeing if data is normal
-summary(counties4g_lm)
-
-counties4hh_lm<-lm(ln4_budget~Population, data=counties_lnq4)
-counties4h_lm<-lm(ln4_budget~TotalRevenue, data=counties_lnq4)
-par(mfrow=c(2,2))
-plot(counties4h_lm)
-res.counties4h_lm <- counties4h_lm$residuals#fetching residuals 
-qqPlot(counties4h_lm)
-shapiro.test(res.counties4h_lm) #seeing if data is normal
-summary(counties4h_lm)
-```
-
-```{r}
-#validate your budget for q1 using linear regression
-anova(counties4hh_lm, counties4h_lm) #lower p-value means it explains the variance more which is best
-AIC(counties4hh_lm, counties4h_lm) #the smaller the value the better
-BIC(counties4hh_lm, counties4h_lm) #the smaller the value the better
-#tax revenue is better
-```
-
-```{r}
-#t tests on different quantiles based on population for budget
-t.test(counties_g1$Budget, counties_g4$Budget)
-#significantly different means so should be run as different tests
-
-#t tests on different quantiles based on population for energy savings
-t.test(counties_g1$TotalFirstYearGrosskWh, counties_g4$TotalFirstYearGrosskWh)
-#significantly different means so should be run as different tests
-
-#t tests on different quantiles based on log of population for budget
-t.test(counties_lnq1$Budget, counties_lnq4$Budget)
-#significantly different means so should be run as different tests
-
-#t tests on different quantiles based on log of population for energy savings
-t.test(counties_lnq1$TotalFirstYearGrosskWh, counties_lnq4$TotalFirstYearGrosskWh)
-#significantly different means so should be run as different tests
+#t tests to compare means of total revenue in top and bottom
+t.test(bottomq_budget$TotalRevenue, topq_budget$TotalRevenue)
+t.test(bottomq_energy$TotalRevenue, topq_energy$TotalRevenue)
 ```
 
 ```{r}
 #create step aic to see which combination of variables is the best fit 
 stepAIC(lm(ln_budget ~ Mean.Income + TotalRevenue + Population + IRR + ces_score_median + dac_proportion, data = counties))
+```
+
+```{r}
+countiesstepsaic_lm<-lm(ln_budget~IRR+ces_score_median+dac_proportion, data=counties)
+par(mfrow=c(2,2))
+plot(countiesstepsaic_lm)
+res.countiesstepaic_lm <- countiesstepsaic_lm$residuals#fetching residuals 
+qqPlot(countiesstepsaic_lm)
+shapiro.test(res.countiesstepaic_lm)
 ```
 
 ```{r}
@@ -1424,19 +1264,19 @@ mean(topq_budget$perc_na_avg) #0.594%
 
 #split up energy savings in to quantiles and then create a group of the smallest energy savings and largest energy savings
 quantile(counties$TotalFirstYearGrosskWh)
-bottomq_energy = subset(counties, Budget <= 152553.2)
-topq_energy = subset(counties, Budget > 6333300.1)
+bottomq_energy = subset(counties, TotalFirstYearGrosskWh <= 152553.2)
+topq_energy = subset(counties, TotalFirstYearGrosskWh > 6333300.1)
 
-mean(bottomq_energy$perc_wa_avg)#86.16%
-mean(topq_energy$perc_wa_avg) #63.53%
-mean(bottomq_energy$perc_ba_avg) #1.89%
-mean(topq_energy$perc_ba_avg) #7.88%%
-mean(bottomq_energy$perc_aa_avg) #1.73%
-mean(topq_energy$perc_aa_avg) #22.10%
-mean(bottomq_energy$perc_ia_avg) #6.16%
-mean(topq_energy$perc_ia_avg)#1.38%
-mean(bottomq_energy$perc_na_avg) #0.277%
-mean(topq_energy$perc_na_avg) #0.589%
+mean(bottomq_energy$perc_wa_avg)#85.39%
+mean(topq_energy$perc_wa_avg) #70.34%
+mean(bottomq_energy$perc_ba_avg) #2.11%
+mean(topq_energy$perc_ba_avg) #5.81%%
+mean(bottomq_energy$perc_aa_avg) #2.51%
+mean(topq_energy$perc_aa_avg) #17.32%
+mean(bottomq_energy$perc_ia_avg) #5.84%
+mean(topq_energy$perc_ia_avg)#1.70%
+mean(bottomq_energy$perc_na_avg) #0.281%
+mean(topq_energy$perc_na_avg) #0.570%
 ```
 
 ```{r, EE Programs at the City Level}
