@@ -21,6 +21,7 @@ library(maptools)
 library(tidyverse)
 library(stringr)
 library(viridis)
+library(sp)
 ```
 
 ```{r, load data}
@@ -206,6 +207,127 @@ ggplot(data = merged_data)+
                            axis.ticks = element_blank(),
                            panel.grid = element_blank())
 
+```
+```{r}
+typeof(CA_counties)
+counties_as_sf <- st_as_sf(CA_counties,
+                           coords = c('long', 'lat'),
+                           crs = 4326)
+#st_geometry_type(counties_as_sf)
+#centroids <- getSpPPolygonsLabptSlots(CA_counties)
+```
+
+```{r, convert county point layer to a polygon layer}
+CA_counties_polys = st_sf(
+  aggregate(
+    counties_as_sf$geometry,
+    list(counties_as_sf$group),
+    function(g){
+       st_cast(st_combine(g),"POLYGON")}))
+st_geometry_type(CA_counties_polys)
+
+```
+
+```{r, change CRS of counties polygon (want to do this b4 centroids)}
+#st_crs(CA_counties_polys)
+zip_codes_shape <- st_read("zipcodes/ZCTA2010.shp")
+#st_crs(zip_codes_shape)
+CA_albs <- st_crs(zip_codes_shape)
+CA_counties_polys_2 <- st_transform(CA_counties_polys, crs = CA_albs)
+st_crs(CA_counties_polys_2)
+```
+
+```{r, add state boudnary}
+CA_state_boundary <- st_read("CA_state_boundary/CA_State_TIGER2016.shp")
+st_transform(CA_state_boundary, crs = CA_albs)
+st_crs(CA_state_boundary)
+```
+
+```{r, make centroids}
+CA_counties_centroids <- st_centroid(CA_counties_polys_2)
+#st_crs(CA_counties_centroids)
+```
+
+```{r, make dataframe with group numbers and fips to merge on}
+new_df <- data.frame(group = c(157:214), county_fips = c(0:57))
+```
+
+```{r, merge new_df to df_edited then merge new_new to CA_counties_centroids}
+new_new <- merge(new_df, df_edited, by = "county_fips", all = TRUE)
+centroids_merge <- merge(CA_counties_centroids, new_new, by.x = "Group.1", by.y = "group")
+```
+
+```{r, merge merged_data to centroids}
+# We have group in common
+centroids_merge <- merge(CA_counties_centroids, merged_data, by.x = "Group.1", by.y = "group", all.x = TRUE, all.y = FALSE)
+#head(centroids_merge)
+```
+
+```{r}
+ggplot() +
+  geom_sf(data = CA_counties_polys) +
+  geom_sf(data = centroids_merge, aes(size = Budget), shape = 1) +
+  coord_sf()
+```
+
+```{r, load CA places hope for cities}
+CA_places_boundaries <- st_read("CA_places/CA_Places_TIGER2016.shp")
+cities_df <- read_csv("cities_2.csv")
+```
+
+```{r, investigate CA_places_boundaries}
+#st_geometry_type(CA_places_boundaries)
+#st_crs(CA_places_boundaries)
+st_transform(CA_places_boundaries, crs = CA_albs)
+st_crs(CA_places_boundaries)
+```
+
+```{r, map places}
+ggplot()+
+  geom_sf(data = CA_places_boundaries)+
+  coord_sf()
+```
+
+```{r, merge boundaires to cities_df}
+CA_places_boundaries$NAME <- str_to_upper(CA_places_boundaries$NAME)
+cities_df_sf_merge <- merge(CA_places_boundaries, cities_df, by.x = "NAME", by.y = "SiteCity", all.x = FALSE, all.y = TRUE)
+```
+
+```{r}
+cities_df_sf_merge <- na.omit(cities_df_sf_merge)
+```
+
+```{r, map places}
+ggplot() +
+  geom_sf(data = CA_state_boundary) +
+  geom_sf(data = cities_df_sf_merge, aes(fill= cities_df_sf_merge$Budget), color = NA) +
+  scale_fill_viridis(name = "Budget") +
+  theme_classic() +
+  theme(axis.title.x = element_blank(),
+                           axis.title.y = element_blank(),
+                           axis.text=element_blank(),
+                           axis.ticks = element_blank(),
+                           panel.grid = element_blank()) +
+  ggtitle("CA Cities Budget")+
+  coord_sf()
+```
+
+```{r, log cities map}
+#log_budget <- log(cities_df_sf_merge$Budget + 1)
+cities_df_sf_merge$log_budget <- log(cities_df_sf_merge$Budget + 1)
+
+ggplot() +
+  geom_sf(data = CA_state_boundary) +
+  geom_sf(data = cities_df_sf_merge, aes(fill= cities_df_sf_merge$log_budget), color = NA) +
+  scale_fill_viridis(name = "Log Budget") +
+  theme_classic() +
+  theme(axis.title.x = element_blank(),
+                           axis.title.y = element_blank(),
+                           axis.text=element_blank(),
+                           axis.ticks = element_blank(),
+                           panel.grid = element_blank()) +
+  ggtitle("CA Cities Log Budget")+
+  coord_sf()
 ```
 
 
