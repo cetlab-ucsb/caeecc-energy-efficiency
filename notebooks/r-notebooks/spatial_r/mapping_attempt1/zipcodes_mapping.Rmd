@@ -28,6 +28,10 @@ zip_codes_shape <- st_read("zipcodes/ZCTA2010.shp")
 zip_centroid <- read_csv("zipcode_centroid.csv")
 ```
 
+```{r}
+geoCounty
+```
+
 ```{r, object type and CRS}
 #st_geometry_type(zip_codes_shape)
 st_crs(zip_codes_shape)
@@ -106,6 +110,11 @@ ggplot() +
   geom_sf(data = zip_centroid_sf_2,
           size = 0.1) +
   ggtitle("Zip codes and centroids") +
+  theme(axis.title.x = element_blank(),
+                           axis.title.y = element_blank(),
+                           axis.text = element_blank(),
+                           axis.ticks = element_blank(),
+                           panel.grid = element_blank()) +
   coord_sf()
 ```
 
