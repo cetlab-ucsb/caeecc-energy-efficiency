@@ -1,5 +1,5 @@
 ---
-title: "stay_calm"
+title: "choropleth_map_script"
 author: "Austin Covey"
 date: "6/17/2021"
 output: html_document
@@ -30,14 +30,17 @@ library(lattice)
 library(GISTools)
 ```
 
+##### County
+###### County Choropleth Maps
+
 ```{r, load data}
 cpuc_file   = 'counties_2.csv'
 #df <- fread(cpuc_file) #, colClasses = c('character', df$county_fips))
 
-df <- fread(cpuc_file, header = T, colClasses = c('character', rep(NA, 34)))
+countydf <- fread(cpuc_file, header = T, colClasses = c('character', rep(NA, 34)))
 # best practice is to classify column as a character as you read the data in.
 
-#rep(NA,11)= NA, NA, NA...... 11 times
+#rep(NA,34)= NA, NA, NA...... 34 times
 
 
 # We lack leading zeroes (best practice to have them).
@@ -66,25 +69,32 @@ CA_counties<- subset(x = all_counties, subset = region == "california")
 
 ```{r, make lowercase}
 #the county names don't match (our data has capitalized first letters County =/= county), so we have to change it
-df_edited <- df
-df_edited$County <- str_to_lower(df_edited$County)
-head(df_edited) #check to see if the county names did change
+countydf_edited <- countydf
+countydf_edited$County <- str_to_lower(countydf_edited$County)
+head(countydf_edited) #check to see if the county names did change
 ```
 
 ```{r, merge on count name}
 #check dimensions before the merge 
-dim(df_edited)
+dim(countydf_edited)
 dim(CA_counties)
 
 #merge
-merged_data<- left_join(CA_counties, df_edited, by = c("subregion"="County")) #the left_join takes all the unique values from left one and only add the matches from the right (doesn't matter in this case because they WILL match since we checked already)
-dim(merged_data) 
+countymerged_data<- left_join(CA_counties, countydf_edited, by = c("subregion"="County")) #the left_join takes all the unique values from left one and only add the matches from the right (doesn't matter in this case because they WILL match since we checked already)
+dim(countymerged_data) 
+```
+
+```{r, log-transform variables}
+countymerged_data$log_pop <- log(countymerged_data$tot_pop + 1)
+countymerged_data$log_savings <- log(countymerged_data$TotalFirstYearGrosskWh + 1)
+countymerged_data$log_budget <- log(countymerged_data$Budget + 1)
+countymerged_data$log_taxrev <- log(countymerged_data$TotalRevenue + 1)
 ```
 
 ```{r, visualize mean income}
 
 #Mean Income
-t <- ggplot(data = merged_data)+
+t <- ggplot(data = countymerged_data)+
   geom_polygon(aes(x = long, y = lat, group = group, fill= `Mean Income`))+ #change the fill argument from plot to plot
   coord_fixed(1.3)+
   ggtitle("Mean Household Income by County")+ #change title from plot to plot
@@ -102,11 +112,8 @@ t <- ggplot(data = merged_data)+
 
 ```{r, visualize log pop}
 
-log_pop <- log(merged_data$tot_pop + 1)
-merged_data$log_pop <- log(merged_data$tot_pop + 1)
-
 # LOG Population
-p <- ggplot(data = merged_data) +
+p <- ggplot(data = countymerged_data) +
   geom_polygon(aes(x = long, y = lat, group = group, fill= `log_pop`)) + 
   coord_fixed(1.3) +
   ggtitle("County Population (LOG)") +
@@ -117,14 +124,13 @@ p <- ggplot(data = merged_data) +
                            axis.text = element_blank(),
                            axis.ticks = element_blank(),
                            panel.grid = element_blank())
+
 ```
 
 ```{r, visualize energy savings}
-#LOG Energy Savings
-log_savings <- log(merged_data$TotalFirstYearGrosskWh + 1)
-merged_data$log_savings <- log(merged_data$TotalFirstYearGrosskWh + 1)
 
-ggplot(data = merged_data) +
+#LOG Energy Savings
+ggplot(data = countymerged_data) +
   geom_polygon(aes(x = long, y = lat, group = group, fill= `log_savings`)) + 
   coord_fixed(1.3) +
   ggtitle("Log Energy Savings by County") + 
@@ -137,7 +143,7 @@ ggplot(data = merged_data) +
                            panel.grid = element_blank())
 
 #Energy Savings
-ggplot(data = merged_data) +
+ggplot(data = countymerged_data) +
   geom_polygon(aes(x = long, y = lat, group = group, fill= `TotalFirstYearGrosskWh`)) + 
   coord_fixed(1.3) +
   ggtitle("Energy Savings by County") + 
@@ -154,10 +160,7 @@ ggplot(data = merged_data) +
 ```{r, visualize budget}
 
 #LOG Budget
-log_budget <- log(merged_data$Budget + 1)
-merged_data$log_budget <- log(merged_data$Budget + 1)
-
-ggplot(data = merged_data) +
+ggplot(data = countymerged_data) +
   geom_polygon(aes(x = long, y = lat, group = group, fill= `log_budget`)) + 
   coord_fixed(1.3) +
   ggtitle("Log Budget by County") + 
@@ -170,11 +173,12 @@ ggplot(data = merged_data) +
                            panel.grid = element_blank())
 
 #Budget
-ggplot(data = merged_data)+
+ggplot(data = countymerged_data)+
   geom_polygon(aes(x = long, y = lat, group = group, fill= `Budget`))+ 
   coord_fixed(1.3)+
   ggtitle("Budget by County")+ 
   theme_classic()+ 
+  scale_fill_viridis() +
   theme(axis.title.x = element_blank(),
                            axis.title.y = element_blank(),
                            axis.text=element_blank(),
@@ -186,11 +190,12 @@ ggplot(data = merged_data)+
 ```{r, visualize IRR}
 
 #IRR
-p2 <- ggplot(data = merged_data)+
+p2 <- ggplot(data = countymerged_data)+
   geom_polygon(aes(x = long, y = lat, group = group, fill= `IRR`))+ 
   coord_fixed(1.3)+
   ggtitle("Relative Rurality by County")+ 
   theme_classic()+ 
+  scale_fill_viridis() +
   theme(axis.title.x = element_blank(),
                            axis.title.y = element_blank(),
                            axis.text=element_blank(),
@@ -200,27 +205,28 @@ p2 <- ggplot(data = merged_data)+
 ```
 
 ```{r, visualize tax revenue}
-#ASK MEAS ABOUT INTERGER64
-#LOG Tax Revenue
-log_taxrev <- log(merged_data$TotalRevenue + 1)
-merged_data$log_taxrev <- log(merged_data$TotalRevenue + 1)
 
-ggplot(data = merged_data)+
+#LOG Tax Revenue
+ggplot(data = countymerged_data)+
   geom_polygon(aes(x = long, y = lat, group = group, fill= `log_taxrev`))+ 
   coord_fixed(1.3)+
   ggtitle("LOG Tax Revenue by County")+ 
   theme_classic()+ 
+  scale_fill_viridis() +
   theme(axis.title.x = element_blank(),
                            axis.title.y = element_blank(),
                            axis.text=element_blank(),
                            axis.ticks = element_blank(),
                            panel.grid = element_blank())
+
+#as.numeric fixed the INTERGER64 warning 
 #Tax Revenue
-ggplot(data = merged_data)+
-  geom_polygon(aes(x = long, y = lat, group = group, fill= `TotalRevenue`))+ 
+ggplot(data = countymerged_data)+
+  geom_polygon(aes(x = long, y = lat, group = group, fill= as.numeric(TotalRevenue)))+ 
   coord_fixed(1.3)+
   ggtitle("Tax Revenue by County")+ 
   theme_classic()+ 
+  scale_fill_viridis() +
   theme(axis.title.x = element_blank(),
                            axis.title.y = element_blank(),
                            axis.text=element_blank(),
@@ -232,11 +238,12 @@ ggplot(data = merged_data)+
 ```{r, visualize CES score}
 
 #CES Score
-ggplot(data = merged_data)+
+ggplot(data = countymerged_data)+
   geom_polygon(aes(x = long, y = lat, group = group, fill= `ces_score_median`))+ 
   coord_fixed(1.3)+
   ggtitle("CES Score Median by County")+ 
   theme_classic()+ 
+  scale_fill_viridis() +
   theme(axis.title.x = element_blank(),
                            axis.title.y = element_blank(),
                            axis.text=element_blank(),
@@ -244,6 +251,38 @@ ggplot(data = merged_data)+
                            panel.grid = element_blank())
 
 ```
+
+```{r, visualize DAC Proportion}
+
+#DAC Proportion
+r <- ggplot(data = countymerged_data)+
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `dac_proportion`))+ 
+  coord_fixed(1.3)+
+  ggtitle("DAC Proportion by County")+ 
+  theme_classic()+ 
+  scale_fill_viridis() +
+  theme(axis.title.x = element_blank(),
+                           axis.title.y = element_blank(),
+                           axis.text=element_blank(),
+                           axis.ticks = element_blank(),
+                           panel.grid = element_blank())
+
+```
+
+```{r, Grid Arrange}
+#arranging the maps from income, log_pop, IRR, and dac_proportion
+grid.arrange(t, p, p2, r, ncol=2)
+
+#more information on this and other complex layouts https://cran.r-project.org/web/packages/gridExtra/vignettes/arrangeGrob.html#multiple-pages-output
+```
+```{r}
+u <- xyplot(Budget ~ IRR, data = merged_data)
+t <- xyplot(TotalFirstYearGrosskWh ~ IRR, data = merged_data)
+z <- textGrob("Correlation between investment/energy savings and IRR")
+grid.arrange(u, p2, t, z, ncol=2)
+```
+
+###### County Choropleth Maps cont.
 
 ```{r}
 typeof(CA_counties)
@@ -307,9 +346,184 @@ ggplot() +
   coord_sf()
 ```
 
-```{r, load CA places hope for cities}
+##### K12
+###### K12 Choropleth Maps
+
+```{r, load data}
+K12   = 'k12_counties4.csv'
+
+K12df <- fread(K12, header = T, colClasses = c('character', rep(NA, 37)))
+```
+
+```{r, make lowercase}
+#the county names don't match (our data has capitalized first letters County =/= county), so we have to change it
+K12df_edited <- K12df
+K12df_edited$county <- str_to_lower(K12df_edited$county)
+head(K12df_edited) #check to see if the county names did change
+```
+
+```{r, merge on count name}
+#check dimensions before the merge 
+dim(K12df_edited)
+dim(CA_counties)
+
+#merge
+K12merged_data<- left_join(CA_counties, K12df_edited, by = c("subregion"="county")) 
+dim(K12merged_data) 
+```
+
+```{r, log-transform variables}
+K12merged_data$log_enrollment <- log(K12merged_data$enrollment + 1)
+K12merged_data$log_savings <- log(K12merged_data$kWh + 1)
+K12merged_data$log_budget <- log(K12merged_data$budget + 1)
+K12merged_data$log_lcff <- log(K12merged_data$tot_lcff + 1)
+```
+
+```{r, visualize LCFF}
+
+#Log LCFF
+ggplot(data = K12merged_data)+
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `log_lcff`))+ #change the fill argument from plot to plot
+  coord_fixed(1.3)+
+  ggtitle("Log LCFF by County")+ #change title from plot to plot
+  theme_classic()+ #order matters in ggplot
+  scale_fill_viridis() +
+  theme(axis.title.x = element_blank(),
+                           axis.title.y = element_blank(),
+                           axis.text = element_blank(),
+                           axis.ticks = element_blank(),
+                           panel.grid = element_blank())
+
+#LCFF
+ggplot(data = K12merged_data)+
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `tot_lcff`))+ #change the fill argument from plot to plot
+  coord_fixed(1.3)+
+  ggtitle("LCFF by County")+ #change title from plot to plot
+  theme_classic()+ #order matters in ggplot
+  scale_fill_viridis() +
+  theme(axis.title.x = element_blank(),
+                           axis.title.y = element_blank(),
+                           axis.text = element_blank(),
+                           axis.ticks = element_blank(),
+                           panel.grid = element_blank())
+```
+```{r, visualize Budget}
+
+#Log Budget
+a <- ggplot(data = K12merged_data)+
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `log_budget`))+ #change the fill argument from plot to plot
+  coord_fixed(1.3)+
+  ggtitle("County Budget (LOG)")+ #change title from plot to plot
+  theme_classic()+ #order matters in ggplot
+  scale_fill_viridis() +
+  theme(axis.title.x = element_blank(),
+                           axis.title.y = element_blank(),
+                           axis.text = element_blank(),
+                           axis.ticks = element_blank(),
+                           panel.grid = element_blank())
+
+#Budget
+ggplot(data = K12merged_data)+
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `budget`))+ #change the fill argument from plot to plot
+  coord_fixed(1.3)+
+  ggtitle("County Budget")+ #change title from plot to plot
+  theme_classic()+ #order matters in ggplot
+  scale_fill_viridis() +
+  theme(axis.title.x = element_blank(),
+                           axis.title.y = element_blank(),
+                           axis.text = element_blank(),
+                           axis.ticks = element_blank(),
+                           panel.grid = element_blank())
+```
+```{r, visualize Energy Savings}
+
+#Log kWh
+b <- ggplot(data = K12merged_data)+
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `log_savings`))+ #change the fill argument from plot to plot
+  coord_fixed(1.3)+
+  ggtitle("County Energy Savings (LOG)")+ #change title from plot to plot
+  theme_classic()+ #order matters in ggplot
+  scale_fill_viridis() +
+  theme(axis.title.x = element_blank(),
+                           axis.title.y = element_blank(),
+                           axis.text = element_blank(),
+                           axis.ticks = element_blank(),
+                           panel.grid = element_blank())
+
+#kWh
+ggplot(data = K12merged_data)+
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `kWh`))+ #change the fill argument from plot to plot
+  coord_fixed(1.3)+
+  ggtitle("County Energy Savings")+ #change title from plot to plot
+  theme_classic()+ #order matters in ggplot
+  scale_fill_viridis() +
+  theme(axis.title.x = element_blank(),
+                           axis.title.y = element_blank(),
+                           axis.text = element_blank(),
+                           axis.ticks = element_blank(),
+                           panel.grid = element_blank())
+```
+```{r, visualize enrollment}
+
+#Log enrollment
+ggplot(data = K12merged_data)+
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `log_enrollment`))+ #change the fill argument from plot to plot
+  coord_fixed(1.3)+
+  ggtitle("Log Enrollment by County")+ #change title from plot to plot
+  theme_classic()+ #order matters in ggplot
+  scale_fill_viridis() +
+  theme(axis.title.x = element_blank(),
+                           axis.title.y = element_blank(),
+                           axis.text = element_blank(),
+                           axis.ticks = element_blank(),
+                           panel.grid = element_blank())
+
+#enrollment
+ggplot(data = K12merged_data)+
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `enrollment`))+ #change the fill argument from plot to plot
+  coord_fixed(1.3)+
+  ggtitle("School Enrollment by County")+ #change title from plot to plot
+  theme_classic()+ #order matters in ggplot
+  scale_fill_viridis() +
+  theme(axis.title.x = element_blank(),
+                           axis.title.y = element_blank(),
+                           axis.text = element_blank(),
+                           axis.ticks = element_blank(),
+                           panel.grid = element_blank())
+```
+```{r, visualize free reduced meal plan}
+
+#frmp
+ggplot(data = K12merged_data)+
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `perc_eligible_frpm`))+ #change the fill argument from plot to plot
+  coord_fixed(1.3)+
+  ggtitle("Percent FRMP by County")+ #change title from plot to plot
+  theme_classic()+ #order matters in ggplot
+  scale_fill_viridis() +
+  theme(axis.title.x = element_blank(),
+                           axis.title.y = element_blank(),
+                           axis.text = element_blank(),
+                           axis.ticks = element_blank(),
+                           panel.grid = element_blank())
+                        
+```
+```{r, participating}
+#arranging the maps for budget and kWh
+grid.arrange(a, b, ncol=2)
+```
+
+##### City
+###### City Choropleth Maps
+
+```{r, load CA cities}
 CA_places_boundaries <- st_read("CA_places/CA_Places_TIGER2016.shp")
 cities_df <- read_csv("cities_2.csv")
+```
+```{r, log-transform variables}
+cities_df$log_pop <- log(cities_df$total_population + 1)
+cities_df$log_savings <- log(cities_df$TotalFirstYearGrosskWh + 1)
+cities_df$log_budget <- log(cities_df$Budget + 1)
+cities_df$log_taxrev <- log(cities_df$Total.Tax.Revenue + 1)
 ```
 
 ```{r, investigate CA_places_boundaries}
@@ -334,7 +548,23 @@ cities_df_sf_merge <- merge(CA_places_boundaries, cities_df, by.x = "NAME", by.y
 cities_df_sf_merge <- na.omit(cities_df_sf_merge)
 ```
 
-```{r, map places}
+```{r, visulaize budget}
+
+#LOG Budget
+c <- ggplot() +
+  geom_sf(data = CA_state_boundary) +
+  geom_sf(data = cities_df_sf_merge, aes(fill= cities_df_sf_merge$log_budget), color = NA) +
+  scale_fill_viridis(name = "log_budget") +
+  theme_classic() +
+  theme(axis.title.x = element_blank(),
+                           axis.title.y = element_blank(),
+                           axis.text=element_blank(),
+                           axis.ticks = element_blank(),
+                         panel.grid = element_blank()) +
+  ggtitle("Cities Budget (LOG)") +
+  coord_sf()
+
+#Budget
 ggplot() +
   geom_sf(data = CA_state_boundary) +
   geom_sf(data = cities_df_sf_merge, aes(fill= cities_df_sf_merge$Budget), color = NA) +
@@ -345,10 +575,42 @@ ggplot() +
                            axis.text=element_blank(),
                            axis.ticks = element_blank(),
                          panel.grid = element_blank()) +
-  ggtitle("CA Cities Budget") +
+  ggtitle("Cities Budget") +
   coord_sf()
 ```
+```{r, visulaize Energy Savings}
 
-```{r}
-#fshjdfks
+#LOG Energy Savings
+d <- ggplot() +
+  geom_sf(data = CA_state_boundary) +
+  geom_sf(data = cities_df_sf_merge, aes(fill= cities_df_sf_merge$log_savings), color = NA) +
+  scale_fill_viridis(name = "log_kWh") +
+  theme_classic() +
+  theme(axis.title.x = element_blank(),
+                           axis.title.y = element_blank(),
+                           axis.text=element_blank(),
+                           axis.ticks = element_blank(),
+                         panel.grid = element_blank()) +
+  ggtitle("Cities Energy Savings (LOG)") +
+  coord_sf()
+
+#Energy Savings
+ggplot() +
+  geom_sf(data = CA_state_boundary) +
+  geom_sf(data = cities_df_sf_merge, aes(fill= cities_df_sf_merge$TotalFirstYearGrosskWh), color = NA) +
+  scale_fill_viridis(name = "Energy Savings") +
+  theme_classic() +
+  theme(axis.title.x = element_blank(),
+                           axis.title.y = element_blank(),
+                           axis.text=element_blank(),
+                           axis.ticks = element_blank(),
+                         panel.grid = element_blank()) +
+  ggtitle("Cities Energy Savings") +
+  coord_sf()
 ```
+```{r, Grid Arrange}
+#acomparing county vs cities
+grid.arrange(a, b, c, d, ncol=2)
+```
+
+
