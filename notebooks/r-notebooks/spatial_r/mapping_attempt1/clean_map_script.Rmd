@@ -21,14 +21,19 @@ library(maptools)
 library(tidyverse)
 library(stringr)
 library(viridis)
-library(sp)
+library(bit64)
+library(gridExtra)
+library(grid)
+library(ggplot2)
+library(lattice)
+library(GISTools)
 ```
 
 ```{r, load data}
-cpuc_file   = 'better_cpuc_compiled.csv'
+cpuc_file   = 'counties_2.csv'
 #df <- fread(cpuc_file) #, colClasses = c('character', df$county_fips))
 
-df <- fread(cpuc_file, header = T, colClasses = c('character', rep(NA, 11)))
+df <- fread(cpuc_file, header = T, colClasses = c('character', rep(NA, 34)))
 # best practice is to classify column as a character as you read the data in.
 
 #rep(NA,11)= NA, NA, NA...... 11 times
@@ -66,19 +71,19 @@ head(df_edited) #check to see if the county names did change
 ```
 
 ```{r, merge on count name}
-#check dimensions before the merge 
+#check dimensions before the merge
 dim(df_edited)
 dim(CA_counties)
 
 #merge
 merged_data<- left_join(CA_counties, df_edited, by = c("subregion"="County")) #the left_join takes all the unique values from left one and only add the matches from the right (doesn't matter in this case because they WILL match since we checked already)
-dim(merged_data) 
+dim(merged_data)
 ```
 
 ```{r, visualize mean income}
 
 #Mean Income
-ggplot(data = merged_data)+
+t <- ggplot(data = merged_data)+
   geom_polygon(aes(x = long, y = lat, group = group, fill= `Mean Income`))+ #change the fill argument from plot to plot
   coord_fixed(1.3)+
   ggtitle("Mean Household Income by County")+ #change title from plot to plot
@@ -96,12 +101,12 @@ ggplot(data = merged_data)+
 
 ```{r, visualize log pop}
 
-log_pop <- log(merged_data$Population + 1)
-merged_data$log_pop <- log(merged_data$Population + 1)
+log_pop <- log(merged_data$tot_pop + 1)
+merged_data$log_pop <- log(merged_data$tot_pop + 1)
 
 # LOG Population
-ggplot(data = merged_data) +
-  geom_polygon(aes(x = long, y = lat, group = group, fill= `log_pop`)) + 
+p <- ggplot(data = merged_data) +
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `log_pop`)) +
   coord_fixed(1.3) +
   ggtitle("County Population (LOG)") +
   theme_classic() +
@@ -114,15 +119,15 @@ ggplot(data = merged_data) +
 ```
 
 ```{r, visualize energy savings}
-# Make log?
+#LOG Energy Savings
 log_savings <- log(merged_data$TotalFirstYearGrosskWh + 1)
 merged_data$log_savings <- log(merged_data$TotalFirstYearGrosskWh + 1)
 
 ggplot(data = merged_data) +
-  geom_polygon(aes(x = long, y = lat, group = group, fill= `log_savings`)) + 
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `log_savings`)) +
   coord_fixed(1.3) +
-  ggtitle("Log Energy Savings by County") + 
-  theme_classic() + 
+  ggtitle("Log Energy Savings by County") +
+  theme_classic() +
   scale_fill_viridis() +
   theme(axis.title.x = element_blank(),
                            axis.title.y = element_blank(),
@@ -132,10 +137,10 @@ ggplot(data = merged_data) +
 
 #Energy Savings
 ggplot(data = merged_data) +
-  geom_polygon(aes(x = long, y = lat, group = group, fill= `TotalFirstYearGrosskWh`)) + 
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `TotalFirstYearGrosskWh`)) +
   coord_fixed(1.3) +
-  ggtitle("Energy Savings by County") + 
-  theme_classic() + 
+  ggtitle("Energy Savings by County") +
+  theme_classic() +
   scale_fill_viridis() +
   theme(axis.title.x = element_blank(),
                            axis.title.y = element_blank(),
@@ -147,12 +152,28 @@ ggplot(data = merged_data) +
 
 ```{r, visualize budget}
 
+#LOG Budget
+log_budget <- log(merged_data$Budget + 1)
+merged_data$log_budget <- log(merged_data$Budget + 1)
+
+ggplot(data = merged_data) +
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `log_budget`)) +
+  coord_fixed(1.3) +
+  ggtitle("Log Budget by County") +
+  theme_classic() +
+  scale_fill_viridis() +
+  theme(axis.title.x = element_blank(),
+                           axis.title.y = element_blank(),
+                           axis.text=element_blank(),
+                           axis.ticks = element_blank(),
+                           panel.grid = element_blank())
+
 #Budget
 ggplot(data = merged_data)+
-  geom_polygon(aes(x = long, y = lat, group = group, fill= `Budget`))+ 
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `Budget`))+
   coord_fixed(1.3)+
-  ggtitle("Budget by County")+ 
-  theme_classic()+ 
+  ggtitle("Budget by County")+
+  theme_classic()+
   theme(axis.title.x = element_blank(),
                            axis.title.y = element_blank(),
                            axis.text=element_blank(),
@@ -164,11 +185,11 @@ ggplot(data = merged_data)+
 ```{r, visualize IRR}
 
 #IRR
-ggplot(data = merged_data)+
-  geom_polygon(aes(x = long, y = lat, group = group, fill= `IRR`))+ 
+p2 <- ggplot(data = merged_data)+
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `IRR`))+
   coord_fixed(1.3)+
-  ggtitle("Relative Rurality by County")+ 
-  theme_classic()+ 
+  ggtitle("Relative Rurality by County")+
+  theme_classic()+
   theme(axis.title.x = element_blank(),
                            axis.title.y = element_blank(),
                            axis.text=element_blank(),
@@ -178,13 +199,27 @@ ggplot(data = merged_data)+
 ```
 
 ```{r, visualize tax revenue}
+#ASK MEAS ABOUT INTERGER64
+#LOG Tax Revenue
+log_taxrev <- log(merged_data$TotalRevenue + 1)
+merged_data$log_taxrev <- log(merged_data$TotalRevenue + 1)
 
+ggplot(data = merged_data)+
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `log_taxrev`))+
+  coord_fixed(1.3)+
+  ggtitle("LOG Tax Revenue by County")+
+  theme_classic()+
+  theme(axis.title.x = element_blank(),
+                           axis.title.y = element_blank(),
+                           axis.text=element_blank(),
+                           axis.ticks = element_blank(),
+                           panel.grid = element_blank())
 #Tax Revenue
 ggplot(data = merged_data)+
-  geom_polygon(aes(x = long, y = lat, group = group, fill= `Tax Revenue (2016-2018)`))+ 
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `TotalRevenue`))+
   coord_fixed(1.3)+
-  ggtitle("Tax Revenue by County")+ 
-  theme_classic()+ 
+  ggtitle("Tax Revenue by County")+
+  theme_classic()+
   theme(axis.title.x = element_blank(),
                            axis.title.y = element_blank(),
                            axis.text=element_blank(),
@@ -197,10 +232,72 @@ ggplot(data = merged_data)+
 
 #CES Score
 ggplot(data = merged_data)+
-  geom_polygon(aes(x = long, y = lat, group = group, fill= `CES Score Median`))+ 
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `ces_score_median`))+
   coord_fixed(1.3)+
-  ggtitle("CES Score Median by County")+ 
-  theme_classic()+ 
+  ggtitle("CES Score Median by County")+
+  theme_classic()+
+  theme(axis.title.x = element_blank(),
+                           axis.title.y = element_blank(),
+                           axis.text=element_blank(),
+                           axis.ticks = element_blank(),
+                           panel.grid = element_blank())
+
+```
+```{r, visualize DAC Proportion}
+
+#DAC Proportion
+r <- ggplot(data = merged_data)+
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `dac_proportion`))+
+  coord_fixed(1.3)+
+  ggtitle("DAC Proportion by County")+
+  theme_classic()+
+  theme(axis.title.x = element_blank(),
+                           axis.title.y = element_blank(),
+                           axis.text=element_blank(),
+                           axis.ticks = element_blank(),
+                           panel.grid = element_blank())
+
+```
+
+```{r, Grid Arrange}
+#arranging the maps from income, log_pop, IRR, and dac_proportion
+grid.arrange(t, p, p2, r, ncol=2)
+
+#more information on this and other complex layouts https://cran.r-project.org/web/packages/gridExtra/vignettes/arrangeGrob.html#multiple-pages-output
+```
+```{r}
+u <- xyplot(Budget ~ IRR, data = merged_data)
+grid.arrange(u, p2, ncol=2)
+```
+```{r}
+t <- xyplot(TotalFirstYearGrosskWh ~ IRR, data = merged_data)
+grid.arrange(t, p2, ncol=2)
+```
+
+```{r, change CSV into a spatial object}
+zip_codes_shape <- st_read("zipcodes/ZCTA2010.shp")
+CA_albs <- st_crs(zip_codes_shape)
+CA_counties_as_sf <- st_as_sf(CA_counties,
+                            coords = c('long', 'lat'),
+                            group=group,
+                            crs = 4326) #WGS84datum ESPG code = 4326
+
+CA_counties_as_sf_2 <- st_transform(CA_counties_as_sf, crs = CA_albs)
+# CA Albers / NAD83 datum ? ESPG = 4269
+# Check that this produced a simple feature
+```
+```{r}
+st_crs(CA_counties_as_sf_2)
+str(CA_counties_as_sf_2)
+```
+```{r}
+
+#DAC Proportion
+ggplot()+
+  geom_sf(data = CA_counties_as_sf_2)+
+  ggtitle("DAC Proportion by County")+
+  theme_classic()+
+  coord_sf()+
   theme(axis.title.x = element_blank(),
                            axis.title.y = element_blank(),
                            axis.text=element_blank(),
@@ -209,126 +306,62 @@ ggplot(data = merged_data)+
 
 ```
 ```{r}
-typeof(CA_counties)
-counties_as_sf <- st_as_sf(CA_counties,
-                           coords = c('long', 'lat'),
-                           crs = 4326)
-#st_geometry_type(counties_as_sf)
-#centroids <- getSpPPolygonsLabptSlots(CA_counties)
-```
-
-```{r, convert county point layer to a polygon layer}
-CA_counties_polys = st_sf(
-  aggregate(
-    counties_as_sf$geometry,
-    list(counties_as_sf$group),
-    function(g){
-       st_cast(st_combine(g),"POLYGON")}))
-st_geometry_type(CA_counties_polys)
-
-```
-
-```{r, change CRS of counties polygon (want to do this b4 centroids)}
-#st_crs(CA_counties_polys)
-zip_codes_shape <- st_read("zipcodes/ZCTA2010.shp")
-#st_crs(zip_codes_shape)
-CA_albs <- st_crs(zip_codes_shape)
-CA_counties_polys_2 <- st_transform(CA_counties_polys, crs = CA_albs)
-st_crs(CA_counties_polys_2)
-```
-
-```{r, add state boudnary}
-CA_state_boundary <- st_read("CA_state_boundary/CA_State_TIGER2016.shp")
-st_transform(CA_state_boundary, crs = CA_albs)
-st_crs(CA_state_boundary)
-```
-
-```{r, make centroids}
-CA_counties_centroids <- st_centroid(CA_counties_polys_2)
-#st_crs(CA_counties_centroids)
-```
-
-```{r, make dataframe with group numbers and fips to merge on}
-new_df <- data.frame(group = c(157:214), county_fips = c(0:57))
-```
-
-```{r, merge new_df to df_edited then merge new_new to CA_counties_centroids}
-new_new <- merge(new_df, df_edited, by = "county_fips", all = TRUE)
-centroids_merge <- merge(CA_counties_centroids, new_new, by.x = "Group.1", by.y = "group")
-```
-
-```{r, merge merged_data to centroids}
-# We have group in common
-centroids_merge <- merge(CA_counties_centroids, merged_data, by.x = "Group.1", by.y = "group", all.x = TRUE, all.y = FALSE)
-#head(centroids_merge)
+polygons <- CA_counties %>%
+  st_as_sf(coords = c('long', 'lat')) %>%
+  st_set_crs(4326)
+polygons <- polygons %>%
+  group_by(group) %>%
+  summarise(do_union=FALSE) %>%
+  st_cast("POLYGON")
+grids <- polygons %>%
+  st_make_grid(cellsize = 0.2) %>%
+  st_centroid() %>%
+  st_sf()
+grids %>% st_join(polygons, join = st_within)
+plot(polygons)
+plot(grids)
 ```
 
 ```{r}
-ggplot() +
-  geom_sf(data = CA_counties_polys) +
-  geom_sf(data = centroids_merge, aes(size = Budget), shape = 1) +
-  coord_sf()
-```
-
-```{r, load CA places hope for cities}
-CA_places_boundaries <- st_read("CA_places/CA_Places_TIGER2016.shp")
-cities_df <- read_csv("cities_2.csv")
-```
-
-```{r, investigate CA_places_boundaries}
-#st_geometry_type(CA_places_boundaries)
-#st_crs(CA_places_boundaries)
-st_transform(CA_places_boundaries, crs = CA_albs)
-st_crs(CA_places_boundaries)
-```
-
-```{r, map places}
-ggplot()+
-  geom_sf(data = CA_places_boundaries)+
-  coord_sf()
-```
-
-```{r, merge boundaires to cities_df}
-CA_places_boundaries$NAME <- str_to_upper(CA_places_boundaries$NAME)
-cities_df_sf_merge <- merge(CA_places_boundaries, cities_df, by.x = "NAME", by.y = "SiteCity", all.x = FALSE, all.y = TRUE)
+str(polygons)
 ```
 
 ```{r}
-cities_df_sf_merge <- na.omit(cities_df_sf_merge)
+centroids <- st_centroid(polygons)
+plot(centroids)
+
+#merge
+centroids_w_subregion<- inner_join(centroids, CA_counties, by = "group") #the left_join takes all the unique values from left one and only add the matches from the right (doesn't matter in this case because they WILL match since we checked already)
+dim(centroids_w_subregion)
+```
+```{r}
+#merge
+centroids_w_subregion = merge(centroids, CA_counties, by = "group", all.y = FALSE) #the left_join takes all the unique values from left one and only add the matches from the right (doesn't matter in this case because they WILL match since we checked already)
+dim(centroids_w_subregion)
 ```
 
-```{r, map places}
-ggplot() +
-  geom_sf(data = CA_state_boundary) +
-  geom_sf(data = cities_df_sf_merge, aes(fill= cities_df_sf_merge$Budget), color = NA) +
-  scale_fill_viridis(name = "Budget") +
-  theme_classic() +
+```{r, getting long and lat for centroids}
+test <- centroids  %>%
+  mutate(lon = map_dbl(geometry, ~st_centroid(.x)[[1]]),
+     lat = map_dbl(geometry, ~st_centroid(.x)[[2]]))
+```
+
+```{r}
+centroid_transform <- st_transform(test, crs = CA_albs)
+```
+
+```{r}
+library(ggrepel)
+#DAC
+ggplot(data = merged_data)+
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `dac_proportion`))+
+  geom_label_repel(data = centroid_transform, aes(x = lon, y = lat, label = group))+
+  ggtitle("DAC Proportion by County")+
+  theme_classic()+
+  coord_sf()+
   theme(axis.title.x = element_blank(),
                            axis.title.y = element_blank(),
                            axis.text=element_blank(),
                            axis.ticks = element_blank(),
-                           panel.grid = element_blank()) +
-  ggtitle("CA Cities Budget")+
-  coord_sf()
+                           panel.grid = element_blank())
 ```
-
-```{r, log cities map}
-#log_budget <- log(cities_df_sf_merge$Budget + 1)
-cities_df_sf_merge$log_budget <- log(cities_df_sf_merge$Budget + 1)
-
-ggplot() +
-  geom_sf(data = CA_state_boundary) +
-  geom_sf(data = cities_df_sf_merge, aes(fill= cities_df_sf_merge$log_budget), color = NA) +
-  scale_fill_viridis(name = "Log Budget") +
-  theme_classic() +
-  theme(axis.title.x = element_blank(),
-                           axis.title.y = element_blank(),
-                           axis.text=element_blank(),
-                           axis.ticks = element_blank(),
-                           panel.grid = element_blank()) +
-  ggtitle("CA Cities Log Budget")+
-  coord_sf()
-```
-
-
-
