@@ -36,7 +36,7 @@ pairs.panels(plot.counties, density = TRUE, cor=TRUE, lm=TRUE) #scatterplot
 
 ```{r}
 counties_subset <- subset(counties, Budget > 0)
-counties_x <- counties_subset[!(counties_subset$County %in% c("LOS ANGELES", "SAN FRANCISCO", "SAN DIEGO")),]
+counties_x <- counties_subset[!(counties_subset$County %in% c("LOS ANGELES", "SAN FRANCISCO", "SAN DIEGO", "SANTA CLARA")),]
 hist(counties_x$Budget)
 counties_x$ln_budget <- log(counties_x$Budget+1)
 hist(counties_x$ln_budget)
@@ -44,6 +44,34 @@ counties_x_lm<-lm(ln_budget~Population+IRR+Mean.Income+ces_score_median, data=co
 res.counties_x<-counties_x_lm$residuals
 qqPlot(counties_x_lm)
 shapiro.test(res.counties_x) 
+```
+
+```{r}
+#use the new dataset to do regression that only uses the counties that have budget and get rid of the outliers
+counties_x$budget_per_cap_x = counties_x$Budget / counties_x$Population
+hist(counties_x$budget_per_cap_x)
+counties_x$ln_budget_per_cap_x <- log(counties_x$budget_per_cap_x+1)
+counties_percap_x_lm<-lm(ln_budget_per_cap_x~TotalRevenue+Population+IRR+Mean.Income+ces_score_median+dac_proportion, data=counties_x)
+res.counties_percap_x<-counties_percap_x_lm$residuals
+qqPlot(counties_percap_x_lm)
+shapiro.test(res.counties_percap_x) 
+summary(counties_percap_x_lm)
+#just irr is significant 
+```
+
+```{r}
+#use step aic to see which configuration of models is best
+stepAIC(lm(ln_budget_per_cap_x ~ Mean.Income + TotalRevenue + Population + IRR + ces_score_median + dac_proportion, data = counties_x))
+```
+
+```{r}
+#regression using the recommended variables from step aic for the new dataset
+counties_percap_x_lm1<-lm(ln_budget_per_cap_x~Population+IRR, data=counties_x)
+res.counties_percap_x1<-counties_percap_x_lm1$residuals
+qqPlot(counties_percap_x_lm1)
+shapiro.test(res.counties_percap_x1) 
+summary(counties_percap_x_lm1)
+#pop is significant
 ```
 
 ```{r}
@@ -71,6 +99,7 @@ qqPlot(counties_percap_lm1)
 shapiro.test(res.counties_percap1) 
 summary(counties_percap_lm1)
 ```
+
 ```{r}
 #going through steps to see if budget per cap will make data normal and if we should use that as our y value
 counties$kwh_per_cap = counties$TotalFirstYearGrosskWh / counties$Population
@@ -103,6 +132,36 @@ summary(counties_percapkwh1_lm)
 #irr tax rev pop ces score and dac are all significant 
 ```
 
+```{r}
+#use the new data set with only ones that have budget data and no oiutliers to look at regression for energy savings using all the variables and look out normality assumptions
+counties_x$kwh_per_cap_x = counties_x$TotalFirstYearGrosskWh / counties_x$Population
+hist(counties_x$kwh_per_cap_x)
+counties_x$ln_kwh_per_cap_x <- log(counties_x$kwh_per_cap_x+1)
+hist(counties_x$ln_kwh_per_cap_x)
+counties_percapkwh_lm_x<-lm(ln_kwh_per_cap_x~TotalRevenue+Population+IRR+Mean.Income+ces_score_median+dac_proportion, data=counties_x)
+res.counties_percapkwh_x<-counties_percapkwh_lm_x$residuals
+qqPlot(counties_percapkwh_lm_x)
+shapiro.test(res.counties_percapkwh_x) 
+
+summary(counties_percapkwh_lm_x)
+#irr and ces score significant
+```
+
+```{r}
+#use step aic to see which configuration of models is best
+stepAIC(lm(ln_kwh_per_cap_x ~ Mean.Income + TotalRevenue + Population + IRR + ces_score_median + dac_proportion, data = counties_x))
+```
+
+```{r}
+#use the new data set with only ones that have budget data and no oiutliers to look at regression for energy savings using all the variables and look out normality assumptions
+counties_percapkwh_lm_x1<-lm(ln_kwh_per_cap_x~Population+IRR+ces_score_median+dac_proportion, data=counties_x)
+res.counties_percapkwh_x1<-counties_percapkwh_lm_x$residuals
+qqPlot(counties_percapkwh_lm_x1)
+shapiro.test(res.counties_percapkwh_x1) 
+
+summary(counties_percapkwh_lm_x1)
+#irr and ces score significant and population are all significant
+```
 
 ```{r, county}
 #log-transform the population to account for the skew
