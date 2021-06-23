@@ -1143,30 +1143,45 @@ summary(counties4b_lm)
 
 ```{r}
 #Create quantiles of budget
-quantile(counties$Budget)
+quantile(counties$budget_per_cap)
 
 #create top and bottom quantile
-bottomq_budget = subset(counties, Budget <= 168429.5)
-topq_budget = subset(counties, Budget > 3441408.1)
+bottomq_budget = subset(counties, Budget <= 1.528228)
+topq_budget = subset(counties, Budget > 7.940744)
 
 #create quantiles of energy savings
-quantile(counties$TotalFirstYearGrosskWh)
+quantile(counties$kwh_per_cap)
 
 #create top and bottom quantile
-bottomq_energy = subset(counties, TotalFirstYearGrosskWh <= 152553.2)
-topq_energy = subset(counties, TotalFirstYearGrosskWh > 6333300.1)
+bottomq_energy = subset(counties, TotalFirstYearGrosskWh <= 1.377546)
+topq_energy = subset(counties, TotalFirstYearGrosskWh > 11.231349)
 
 #t tests to compare means of irr in top and bottom
-t.test(bottomq_budget$IRR, topq_budget$IRR, na.action = na.omit)
-t.test(bottomq_energy$IRR, topq_energy$IRR, na.action = na.omit)
+t.test(bottomq_budget$IRR, topq_budget$IRR, na.action = na.omit) #super sig--> makes sense because only real significance in regression
+t.test(bottomq_energy$IRR, topq_energy$IRR, na.action = na.omit) #significant
 
 #t tests to compare means of budget per capita in top and bottom
-t.test(bottomq_budget$budget_per_cap, topq_budget$budget_per_cap)
-t.test(bottomq_energy$budget_per_cap, topq_energy$budget_per_cap)
+t.test(bottomq_energy$budget_per_cap, topq_energy$budget_per_cap) #significant -> this more important cuz shoes relationship between energy and budget
 
 #t tests to compare means of total revenue in top and bottom
-t.test(bottomq_budget$TotalRevenue, topq_budget$TotalRevenue)
-t.test(bottomq_energy$TotalRevenue, topq_energy$TotalRevenue)
+t.test(bottomq_budget$TotalRevenue, topq_budget$TotalRevenue) #significant
+t.test(bottomq_energy$TotalRevenue, topq_energy$TotalRevenue) #not significant
+
+#t tests to compare means of population in top and bottom
+t.test(bottomq_budget$Population, topq_budget$Population) #significant
+t.test(bottomq_energy$Population, topq_energy$Population) #not significant, not different 
+
+#t tests to compare means of dac proportion in top and bottom
+t.test(bottomq_budget$dac_proportion, topq_budget$dac_proportion) #not significant--> not significant in regressions
+t.test(bottomq_energy$dac_proportion, topq_energy$dac_proportion) #not significant
+
+#t tests to compare means of ces score median in top and bottom
+t.test(bottomq_budget$ces_score_median, topq_budget$ces_score_median) #not significant --> makes sense because not significant with budget in regression
+t.test(bottomq_energy$ces_score_median, topq_energy$ces_score_median) #not significant
+
+#t tests to compare means of mean income in top and bottom
+t.test(bottomq_budget$Mean.Income, topq_budget$Mean.Income) #not sig --> makes sense because not significant in any of the regressions
+t.test(bottomq_energy$Mean.Income, topq_energy$Mean.Income) #not sig --> makes sense because not significant in any of the regressions
 ```
 
 ```{r}
