@@ -10,6 +10,7 @@ library(splines)
 library(Ecdat)
 library(car)
 library(lmtest)
+library(stargazer)
 ```
 
 
@@ -17,6 +18,7 @@ library(lmtest)
 
 #cities <- read.csv('C:/Users/ather/CS Projects/CETLab/caeecc-energy-efficiency/cities_2.csv')
 cities <- read.csv("C:/Users/ather/R/CETLAB/cities_demo_joined.csv")
+cities_full <- read.csv("C:/Users/ather/R/CETLAB/cities_demo_joined.csv")
 
 demo <- read.csv('C:/Users/ather/R/CETLAB/census_race_combined_by_city.csv')
 demoall <- read.csv('C:/Users/ather/R/CETLAB/census_race_group_by_city.csv')
@@ -26,6 +28,8 @@ demoall <- read.csv('C:/Users/ather/R/CETLAB/census_race_group_by_city.csv')
 ```{r}
 
 cities <- na.omit(cities)
+#cities_full <- na.omit(cities_full)
+
 
 row.names(cities) <- NULL
 
@@ -300,8 +304,6 @@ t.test(budget_percap_lq$Total.Tax.Revenue, budget_percap_uq$Total.Tax.Revenue)
 t.test(budget_percap_lq$Budget, budget_percap_uq$Budget)
 
 
-
-
 ```
 
 ```{r}
@@ -323,3 +325,60 @@ full_regression <- lm(log(Budget) ~ dac_proportion + ces_score_median + Total.Ta
 summary(full_regression)
 ```
 
+
+```{r}
+#thursday test regressions:
+#cities$logbudgetperkwh <- log(cities$Budget)/cities$TotalFirstYearGrosskWh
+#cities$logbudgetperkwh[is.infinite(cities$logbudgetperkwh)] <- 0
+lnbudget <- lm(log(Budget) ~ dac_proportion + ces_score_median + Total.Tax.Revenue + median_household_income_usd + ruca_average + `X..OBF.Budget` + `X..Resource.Budget`, data = cities)
+
+lnkwh <- lm(log(TotalFirstYearGrosskWh+1) ~ ces_score_median + Total.Tax.Revenue + median_household_income_usd + ruca_average + `X..OBF.Budget` + `X..Resource.Budget`, data = cities)
+
+lnbudget_aic <- stepAIC(lm(log(Budget) ~ces_score_median + Total.Tax.Revenue + median_household_income_usd + ruca_average + `X..OBF.Budget` + `X..Resource.Budget`, data = cities))
+
+lnkWh_aic <- stepAIC(lm(log(TotalFirstYearGrosskWh+1) ~ ces_score_median + Total.Tax.Revenue + median_household_income_usd + ruca_average + `X..OBF.Budget` + `X..Resource.Budget`, data = cities))
+
+lnbudget_percap <- lm(log(Budget/total_population) ~ ces_score_median + Total.Tax.Revenue + median_household_income_usd + ruca_average + `X..OBF.Budget` + `X..Resource.Budget`, data = cities)
+
+lnkWh_percap <- lm(log((TotalFirstYearGrosskWh+1)/total_population) ~ ces_score_median + Total.Tax.Revenue + median_household_income_usd + ruca_average + `X..OBF.Budget` + `X..Resource.Budget`, data = cities)
+
+lnkWh_percap_aic <- stepAIC(lm(log(TotalFirstYearGrosskWh+1/total_population) ~ ces_score_median + Total.Tax.Revenue + median_household_income_usd + ruca_average + `X..OBF.Budget` + `X..Resource.Budget`, data = cities))
+
+lnbudget_percap_aic <- stepAIC(lm(log(Budget/total_population) ~ ces_score_median + Total.Tax.Revenue + median_household_income_usd + ruca_average + `X..OBF.Budget` + `X..Resource.Budget`, data = cities))
+
+```
+
+```{r}
+#stargazer table:
+
+stargazer(lnbudget_percap, lnkWh_percap, lnkWh_percap_aic, lnbudget_percap_aic, type="text", title = "Regression Table", align = TRUE)
+```
+```{r}
+#stargazer table:
+
+stargazer(lnbudget, lnkwh, lnbudget_aic, lnkWh_aic, type="text", title = "Regression Table", align = TRUE)
+```
+
+
+
+```{r}
+#thursday test regressions:
+#cities$logbudgetperkwh <- log(cities$Budget)/cities$TotalFirstYearGrosskWh
+#cities$logbudgetperkwh[is.infinite(cities$logbudgetperkwh)] <- 0
+lnbudget_full <- lm(log(Budget) ~ dac_proportion + ces_score_median + Total.Tax.Revenue + median_household_income_usd + ruca_average + `X..OBF.Budget` + `X..Resource.Budget`, data = cities_full)
+
+lnkwh_full <- lm(log(TotalFirstYearGrosskWh+1) ~ ces_score_median + Total.Tax.Revenue + median_household_income_usd + ruca_average + `X..OBF.Budget` + `X..Resource.Budget`, data = cities_full)
+
+lnbudget_aic_full <- stepAIC(lm(log(Budget) ~ces_score_median + median_household_income_usd + ruca_average + `X..OBF.Budget` + `X..Resource.Budget`, data = cities_full))
+
+lnkWh_aic_full <- stepAIC(lm(log(TotalFirstYearGrosskWh+1) ~ ces_score_median + median_household_income_usd + ruca_average + `X..OBF.Budget` + `X..Resource.Budget`, data = cities_full))
+
+lnbudget_percap_full <- lm(log(Budget/total_population) ~ ces_score_median + Total.Tax.Revenue + median_household_income_usd + ruca_average + `X..OBF.Budget` + `X..Resource.Budget`, data = cities_full)
+
+lnkWh_percap_full <- lm(log((TotalFirstYearGrosskWh+1)/total_population) ~ ces_score_median + Total.Tax.Revenue + median_household_income_usd + ruca_average + `X..OBF.Budget` + `X..Resource.Budget`, data = cities_full)
+
+lnkWh_percap_aic_full <- stepAIC(lm(log(TotalFirstYearGrosskWh+1/total_population) ~ ces_score_median + median_household_income_usd + ruca_average + `X..OBF.Budget` + `X..Resource.Budget`, data = cities_full))
+
+lnbudget_percap_aic_full <- stepAIC(lm(log(Budget/total_population) ~ ces_score_median + median_household_income_usd + ruca_average + `X..OBF.Budget` + `X..Resource.Budget`, data = cities_full))
+
+```
