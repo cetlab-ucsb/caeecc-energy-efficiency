@@ -8,3 +8,40 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
+```{r, load packages}
+library(sf)
+library(data.table)
+library(tigris)
+library(ggplot2)
+library(maps)
+library(tmap)
+library(USAboundaries)
+library(maptools)
+library(tidyverse)
+library(stringr)
+library(viridis)
+```
+
+```{r, load data}
+raw_dat_zips <- read.csv("claims_zip_county_mapping.csv")
+raw_dat_claims <- read.csv("ourprograms_112020.xlsx - public.csv")
+```
+
+```{r, left join}
+program_with_zip <- merge(x = raw_dat_claims, y = raw_dat_zips, by = "PrgID", all.x = TRUE)
+```
+
+```{r}
+occurances <- table(unlist(raw_dat_zips$ZCTA5))
+```
+
+```{r}
+occurances["94505"]
+```
+
+```{r}
+df1 <- data.frame(unclass(occurances))
+```
+
+

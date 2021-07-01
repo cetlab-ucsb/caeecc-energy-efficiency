@@ -71,13 +71,13 @@ head(df_edited) #check to see if the county names did change
 ```
 
 ```{r, merge on count name}
-#check dimensions before the merge 
+#check dimensions before the merge
 dim(df_edited)
 dim(CA_counties)
 
 #merge
 merged_data<- left_join(CA_counties, df_edited, by = c("subregion"="County")) #the left_join takes all the unique values from left one and only add the matches from the right (doesn't matter in this case because they WILL match since we checked already)
-dim(merged_data) 
+dim(merged_data)
 ```
 
 ```{r, visualize mean income}
@@ -106,7 +106,7 @@ merged_data$log_pop <- log(merged_data$tot_pop + 1)
 
 # LOG Population
 p <- ggplot(data = merged_data) +
-  geom_polygon(aes(x = long, y = lat, group = group, fill= `log_pop`)) + 
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `log_pop`)) +
   coord_fixed(1.3) +
   ggtitle("County Population (LOG)") +
   theme_classic() +
@@ -124,10 +124,10 @@ log_savings <- log(merged_data$TotalFirstYearGrosskWh + 1)
 merged_data$log_savings <- log(merged_data$TotalFirstYearGrosskWh + 1)
 
 ggplot(data = merged_data) +
-  geom_polygon(aes(x = long, y = lat, group = group, fill= `log_savings`)) + 
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `log_savings`)) +
   coord_fixed(1.3) +
-  ggtitle("Log Energy Savings by County") + 
-  theme_classic() + 
+  ggtitle("Log Energy Savings by County") +
+  theme_classic() +
   scale_fill_viridis() +
   theme(axis.title.x = element_blank(),
                            axis.title.y = element_blank(),
@@ -137,10 +137,10 @@ ggplot(data = merged_data) +
 
 #Energy Savings
 ggplot(data = merged_data) +
-  geom_polygon(aes(x = long, y = lat, group = group, fill= `TotalFirstYearGrosskWh`)) + 
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `TotalFirstYearGrosskWh`)) +
   coord_fixed(1.3) +
-  ggtitle("Energy Savings by County") + 
-  theme_classic() + 
+  ggtitle("Energy Savings by County") +
+  theme_classic() +
   scale_fill_viridis() +
   theme(axis.title.x = element_blank(),
                            axis.title.y = element_blank(),
@@ -157,10 +157,10 @@ log_budget <- log(merged_data$Budget + 1)
 merged_data$log_budget <- log(merged_data$Budget + 1)
 
 ggplot(data = merged_data) +
-  geom_polygon(aes(x = long, y = lat, group = group, fill= `log_budget`)) + 
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `log_budget`)) +
   coord_fixed(1.3) +
-  ggtitle("Log Budget by County") + 
-  theme_classic() + 
+  ggtitle("Log Budget by County") +
+  theme_classic() +
   scale_fill_viridis() +
   theme(axis.title.x = element_blank(),
                            axis.title.y = element_blank(),
@@ -170,10 +170,10 @@ ggplot(data = merged_data) +
 
 #Budget
 ggplot(data = merged_data)+
-  geom_polygon(aes(x = long, y = lat, group = group, fill= `Budget`))+ 
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `Budget`))+
   coord_fixed(1.3)+
-  ggtitle("Budget by County")+ 
-  theme_classic()+ 
+  ggtitle("Budget by County")+
+  theme_classic()+
   theme(axis.title.x = element_blank(),
                            axis.title.y = element_blank(),
                            axis.text=element_blank(),
@@ -186,10 +186,10 @@ ggplot(data = merged_data)+
 
 #IRR
 p2 <- ggplot(data = merged_data)+
-  geom_polygon(aes(x = long, y = lat, group = group, fill= `IRR`))+ 
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `IRR`))+
   coord_fixed(1.3)+
-  ggtitle("Relative Rurality by County")+ 
-  theme_classic()+ 
+  ggtitle("Relative Rurality by County")+
+  theme_classic()+
   theme(axis.title.x = element_blank(),
                            axis.title.y = element_blank(),
                            axis.text=element_blank(),
@@ -205,10 +205,10 @@ log_taxrev <- log(merged_data$TotalRevenue + 1)
 merged_data$log_taxrev <- log(merged_data$TotalRevenue + 1)
 
 ggplot(data = merged_data)+
-  geom_polygon(aes(x = long, y = lat, group = group, fill= `log_taxrev`))+ 
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `log_taxrev`))+
   coord_fixed(1.3)+
-  ggtitle("LOG Tax Revenue by County")+ 
-  theme_classic()+ 
+  ggtitle("LOG Tax Revenue by County")+
+  theme_classic()+
   theme(axis.title.x = element_blank(),
                            axis.title.y = element_blank(),
                            axis.text=element_blank(),
@@ -216,10 +216,10 @@ ggplot(data = merged_data)+
                            panel.grid = element_blank())
 #Tax Revenue
 ggplot(data = merged_data)+
-  geom_polygon(aes(x = long, y = lat, group = group, fill= `TotalRevenue`))+ 
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `TotalRevenue`))+
   coord_fixed(1.3)+
-  ggtitle("Tax Revenue by County")+ 
-  theme_classic()+ 
+  ggtitle("Tax Revenue by County")+
+  theme_classic()+
   theme(axis.title.x = element_blank(),
                            axis.title.y = element_blank(),
                            axis.text=element_blank(),
@@ -232,10 +232,10 @@ ggplot(data = merged_data)+
 
 #CES Score
 ggplot(data = merged_data)+
-  geom_polygon(aes(x = long, y = lat, group = group, fill= `ces_score_median`))+ 
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `ces_score_median`))+
   coord_fixed(1.3)+
-  ggtitle("CES Score Median by County")+ 
-  theme_classic()+ 
+  ggtitle("CES Score Median by County")+
+  theme_classic()+
   theme(axis.title.x = element_blank(),
                            axis.title.y = element_blank(),
                            axis.text=element_blank(),
@@ -247,10 +247,10 @@ ggplot(data = merged_data)+
 
 #DAC Proportion
 r <- ggplot(data = merged_data)+
-  geom_polygon(aes(x = long, y = lat, group = group, fill= `dac_proportion`))+ 
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `dac_proportion`))+
   coord_fixed(1.3)+
-  ggtitle("DAC Proportion by County")+ 
-  theme_classic()+ 
+  ggtitle("DAC Proportion by County")+
+  theme_classic()+
   theme(axis.title.x = element_blank(),
                            axis.title.y = element_blank(),
                            axis.text=element_blank(),
@@ -294,9 +294,9 @@ str(CA_counties_as_sf_2)
 
 #DAC Proportion
 ggplot()+
-  geom_sf(data = CA_counties_as_sf_2)+ 
-  ggtitle("DAC Proportion by County")+ 
-  theme_classic()+ 
+  geom_sf(data = CA_counties_as_sf_2)+
+  ggtitle("DAC Proportion by County")+
+  theme_classic()+
   coord_sf()+
   theme(axis.title.x = element_blank(),
                            axis.title.y = element_blank(),
@@ -308,7 +308,7 @@ ggplot()+
 ```{r}
 polygons <- CA_counties %>%
   st_as_sf(coords = c('long', 'lat')) %>%
-  st_set_crs(4326) 
+  st_set_crs(4326)
 polygons <- polygons %>%
   group_by(group) %>%
   summarise(do_union=FALSE) %>%
@@ -332,16 +332,16 @@ plot(centroids)
 
 #merge
 centroids_w_subregion<- inner_join(centroids, CA_counties, by = "group") #the left_join takes all the unique values from left one and only add the matches from the right (doesn't matter in this case because they WILL match since we checked already)
-dim(centroids_w_subregion) 
+dim(centroids_w_subregion)
 ```
 ```{r}
 #merge
 centroids_w_subregion = merge(centroids, CA_counties, by = "group", all.y = FALSE) #the left_join takes all the unique values from left one and only add the matches from the right (doesn't matter in this case because they WILL match since we checked already)
-dim(centroids_w_subregion) 
+dim(centroids_w_subregion)
 ```
 
 ```{r, getting long and lat for centroids}
-test <- centroids  %>% 
+test <- centroids  %>%
   mutate(lon = map_dbl(geometry, ~st_centroid(.x)[[1]]),
      lat = map_dbl(geometry, ~st_centroid(.x)[[2]]))
 ```
@@ -354,10 +354,10 @@ centroid_transform <- st_transform(test, crs = CA_albs)
 library(ggrepel)
 #DAC
 ggplot(data = merged_data)+
-  geom_polygon(aes(x = long, y = lat, group = group, fill= `dac_proportion`))+ 
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `dac_proportion`))+
   geom_label_repel(data = centroid_transform, aes(x = lon, y = lat, label = group))+
-  ggtitle("DAC Proportion by County")+ 
-  theme_classic()+ 
+  ggtitle("DAC Proportion by County")+
+  theme_classic()+
   coord_sf()+
   theme(axis.title.x = element_blank(),
                            axis.title.y = element_blank(),

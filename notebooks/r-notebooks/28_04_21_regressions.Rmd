@@ -1439,6 +1439,7 @@ K12_subset <- subset(K12, budget > 0)
 #performs stepwise model selection by AIC
 stepAIC(lm(budget ~ tot_lcff + no_title1_status + irr + dac_proportion + ces_percentile_median + ces_score_median + frpm_count + free_meal_count + perc_obf + median_household_income_usd + perc_eligible_free + perc_eligible_frpm + number_of_schools + perc_title1_status + enrollment + perc_resource + perc_ia + perc_na + perc_ba + perc_wa + perc_aa, data = K12))
 ```
+
 ```{r, K12 4.1}
 #poisson budget regression 
 
@@ -1542,15 +1543,19 @@ BIC(K12fu_18.glm, K12fu_19.glm, K12fu_20.glm)
 #K12 subset ungrouped
 
 #performs stepwise model selection by AIC
-stepAIC(lm(budget ~ tot_lcff + no_title1_status + irr + dac_proportion + ces_percentile_median + ces_score_median + frpm_count + free_meal_count + perc_obf + median_household_income_usd + perc_eligible_free + perc_eligible_frpm + number_of_schools + perc_title1_status + enrollment + perc_resource + perc_ia + perc_na + perc_ba + perc_wa + perc_aa, data = K12_subset))
+stepAIC(lm(budget ~ tot_lcff + no_title1_status + irr + dac_proportion + ces_percentile_median + ces_score_median + frpm_count + free_meal_count + perc_obf + median_household_income_usd + perc_eligible_free + perc_eligible_frpm + number_of_schools + perc_title1_status + enrollment + perc_resource, data = K12_subset))
 ```
 ```{r}
 K12_x <- K12_subset[!(K12_subset$county %in% c("LOS ANGELES")),] 
+K12_x$budget_per_cap = K12_x$budget / K12_x$enrollment
+K12_x$lcff_per_cap = K12_x$lcff / K12_x$enrollment
 ```
 
 ```{r}
-K12s_5.glm <- glm(ln_budget ~ tot_lcff + frpm_count, data = K12_subset) 
+K12s_5.glm <- glm(budget_per_cap ~ lcff_per_cap + frpm_count+ perc_title1_status + dac_proportion, data = K12_x) 
 summary(K12s_5.glm)
+K12s_6.glm <- glm(budget_per_cap ~ lcff_per_cap + irr + dac_proportion + ces_score_median + perc_obf + median_household_income_usd + perc_eligible_frpm + perc_title1_status + enrollment + perc_resource, data = K12_x)
+summary(K12s_6.glm)
 
 exp(summary(K12s_5.glm)$coefficients[,1])
 K12_subset$predict_b <- predict(K12s_5.glm, K12_subset, type = "response")

@@ -1,0 +1,256 @@
+---
+title: "Counties Final Stats"
+author: "Public Sector UWG Team"
+output: html_notebook
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = '~/Documents/Github/caeecc-energy-efficiency/for github/data')
+```
+
+```{r, load packages}
+library(readr)
+library(data.table)
+library(dplyr)
+library(ggplot2)
+library(tidyverse)
+library(psych)
+library(car)
+library(fitdistrplus)
+```
+
+```{r}
+#read in data for County EE programs 
+counties<-read.csv("counties_2.csv")
+View(counties)
+```
+
+```{r}
+#making new datatset with o budget omitted and the outliers omitted
+counties_subset <- subset(counties, Budget > 0)
+counties_x <- counties_subset[!(counties_subset$County %in% c("LOS ANGELES", "SAN FRANCISCO", "SAN DIEGO", "SANTA CLARA")),]
+
+#looking at data and testing for normality
+hist(counties_x$Budget)
+counties_x$ln_budget <- log(counties_x$Budget+1)
+hist(counties_x$ln_budget)
+
+#making a linear regression to test for normality of residuals
+counties_x_lm<-lm(ln_budget~Population+IRR+Mean.Income+ces_score_median, data=counties_x)
+res.counties_x<-counties_x_lm$residuals #not normal
+qqPlot(counties_x_lm) #not normal
+shapiro.test(res.counties_x) #not normal
+```
+
+```{r}
+#use the new dataset to do regression that only uses the counties that have budget and get rid of the outliers
+counties_x$budget_per_cap_x = counties_x$Budget / counties_x$Population
+hist(counties_x$budget_per_cap_x)
+counties_x$ln_budget_per_cap_x <- log(counties_x$budget_per_cap_x+1)
+counties_percap_x_lm<-lm(ln_budget_per_cap_x~TotalRevenue+Population+IRR+Mean.Income+ces_score_median+dac_proportion, data=counties_x)
+res.counties_percap_x<-counties_percap_x_lm$residuals
+qqPlot(counties_percap_x_lm)
+shapiro.test(res.counties_percap_x) 
+summary(counties_percap_x_lm)
+#just irr is significant 
+```
+
+```{r}
+#use step aic to see which configuration of models is best
+stepAIC(lm(ln_budget_per_cap_x ~ Mean.Income + TotalRevenue + Population + IRR + ces_score_median + dac_proportion, data = counties_x))
+```
+
+```{r}
+#regression using the recommended variables from step aic for the new dataset
+counties_percap_x_lm1<-lm(ln_budget_per_cap_x~Population+IRR, data=counties_x)
+res.counties_percap_x1<-counties_percap_x_lm1$residuals
+qqPlot(counties_percap_x_lm1)
+shapiro.test(res.counties_percap_x1) 
+summary(counties_percap_x_lm1)
+#pop is significant
+```
+
+```{r}
+#going through steps to see if budget per cap will make data normal and if we should use that as our y value
+counties$budget_per_cap = counties$Budget / counties$Population
+hist(counties$budget_per_cap)
+counties$ln_budget_per_cap <- log(counties$budget_per_cap+1)
+counties_percap_lm<-lm(ln_budget_per_cap~TotalRevenue+IRR+Mean.Income+ces_score_median+dac_proportion, data=counties)
+res.counties_percap<-counties_percap_lm$residuals
+qqPlot(counties_percap_lm)
+shapiro.test(res.counties_percap) 
+summary(counties_percap_lm)
+```
+
+```{r}
+#use step aic to see which configuration of models is best
+stepAIC(lm(ln_budget_per_cap ~ Mean.Income + TotalRevenue + Population + IRR + ces_score_median + dac_proportion, data = counties))
+```
+
+```{r}
+#best model, using full county data and budget per capita
+counties_percap_lm1<-lm(ln_budget_per_cap~Population+IRR+ces_score_median+dac_proportion, data=counties)
+res.counties_percap1<-counties_percap_lm1$residuals
+qqPlot(counties_percap_lm1)
+shapiro.test(res.counties_percap1) 
+summary(counties_percap_lm1)
+```
+
+```{r}
+#going through steps to see if budget per cap will make data normal and if we should use that as our y value
+counties$kwh_per_cap = counties$TotalFirstYearGrosskWh / counties$Population
+hist(counties$kwh_per_cap)
+counties$ln_kwh_per_cap <- log(counties$kwh_per_cap+1)
+hist(counties$ln_kwh_per_cap)
+counties_percapkwh_lm<-lm(ln_kwh_per_cap~TotalRevenue+Population+IRR+Mean.Income+ces_score_median+dac_proportion, data=counties)
+res.counties_percapkwh<-counties_percapkwh_lm$residuals
+qqPlot(counties_percapkwh_lm)
+shapiro.test(res.counties_percapkwh) 
+#data is normal so regular regression can be run
+
+summary(counties_percapkwh_lm)
+#irr tax rev ces score and dac are all significant 
+```
+
+```{r}
+#use step aic to see which configuration of models is best
+stepAIC(lm(ln_kwh_per_cap ~ Mean.Income + TotalRevenue + Population + IRR + ces_score_median + dac_proportion, data = counties))
+```
+```{r}
+#regression with step aic given variables
+counties_percapkwh1_lm<-lm(ln_kwh_per_cap~TotalRevenue+Population+IRR+ces_score_median+dac_proportion, data=counties)
+res.counties_percapkwh1<-counties_percapkwh1_lm$residuals
+qqPlot(counties_percapkwh1_lm)
+shapiro.test(res.counties_percapkwh1) 
+#data is normal so regular regression can be run
+
+summary(counties_percapkwh1_lm)
+#irr tax rev pop ces score and dac are all significant 
+```
+
+```{r}
+#use the new data set with only ones that have budget data and no oiutliers to look at regression for energy savings using all the variables and look out normality assumptions
+counties_x$kwh_per_cap_x = counties_x$TotalFirstYearGrosskWh / counties_x$Population
+hist(counties_x$kwh_per_cap_x)
+counties_x$ln_kwh_per_cap_x <- log(counties_x$kwh_per_cap_x+1)
+hist(counties_x$ln_kwh_per_cap_x)
+counties_percapkwh_lm_x<-lm(ln_kwh_per_cap_x~TotalRevenue+Population+IRR+Mean.Income+ces_score_median+dac_proportion, data=counties_x)
+res.counties_percapkwh_x<-counties_percapkwh_lm_x$residuals
+qqPlot(counties_percapkwh_lm_x)
+shapiro.test(res.counties_percapkwh_x) 
+
+summary(counties_percapkwh_lm_x)
+#irr and ces score significant
+```
+
+```{r}
+#use step aic to see which configuration of models is best
+stepAIC(lm(ln_kwh_per_cap_x ~ Mean.Income + TotalRevenue + Population + IRR + ces_score_median + dac_proportion, data = counties_x))
+```
+
+```{r}
+#use the new data set with only ones that have budget data and no oiutliers to look at regression for energy savings using all the variables and look out normality assumptions
+counties_percapkwh_lm_x1<-lm(ln_kwh_per_cap_x~Population+IRR+ces_score_median+dac_proportion, data=counties_x)
+res.counties_percapkwh_x1<-counties_percapkwh_lm_x$residuals
+qqPlot(counties_percapkwh_lm_x1)
+shapiro.test(res.counties_percapkwh_x1) 
+
+summary(counties_percapkwh_lm_x1)
+#irr and ces score significant and population are all significant
+```
+
+```{r}
+#Create quantiles of budget
+quantile(counties$budget_per_cap)
+
+#create top and bottom quantile
+bottomq_budget = subset(counties, Budget <= 1.528228)
+topq_budget = subset(counties, Budget > 7.940744)
+```
+
+```{r}
+#create quantiles of energy savings
+quantile(counties$kwh_per_cap)
+
+#create top and bottom quantile
+bottomq_energy = subset(counties, TotalFirstYearGrosskWh <= 1.377546)
+topq_energy = subset(counties, TotalFirstYearGrosskWh > 11.231349)
+```
+
+```{r}
+#t tests to compare means of irr in top and bottom
+t.test(bottomq_budget$IRR, topq_budget$IRR, na.action = na.omit) #super sig--> makes sense because only real significance in regression
+t.test(bottomq_energy$IRR, topq_energy$IRR, na.action = na.omit) #significant
+
+#t tests to compare means of budget per capita in top and bottom
+t.test(bottomq_energy$budget_per_cap, topq_energy$budget_per_cap) #significant -> this more important cuz shoes relationship between energy and budget
+
+#t tests to compare means of total revenue in top and bottom
+t.test(bottomq_budget$TotalRevenue, topq_budget$TotalRevenue) #significant
+t.test(bottomq_energy$TotalRevenue, topq_energy$TotalRevenue) #not significant
+
+#t tests to compare means of population in top and bottom
+t.test(bottomq_budget$Population, topq_budget$Population) #significant
+t.test(bottomq_energy$Population, topq_energy$Population) #not significant, not different 
+
+#t tests to compare means of dac proportion in top and bottom
+t.test(bottomq_budget$dac_proportion, topq_budget$dac_proportion) #not significant--> not significant in regressions
+t.test(bottomq_energy$dac_proportion, topq_energy$dac_proportion) #not significant
+
+#t tests to compare means of ces score median in top and bottom
+t.test(bottomq_budget$ces_score_median, topq_budget$ces_score_median) #not significant --> makes sense because not significant with budget in regression
+t.test(bottomq_energy$ces_score_median, topq_energy$ces_score_median) #not significant
+
+#t tests to compare means of mean income in top and bottom
+t.test(bottomq_budget$Mean.Income, topq_budget$Mean.Income) #not sig --> makes sense because not significant in any of the regressions
+t.test(bottomq_energy$Mean.Income, topq_energy$Mean.Income) #not sig --> makes sense because not significant in any of the regressions
+```
+
+```{r}
+#look at average percentage of certain demographics within top and bottom quantile based on budget per cap
+mean(bottomq_budget$perc_wa_avg) #83.99% 
+mean(topq_budget$perc_wa_avg) #80.43%
+#more white in bottom
+
+mean(bottomq_budget$perc_ba_avg) #2.57%
+mean(topq_budget$perc_ba_avg) #3.70%%
+#more african american in top
+
+mean(bottomq_budget$perc_aa_avg) #1.71%
+mean(topq_budget$perc_aa_avg) #8.78%
+#more asian american in top
+
+mean(bottomq_budget$perc_ia_avg) #7.60%
+mean(topq_budget$perc_ia_avg) #2.60%
+#more islander in bottom
+
+mean(bottomq_budget$perc_na_avg) #0.283%
+mean(topq_budget$perc_na_avg) #0.425%
+#more native american in top
+
+```
+
+```{r}
+#look at average percentage of certain demographics within top and bottom quantile based on energy per cap
+mean(bottomq_energy$perc_wa_avg)#82.95%
+mean(topq_energy$perc_wa_avg) #80.52%
+#more white in bottom
+
+mean(bottomq_energy$perc_ba_avg) #2.94%
+mean(topq_energy$perc_ba_avg) #3.67%%
+#more ba in top
+
+mean(bottomq_energy$perc_aa_avg) #3.05%
+mean(topq_energy$perc_aa_avg) #8.71%
+#more ass in top
+
+mean(bottomq_energy$perc_ia_avg) #6.81%
+mean(topq_energy$perc_ia_avg)#2.62%
+#more ia in bottom
+
+mean(bottomq_energy$perc_na_avg) #0.321%
+mean(topq_energy$perc_na_avg) #0.422%
+#more na in top
+```
+
