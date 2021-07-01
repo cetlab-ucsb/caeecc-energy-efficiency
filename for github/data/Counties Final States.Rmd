@@ -92,7 +92,7 @@ summary(counties_percap_x_lm3)
 
 ```{r}
 library(stargazer)
-stargazer(counties_percap_x_lm, counties_percap_x_lm1, counties_percap_x_lm2, counties_percap_x_lm3, type="text", title="Linear Regression Results Budget Data", align=TRUE, dep.var.labels=c("Log of Budget Per Capita","Log of Budget"),omit.stat=c("LL","ser","f"), no.space=TRUE)
+stargazer(counties_percap_x_lm, counties_percap_x_lm1, counties_percap_x_lm2, counties_percap_x_lm3, type="text", title="Linear Regression Results Budget Data", align=TRUE, dep.var.labels=c("Log of Budget Per Capita", "Log of Budget"), omit.stat=c("LL","ser","f"), order=c("revenue_per_cap", "Population", "Mean.Income", "IRR", "dac_proportion", "ces_score_mean", "X..OBF.Budget", "X..Resource.Budget"), covariate.labels = c("Revenue Per Capita", "Population", "Mean Income", "IRR", "DAC Proportion", "CES Score", "Percent On-bill Financing", "Precent of Resource Programs"), no.space=TRUE)
 ```
 
 ```{r}
@@ -128,7 +128,8 @@ summary(counties_percapkwh_lm1)
 
 ```{r}
 #use the new data set with only ones that have budget data and no oiutliers to look at regression for energy savings using all the variables and look out normality assumptions
-counties_percapkwh_lm2<-lm(kwh_per_cap~revenue_per_cap+IRR+Mean.Income+ces_score_median+dac_proportion+X..OBF.Budget+X..Resource.Budget, data=counties_x)
+counties_x$ln_kwh <- log(counties_x$TotalFirstYearGrosskWh+1)
+counties_percapkwh_lm2<-lm(ln_kwh~revenue_per_cap+IRR+Mean.Income+ces_score_median+dac_proportion+X..OBF.Budget+X..Resource.Budget, data=counties_x)
 res.counties_percapkwh2<-counties_percapkwh_lm2$residuals
 qqPlot(counties_percapkwh_lm2)
 shapiro.test(res.counties_percapkwh2) 
@@ -138,18 +139,22 @@ summary(counties_percapkwh_lm2)
 ```
 ```{r}
 #use step aic to see which configuration of models is best
-stepAIC(lm(kwh_per_cap_x ~ Population + Mean.Income + revenue_per_cap + IRR + ces_score_median + dac_proportion + X..OBF.Budget + X..Resource.Budget, data = counties_x))
+stepAIC(lm(ln_kwh ~ Population + Mean.Income + revenue_per_cap + IRR + ces_score_median + dac_proportion + X..OBF.Budget + X..Resource.Budget, data = counties_x))
 ```
 
 ```{r}
 #use the new data set with only ones that have budget data and no oiutliers to look at regression for energy savings using all the variables and look out normality assumptions
-counties_percapkwh_lm3<-lm(kwh_per_cap_x~Population + IRR + ces_score_median + dac_proportion, data=counties_x)
+counties_percapkwh_lm3<-lm(ln_kwh~Population + revenue_per_cap + IRR, data=counties_x)
 res.counties_percapkwh3<-counties_percapkwh_lm3$residuals
 qqPlot(counties_percapkwh_lm3)
 shapiro.test(res.counties_percapkwh3) 
 
 summary(counties_percapkwh_lm3)
 #irr and ces score significant and population are all significant
+```
+
+```{r}
+stargazer(counties_percapkwh_lm, counties_percapkwh_lm1, counties_percapkwh_lm2, counties_percapkwh_lm3, type="text", title="Linear Regression Results Energy Savings Data", align=TRUE, dep.var.labels=c("Log of Energy Savings Per Capita", "Log of Energy Savings"), omit.stat=c("LL","ser","f"), order=c("revenue_per_cap", "Population", "Mean.Income", "IRR", "dac_proportion", "ces_score_mean", "X..OBF.Budget", "X..Resource.Budget"), covariate.labels = c("Revenue Per Capita", "Population", "Mean Income", "IRR", "DAC Proportion", "CES Score", "Percent On-bill Financing", "Percent of Resource Programs"), no.space=TRUE)
 ```
 
 ```{r}
