@@ -1,0 +1,1198 @@
+---
+title: "Regressions (Clean)"
+author: "Michelle Le"
+date: "6/20/2021"
+output: html_document
+---
+##Load data and libraries 
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = '~/Desktop/caeecc-energy-efficiency/for github/data/')
+```
+
+```{r, load packages}
+library(readr)
+library(data.table)
+library(dplyr)
+library(ggplot2)
+library(tidyverse)
+library(psych) #for pair.panels()
+library(car) #for the qqPlot function
+library(nlme) #for fitting mixed effects models (linear models with random effects)
+library(fitdistrplus)
+library(stargazer) #to make regression tables, learn more at https://cran.r-project.org/web/packages/stargazer/vignettes/stargazer.pdf
+library(pscl)
+library(splines)
+
+#for spatial purposes 
+library(sf)
+library(tigris)
+library(maps)
+library(tmap)
+library(USAboundaries)
+library(maptools)
+library(stringr)
+library(viridis)
+library(bit64)
+library(gridExtra)
+library(grid)
+library(lattice)
+library(GISTools)
+
+```
+
+```{r, Start}
+#read in data for K-12 EE programs 
+K12 <- read.csv("k12_counties_3.csv")
+counties <- read.csv("counties_3.csv")
+cities <- read.csv("cities_3.csv")
+```
+
+##Important 
+Things to look for: Small AIC, Large R^2, p-value should be < 0.05 to be significant 
+
+Every group is treated differently, but there is some similarity in the workflow and how regressions were set up. Chunks in each section follows as so:
+
+1. Spatial code (only for K12 and counties) 
+2. Perform necessary transformations of variables to use for later (log-transformation, rounding, etc.)
+3. Subset dataset to groups we want to analyze (those who participated, those who didn't, quantiles, omitting NAs (city-specific))
+4. Identify outliers through the use of Cook's distance (using the 4/n cutoff) and take them out (K12_x, counties_x, cities_x)
+5. Observe which variables have a high correlation coefficient through scatterplot matrix (recommended by Tatum to take out variables that have a value > 0.7)
+6. Visualize distributions of y-variables (budget, kWh) and their transformed counterparts (ln_budget,budgetpercapita, ln_budgetpercapita, etc.) to determine who is normal, who is not, and what regressions are appropriate (normal or poisson)
+7. Use StepAIC to take into account which variables are picked by this method 
+8. Perform poisson regressions
+9. Perform normal regressions for budget
+10. Perform normal regressions for kWh
+11. Create regression results table by compiling all regressions together using stargazer package
+12. T-tests on full dataset (only for K12)
+
+##Setting up Maps
+
+```{r, Start Here for Spatial}
+
+#make a data frame
+all_counties<- map_data("county")
+# Lot of observations, this stores geometries of county polygons in an inefficient way (there are 3000 counties in US, but way more observations (storing in point, line way))
+
+#visualize
+ggplot(data=all_counties)+
+  geom_polygon(aes(x = long, y = lat, fill = region, group = group))+ #if you were using a different coord system you would have to change long and lat
+  # fill indicates what we want to colored in, in this case we're doing the states (region=state)
+  # group is extremely important. There are lots of point values in this data. Group tells R that all of these points belong in a county
+  coord_fixed(1.3)+
+  guides(fill = FALSE) #if change to fill = any other color, then you would see the outline of all of the counties (county lines are there even when you put FALSE; however we don't see them at this granularity)
+
+```
+```{r, spatial}
+#subset to California counties
+CA_counties<- subset(x = all_counties, subset = region == "california")
+# Check subset with: table(CA_counties$region)
+```
+
+##K12
+```{r, Start}
+#read in data for K-12 EE programs 
+K12 <- read.csv("k12_counties_3.csv")
+```
+
+```{r, K12 spatial}
+#load data
+K12_file   = 'k12_counties_3.csv'
+#df <- fread(K12_file) #, colClasses = c('character', df$county_fips))
+
+K12_df <- fread(K12_file, header = T, colClasses = c('character', rep(NA, 38)))
+# best practice is to classify column as a character as you read the data in.
+```
+
+```{r, K12 spatial}
+#the county names don't match (our data has capitalized first letters County =/= county), so we have to change it
+K12_df_edited <- K12_df
+K12_df_edited$county <- str_to_lower(K12_df_edited$county)
+head(K12_df_edited) #check to see if the county names did change
+```
+```{r, K12 spatial}
+#merge on count name
+#check dimensions before the merge
+dim(K12_df_edited)
+dim(CA_counties)
+
+#merge
+merged_K12data<- left_join(CA_counties, K12_df_edited, by = c("subregion"="county")) #the left_join takes all the unique values from left one and only add the matches from the right (doesn't matter in this case because they WILL match since we checked already)
+dim(merged_K12data)
+```
+
+```{r, K12 spatial}
+
+#visualize
+a <- ggplot(data = merged_K12data)+
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `perc_title1`))+ #change the fill argument from plot to plot
+  coord_fixed(1.3)+
+  ggtitle("Percent of Title 1 Schools")+ #change title from plot to plot
+  theme_classic()+ #order matters in ggplot
+  scale_fill_viridis() +
+  theme(axis.title.x = element_blank(),
+                           axis.title.y = element_blank(),
+                           axis.text = element_blank(),
+                           axis.ticks = element_blank(),
+                           panel.grid = element_blank())
+
+#xy plot of budget/kWh vs perc_title1
+b <- xyplot(budget ~ perc_title1, data = merged_K12data)
+c <- xyplot(kWh ~ perc_title1, data = merged_K12data)
+
+#there are ways to change colors and get rid of the axis (read more into ggplot:http://sape.inf.usi.ch/quick-reference/ggplot2/colour)
+
+```
+```{r, K12 spatial}
+
+#visualize
+d <- ggplot(data = merged_K12data)+
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `perc_eligible_frpm`))+ #change the fill argument from plot to plot
+  coord_fixed(1.3)+
+  ggtitle("Percent of Students Eligible for Free and Reduced Meal Plans")+ #change title from plot to plot
+  theme_classic()+ #order matters in ggplot
+  scale_fill_viridis() +
+  theme(axis.title.x = element_blank(),
+                           axis.title.y = element_blank(),
+                           axis.text = element_blank(),
+                           axis.ticks = element_blank(),
+                           panel.grid = element_blank())
+
+#xy plot of budget/kWh vs perc_eligible_frpm
+e <- xyplot(budget ~ perc_eligible_frpm, data = merged_K12data)
+f <- xyplot(kWh ~ perc_eligible_frpm, data = merged_K12data)
+```
+```{r, K12 spatial}
+#arranging the maps for perc_eligible_frpm and perc_title1
+grid.arrange(a, d, ncol=2)
+
+#more information on Grid Arrange and other complex layouts https://cran.r-project.org/web/packages/gridExtra/vignettes/arrangeGrob.html#multiple-pages-output
+```
+```{r, K12 transformations}
+#log-transform budget and kWh
+K12$ln_budget <- log(K12$budget + 1)
+K12$ln_kWh <- log(K12$kWh + 1)
+K12$ln_enrollment <- log(K12$enrollment + 1)
+
+#round budget and kWh
+K12$roundedbudget <- round(K12$budget, 0)
+K12$roundedkWh <- round(K12$kWh, 0)
+
+#add a binary indicator
+K12$ybudget <- ifelse(K12$budget>0, 1, 0)
+K12$ykWh <- ifelse(K12$kWh>0, 1, 0)
+
+#per student
+K12$budgetperstudent <- K12$budget/K12$enrollment
+K12$lcffperstudent <- K12$lcff/K12$enrollment
+K12$kWhperstudent <- K12$kWh/K12$enrollment
+K12$incomepercapita <- K12$income/K12$population
+
+K12$ln_budgetperstudent <- log(K12$budgetperstudent + 1)
+K12$ln_lcffperstudent <- log(K12$lcffperstudent + 1)
+K12$ln_kWhperstudent <- log(K12$kWhperstudent + 1)
+
+K12$roundedlnbudgetper <- round(K12$ln_budgetperstudent, 0)
+K12$roundedlnkWhper <- round(K12$ln_kWhperstudent, 0)
+
+K12$roundedlnbudget <- round(K12$ln_budget, 0)
+K12$roundedlnkWh <- round(K12$ln_kWh, 0)
+
+K12$roundedbudgetper <- round(K12$budgetperstudent, 0)
+K12$roundedkWhper <- round(K12$kWhperstudent, 0)
+```
+
+```{r, K12 subsetting}
+#only considering the counties that did participate 
+K12_subset <- subset(K12, budget > 0)
+#only considering the counties that did not participate 
+K12_no = subset(K12, budget = 0)
+
+#quantiles
+quantile(K12$ln_enrollment)
+#split into groups based ln_enrollment 
+K12_1 <- subset(K12, ln_enrollment <= 8.707647)
+K12_2 <- subset(K12, ln_enrollment > 8.707647 & ln_enrollment <= 10.336342)
+K12_3 <- subset(K12, ln_enrollment > 10.336342 & ln_enrollment <= 11.532680)
+K12_4 <- subset(K12, ln_enrollment > 11.532680)
+
+#Create quantiles of budget
+quantile(K12$budgetperstudent)
+
+#create top and bottom quantile
+K12fbottomq_budget = subset(K12, budget <= 0.04525726)
+K12ftopq_budget = subset(K12, budget > 0.04525726)
+
+#create quantiles of energy savings
+quantile(K12$kWhperstudent)
+
+#create top and bottom quantile
+K12fbottomq_energy = subset(K12, kWh <= 0.006379012)
+K12ftopq_energy = subset(K12, kWh > 0.006379012)
+```
+
+```{r, K12 subsetting outliers}
+#outliers
+#boxplot(K12_subset$budget)
+
+test.K12 <- glm(budget ~ 1, data = K12_subset)
+K12CDs <- cooks.distance(test.K12)
+
+# Plot the Cook's Distance using the traditional 4/n criterion
+K12_sample_size <- nrow(K12_subset)
+plot(K12CDs, pch="*", cex=2, main="Influential Obs by Cooks distance")  # plot cook's distance
+abline(h = 4/K12_sample_size, col="red")  # add cutoff line
+text(x=1:length(K12CDs)+1, y=K12CDs, labels=ifelse(K12CDs>4/K12_sample_size, names(K12CDs),""), col="red")  # add labels
+
+#19 (LA) is an outlier
+```
+```{r, subsetting outliers}
+#taking out the outliers 
+K12_x <- K12_subset[!(K12_subset$county %in% c("LOS ANGELES")),] 
+```
+
+
+
+```{r, K12 scatterplot a}
+#this gives us correlation coefficients, distributions, and scatterplots
+#scatter plot matrix to check for correlation between all variables and investment/energy savings
+plot.K12a <- data.frame(K12$kWh, K12$budget, K12$lcff, K12$enrollment, K12$perc_title1, K12$perc_eligible_frpm, K12$perc_eligible_free, K12$income, K12$irr, K12$dac, K12$ces_score, K12$ces_percentile, K12$obf, K12$resource) #subset out these variables
+colnames(plot.K12a)<-c("kWh", "budget", "lcff", "enrollment","p_title1", "p_frpm", "p_free", "income", "IRR","dac", "ces_score", "ces_percentile", "obf","resource") #change column names back to original
+pairs.panels(plot.K12a, density = TRUE, cor=TRUE, lm=TRUE) #scatterplot
+```
+```{r, K12 scatterplot b}
+#to see the school count variables
+plot.K12b <- data.frame(K12$kWh, K12$budget, K12$lcff, K12$enrollment, K12$no_title1, K12$frmp_count, K12$free_meal_count, K12$income, K12$irr, K12$dac, K12$ces_score, K12$ces_percentile, K12$obf, K12$resource) 
+colnames(plot.K12b)<-c("kWh", "budget", "lcff", "enrollment","no_title1", "frpm_count", "free_count", "income", "IRR","dac", "ces_score", "ces_percentile", "obf","resource") 
+pairs.panels(plot.K12b, density = TRUE, cor=TRUE, lm=TRUE) 
+```
+```{r, K12 scatterplot c}
+#to see the correlation between school count and percentage variables
+plot.K12c <- data.frame(K12$kWh, K12$budget,K12$no_title1, K12$frmp_count, K12$free_meal_count, K12$perc_title1, K12$perc_eligible_frpm, K12$perc_eligible_free) 
+colnames(plot.K12c)<-c("kWh", "budget", "p_title1", "p_frpm", "p_free","no_title1", "frpm_count", "free_count") 
+pairs.panels(plot.K12c, density = TRUE, cor=TRUE, lm=TRUE) 
+```
+```{r, K12 scatterplot d}
+plot.K12d <- data.frame(K12_x$kWh, K12_x$budget, K12_x$lcff, K12_x$enrollment, K12_x$perc_title1, K12_x$perc_eligible_frpm, K12_x$perc_eligible_free, K12_x$income, K12_x$irr, K12_x$dac, K12_x$ces_score, K12_x$ces_percentile, K12_x$obf, K12_x$resource) #subset out these variables
+colnames(plot.K12d)<-c("kWh", "budget", "lcff", "enrollment","p_title1", "p_frpm", "p_free", "income", "IRR","dac", "ces_score", "ces_percentile", "obf","resource") #change column names back to original
+pairs.panels(plot.K12d, density = TRUE, cor=TRUE, lm=TRUE) #scatterplot
+```
+
+```{r, K12 visualize}
+#explore our y-variables on full dataset
+hist(K12$budget)
+hist(K12$kWh)
+hist(K12$ln_budget)
+hist(K12$ln_kWh)
+hist(K12$budgetperstudent)
+hist(K12$kWhperstudent)
+hist(K12$ln_budgetperstudent)
+hist(K12$ln_kWhperstudent)
+#explore our y-variables on programs that did participate 
+hist(K12_subset$budget)
+hist(K12_subset$kWh)
+hist(K12_subset$lcff)
+hist(K12_subset$ln_budget)
+hist(K12_subset$ln_kWh)
+hist(K12_subset$budgetperstudent)
+hist(K12_subset$kWhperstudent)
+hist(K12_subset$ln_budgetperstudent)
+hist(K12_subset$ln_kWhperstudent)
+```
+```{r, K12 visualize}
+#explore our y-variables for dataset WITHOUT outliers nor counties that didn't participate
+hist(K12_x$budget)
+hist(K12_x$kWh)
+hist(K12_x$lcff)
+hist(K12_x$ln_budget)
+hist(K12_x$ln_kWh)
+hist(K12_x$budgetperstudent)
+hist(K12_x$kWhperstudent)
+hist(K12_x$ln_budgetperstudent)
+hist(K12_x$ln_kWhperstudent)
+```
+
+```{r, K12 Step AIC selection}
+#testing these variables: lcffperstudent + irr + dac + obf + resource + income + perc_eligible_frpm + perc_title1
+
+#performs stepwise model selection by AIC for budget
+stepAIC(lm(ln_budgetperstudent ~ lcffperstudent + irr + dac + obf + resource + income + perc_eligible_frpm + perc_title1, data = K12_x))
+
+#ln_budget ~ lcff + income + perc_eligible_frpm + perc_title1, data = K12_x
+#ln_budgetperstudent ~ dac + perc_eligible_frpm + perc_title1, data = K12_x
+#roundedbudgetper ~ lcffperstudent + dac + perc_eligible_frpm + perc_title1, data = K12_x
+```
+
+```{r, K12 Step AIC selection}
+#performs stepwise model selection by AIC for kWh
+stepAIC(lm(roundedkWhper ~  lcffperstudent + irr + dac + obf + resource + income  + perc_eligible_frpm + perc_title1, data = K12_x))
+
+#ln_kWh ~ income + perc_eligible_frpm, data = K12_x
+#ln_kWhperstudent ~  lcffperstudent + dac + perc_eligible_frpm + perc_title1, data = K12_x
+#roundedkWhper ~ lcffperstudent + dac + perc_eligible_frpm, data = K12_x
+```
+```{r, K12 regression}
+#bc the ln_perstudent values have a right skew, I'm curious to see what poisson gives 
+
+K12.testa <- glm(roundedbudgetper ~ irr + perc_title1, family = "poisson", data = K12_x) #StepAIC variables 
+
+K12.testb <- glm(roundedkWhper ~  lcffperstudent + dac + perc_eligible_frpm, family = "poisson", data = K12_x) #StepAIC variables 
+
+K12.testc <- glm(roundedbudgetper ~ lcffperstudent + irr + dac + perc_eligible_frpm + perc_title1 + obf + resource, family = "poisson", data = K12_x) #intuitive picks based on collinearity 
+
+K12.testd <- glm(roundedkWhper ~ lcffperstudent + irr + dac + perc_eligible_frpm + perc_title1 + obf + resource, family = "poisson", data = K12_x) #intuitive picks based on collinearity 
+
+stargazer(K12.testa, K12.testb, K12.testc, K12.testd, type="text", title="Results", align=TRUE, omit.stat=c("LL","ser","f"), no.space=TRUE)
+```
+
+```{r, K12 regression}
+#regression from budget
+
+K12.2 <- glm(ln_budget ~  lcff + income + perc_eligible_frpm + perc_title1, data = K12_x) #Step AIC picks
+
+K12.4 <- glm(ln_budget ~ lcff + irr + dac + obf + resource + income + perc_eligible_frpm + perc_title1, data = K12_x) #intuitive picks
+
+K12.6 <- glm( ln_budgetperstudent ~ dac + perc_eligible_frpm + perc_title1, data = K12_x) #Step AIC picks; important to note this y variable does not meet normal assumptions
+
+K12.8 <- glm(ln_budgetperstudent ~ lcffperstudent + irr + dac + obf + resource + income + perc_eligible_frpm + perc_title1, data = K12_x) #intuitive picks; important to note this y variable does not meet normal assumptions
+
+stargazer(K12.2, K12.4, K12.6, K12.8, type="text", title="Results", align=TRUE, omit.stat=c("LL","ser","f"), no.space=TRUE)
+```
+
+```{r, K12 regression}
+#regression from kWh
+
+K12.1 <- glm(ln_kWh ~  income + perc_eligible_frpm + perc_title1, data = K12_x) #Step AIC picks
+
+K12.3 <- glm(ln_kWh ~ lcff + irr + dac + obf + resource + income + perc_eligible_frpm + perc_title1, data = K12_x) #intuitive picks
+
+K12.5 <- glm( ln_kWhperstudent ~ lcffperstudent + dac + perc_eligible_frpm + perc_title1, data = K12_x) #Step AIC picks; important to note this y variable does not meet normal assumptions
+
+K12.7 <- glm(ln_kWhperstudent ~ lcffperstudent + irr + dac + obf + resource + income + perc_eligible_frpm + perc_title1, data = K12_x) #intuitive picks; important to note this y variable does not meet normal assumptions
+
+stargazer(K12.1, K12.3, K12.5, K12.7, type="text", title="Results", align=TRUE, omit.stat=c("LL","ser","f"), no.space=TRUE)
+```
+
+
+```{r, K12 regression}
+#final regression picks BUDGET
+
+stargazer(K12.2, K12.4, K12.6, K12.8, K12.testa, K12.testc,  type="text", title="Investment Regression Results (K12)", align=TRUE, dep.var.labels=c("Log of Budget", "Log Budget Per Student", "Budget Per Student"), order=c("perc_eligible_frpm", "perc_title1", "perc_eligible_free", "lcff", "lcffperstudent", "income", "irr", "dac","ces_score_median", "ces_percentile_median", "obf", "resource"), covariate.labels=c("Percent Eligible for Free or Reduced Meal Plan","Percent of Title 1 Schools", "LCFF","LCFF per student","Income", "IRR","DAC Proportion", "CES Percentile","CES Score", "Percent of On-bill Financing","Percent of Resource Programs"), omit.stat=c("LL","ser","f"), no.space=TRUE)
+```
+```{r, K12 regression}
+#final regression picks KWH
+
+stargazer(K12.1, K12.3, K12.5, K12.7, K12.testb, K12.testd, type="text", title="Energy Savings Regression Results (K12)", align=TRUE, dep.var.labels=c("Log of kWh", "Log Kwh Per Student", " kWh Per Student"), order=c("perc_eligible_frpm", "perc_title1", "perc_eligible_free", "lcff", "lcffperstudent", "income", "irr", "dac","ces_score_median", "ces_percentile_median", "obf", "resource"), covariate.labels=c("Percent Eligible for Free or Reduced Meal Plan","Percent of Title 1 Schools", "LCFF","LCFF per student","Income", "IRR","DAC Proportion", "CES Percentile","CES Score", "Percent of On-bill Financing","Percent of Resource Programs"), omit.stat=c("LL","ser","f"), no.space=TRUE)
+```
+
+
+```{r, K12 t-tests}
+#t tests to compare means of irr in top and bottom
+t.test(K12fbottomq_budget$irr, K12ftopq_budget$irr, na.action = na.omit) #significant
+t.test(K12fbottomq_energy$irr, K12ftopq_energy$irr, na.action = na.omit) #significant
+
+#t tests to compare means of lcff in top and bottom
+t.test(K12fbottomq_budget$lcff, K12ftopq_budget$lcff) #not sig
+t.test(K12fbottomq_energy$lcff, K12ftopq_energy$lcff) #not sig
+
+#t tests to compare means of perc_title_1 in top and bottom
+t.test(K12fbottomq_budget$perc_title1, K12ftopq_budget$perc_title1) #not sig
+t.test(K12fbottomq_energy$perc_title1, K12ftopq_energy$perc_title1) #not sig
+
+#t tests to compare means of perc_frpm in top and bottom
+t.test(K12fbottomq_budget$perc_eligible_frpm, K12ftopq_budget$perc_eligible_frpm) 
+t.test(K12fbottomq_energy$perc_eligible_frpm, K12ftopq_energy$perc_eligible_frpm) 
+
+#t tests to compare means of no_title_1 in top and bottom
+t.test(K12fbottomq_budget$no_title1, K12ftopq_budget$no_title1) 
+t.test(K12fbottomq_energy$no_title1, K12ftopq_energy$no_title1) 
+
+#t tests to compare means of dac proportion in top and bottom
+t.test(K12fbottomq_budget$dac, K12ftopq_budget$dac) 
+t.test(K12fbottomq_energy$dac, K12ftopq_energy$dac) 
+
+#t tests to compare means of ces score median in top and bottom
+t.test(K12fbottomq_budget$ces_score, K12ftopq_budget$ces_score)  
+t.test(K12fbottomq_energy$ces_score, K12ftopq_energy$ces_score) 
+
+#compare WA
+t.test(K12fbottomq_budget$perc_wa, K12ftopq_budget$perc_wa)  
+t.test(K12fbottomq_energy$perc_wa, K12ftopq_energy$perc_wa) 
+
+#compare BA
+t.test(K12fbottomq_budget$perc_ba, K12ftopq_budget$perc_ba)  
+t.test(K12fbottomq_energy$perc_ba, K12ftopq_energy$perc_ba) 
+
+#compare AA
+t.test(K12fbottomq_budget$perc_aa, K12ftopq_budget$perc_aa)  
+t.test(K12fbottomq_energy$perc_aa, K12ftopq_energy$perc_aa) 
+
+#compare IA
+t.test(K12fbottomq_budget$perc_ia, K12ftopq_budget$perc_ia)  
+t.test(K12fbottomq_energy$perc_ia, K12ftopq_energy$perc_ia) 
+
+#compare NA
+t.test(K12fbottomq_budget$perc_na, K12ftopq_budget$perc_na)  
+t.test(K12fbottomq_energy$perc_na, K12ftopq_energy$perc_na) 
+
+#compare income per capita
+t.test(K12fbottomq_budget$incomepercapita, K12ftopq_budget$income) 
+t.test(K12fbottomq_energy$incomepercapita, K12ftopq_energy$income) 
+
+#t tests to compare means of budget per capita in top and bottom
+t.test(K12fbottomq_energy$budget_per_cap, K12ftopq_energy$budget_per_cap) 
+```
+
+```{r, K12 subsetting}
+#curious to see how t-tests differ when its just within the group that is participating 
+quantile(K12_subset$budgetperstudent)
+K12sbottomq_budget = subset(K12_subset, budget <= 0.22256311)
+K12stopq_budget = subset(K12_subset, budget > 2.87458264)
+
+quantile(K12_subset$kWhperstudent)
+K12sbottomq_energy = subset(K12_subset, kWh <= 0.3356844)
+K12stopq_energy = subset(K12_subset, kWh > 4.4421836)
+
+#compare WA
+t.test(K12sbottomq_budget$perc_wa, K12stopq_budget$perc_wa)  
+t.test(K12sbottomq_energy$perc_wa, K12stopq_energy$perc_wa) 
+
+#compare BA
+t.test(K12sbottomq_budget$perc_ba, K12stopq_budget$perc_ba)  
+t.test(K12sbottomq_energy$perc_ba, K12stopq_energy$perc_ba) 
+
+#compare AA
+t.test(K12sbottomq_budget$perc_aa, K12stopq_budget$perc_aa)  
+t.test(K12sbottomq_energy$perc_aa, K12stopq_energy$perc_aa) 
+
+#compare IA
+t.test(K12sbottomq_budget$perc_ia, K12stopq_budget$perc_ia)  
+t.test(K12sbottomq_energy$perc_ia, K12stopq_energy$perc_ia) 
+
+#compare NA
+t.test(K12sbottomq_budget$perc_na, K12stopq_budget$perc_na)  
+t.test(K12sbottomq_energy$perc_na, K12stopq_energy$perc_na) 
+```
+##Counties
+
+```{r, Start Counties}
+#read in data for K-12 EE programs 
+counties <- read.csv("counties_3.csv")
+```
+
+```{r, counties spatial}
+#load data
+counties_file   = 'counties_3.csv'
+#df <- fread(K12_file) #, colClasses = c('character', df$county_fips))
+
+counties_df <- fread(counties_file, header = T, colClasses = c('character', rep(NA, 31)))
+```
+
+```{r, counties spatial}
+#the county names don't match (our data has capitalized first letters County =/= county), so we have to change it
+counties_df_edited <- counties_df
+counties_df_edited$county <- str_to_lower(counties_df_edited$county)
+head(counties_df_edited) #check to see if the county names did change
+```
+```{r, counties spatial}
+#merge on count name
+#check dimensions before the merge
+dim(counties_df_edited)
+dim(CA_counties)
+```
+```{r, counties spatial}
+#merge
+merged_countiesdata<- left_join(CA_counties, counties_df_edited, by = c("subregion"="county")) 
+dim(merged_countiesdata)
+```
+```{r, counties spatial}
+
+#visualize
+g <- ggplot(data = merged_countiesdata)+
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `irr`))+ #change the fill argument from plot to plot
+  coord_fixed(1.3)+
+  ggtitle("Rurality by County")+ #change title from plot to plot
+  theme_classic()+ #order matters in ggplot
+  scale_fill_viridis() +
+  theme(axis.title.x = element_blank(),
+                           axis.title.y = element_blank(),
+                           axis.text = element_blank(),
+                           axis.ticks = element_blank(),
+                           panel.grid = element_blank())
+
+#xy plot of budget/kWh vs perc_title1
+h <- xyplot(budget ~ irr, data = merged_countiesdata)
+i <- xyplot(kWh ~ irr, data = merged_countiesdata)
+
+#there are ways to change colors and get rid of the axis (read more into ggplot:http://sape.inf.usi.ch/quick-reference/ggplot2/colour)
+
+```
+```{r, counties spatial}
+
+#LOG Tax Revenue
+merged_countiesdata$log_revenue <- log(merged_countiesdata$revenue + 1)
+
+#visualize
+j <- ggplot(data = merged_countiesdata)+
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `log_revenue`))+ #change the fill argument from plot to plot
+  coord_fixed(1.3)+
+  ggtitle("Revenue (Log) by County")+ #change title from plot to plot
+  theme_classic()+ #order matters in ggplot
+  scale_fill_viridis() +
+  theme(axis.title.x = element_blank(),
+                           axis.title.y = element_blank(),
+                           axis.text = element_blank(),
+                           axis.ticks = element_blank(),
+                           panel.grid = element_blank())
+
+#xy plot of budget/kWh vs perc_eligible_frpm
+k <- xyplot(budget ~ revenue, data = merged_countiesdata)
+l <- xyplot(kWh ~ revenue, data = merged_countiesdata)
+```
+
+```{r, counties spatial}
+#arranging the maps for irr
+grid.arrange(g, h, i, ncol=2)
+```
+```{r, counties transformations}
+#log-transform 
+counties$ln_budget <- log(counties$budget + 1)
+counties$ln_kWh <- log(counties$kWh + 1)
+counties$ln_rev <- log(counties$revenue)
+counties$ln_population <- log(counties$population)
+
+#round budget and kWh
+counties$roundedbudget <- round(counties$budget, 0)
+counties$roundedkWh <- round(counties$kWh, 0)
+
+#add a binary indicator
+counties$ybudget <- ifelse(counties$budget>0, 1, 0)
+counties$ykWh <- ifelse(counties$kWh>0, 1, 0)
+
+#per person
+counties$budgetpercapita <- counties$budget/counties$population
+counties$revpercapita <- counties$revenue/counties$population
+counties$kWhpercapita <- counties$kWh/counties$population
+
+counties$ln_budgetpercapita <- log(counties$budgetpercapita + 1)
+counties$ln_revpercapita <- log(counties$revpercapita + 1)
+counties$ln_kWhpercapita <- log(counties$kWhpercapita + 1)
+
+#round 
+counties$roundedbudgetper <- round(counties$budgetpercapita, 0)
+counties$roundedkWhper <- round(counties$kWhpercapita, 0)
+```
+
+```{r, counties subsetting}
+
+#Create quantiles of budget
+quantile(counties$budgetpercapita)
+
+#create top and bottom quantile
+#bottomq_budget = subset(counties, Budget <= 1.528228)
+#topq_budget = subset(counties, Budget > 7.940744)
+
+#create quantiles of energy savings
+quantile(counties$kWhpercapita)
+
+#create top and bottom quantile
+#bottomq_energy = subset(counties, TotalFirstYearGrosskWh <= 1.377546)
+#topq_energy = subset(counties, TotalFirstYearGrosskWh > 11.231349)
+```
+
+```{r, counties subsetting}
+
+#only considering the counties that did participate 
+counties_subset <- subset(counties, budget > 0)
+#only considering the counties that did not participate 
+counties_no = subset(counties, budget = 0)
+
+#quantiles
+quantile(counties$ln_population)
+#split into groups based ln_enrollment 
+counties_1 <- subset(counties, population <= 10.768725)
+counties_2 <- subset(counties, population > 10.768725 & population <= 12.125893)
+counties_3 <- subset(counties, population > 12.125893 & population <= 13.43974)
+counties_4 <- subset(counties, population > 13.43974)
+```
+
+```{r, counties subsetting outliers}
+#outliers
+#boxplot(counties_subset$budget)
+
+test.counties <- glm(budget ~ 1, data = counties_subset)
+countiesCDs <- cooks.distance(test.counties)
+
+# Plot the Cook's Distance using the traditional 4/n criterion
+counties_sample_size <- nrow(counties_subset)
+plot(countiesCDs, pch="*", cex=2, main="Influential Obs by Cooks distance")  # plot cook's distance
+abline(h = 4/counties_sample_size, col="red")  # add cutoff line
+text(x=1:length(countiesCDs)+1, y=countiesCDs, labels=ifelse(countiesCDs>4/counties_sample_size, names(countiesCDs),""), col="red")  # add labels
+
+#19 (LA), #37 (SD), and #38 (SF) are outliers
+```
+```{r, counties subsetting outliers}
+#taking out the outliers 
+counties_x <- counties_subset[!(counties_subset$county %in% c("LOS ANGELES", "SAN DIEGO", "SAN FRANCISCO")),]
+```
+
+
+```{r, counties scatterplot}
+plot.counties_x <- data.frame(counties_x$kWh, counties_x$budget, counties_x$income, counties_x$irr, counties_x$dac, counties_x$ces_score, counties_x$ces_percentile, counties_x$obf, counties_x$revenue, counties_x$revpercapita, counties_x$population) 
+colnames(plot.counties_x)<-c("kWh", "budget", "income", "irr", "dac", "ces_score", "ces_percentile", "obf", "revenue", "revenuepercap", "population") 
+pairs.panels(plot.counties_x, density = TRUE, cor=TRUE, lm=TRUE) 
+```
+
+```{r, counties visualize}
+#explore our y-variables 
+hist(counties$budget)
+hist(counties$kWh)
+hist(counties$ln_budget)
+hist(counties$ln_kWh)
+hist(counties$budgetpercapita)
+hist(counties$kWhpercapita)
+hist(counties$ln_budgetpercapita)
+hist(counties$ln_kWhpercapita)
+```
+```{r, counties visualize}
+hist(counties_subset$budget)
+hist(counties_subset$kWh)
+hist(counties_subset$revenue)
+hist(counties_subset$ln_budget)
+hist(counties_subset$ln_kWh)
+hist(counties_subset$budgetpercapita)
+hist(counties_subset$kWhpercapita)
+hist(counties_subset$ln_budgetpercapita)
+hist(counties_subset$ln_kWhpercapita)
+```
+
+```{r, counties visualize}
+hist(counties_x$budget)
+hist(counties_x$kWh)
+hist(counties_x$revenue)
+hist(counties_x$ln_budget)
+hist(counties_x$ln_kWh)
+hist(counties_x$budgetpercapita)
+hist(counties_x$kWhpercapita)
+hist(counties_x$ln_budgetpercapita)
+hist(counties_x$ln_kWhpercapita)
+```
+
+```{r, County Step AIC selection}
+
+#performs stepwise model selection by AIC for budget
+stepAIC(lm(ln_budget ~ revpercapita + dac + irr + population + obf + income, data = counties_x))
+
+#result testing all of them: ln_budgetpercapita ~ revpercapita + population + obf + income, data = counties_x
+#result testing all of them: roundedbudgetper ~ population, data = counties_x
+#ln_budget ~ revpercapita + irr, data = counties_x)
+```
+
+```{r, County Step AIC selection}
+
+#performs stepwise model selection by AIC for kWh
+stepAIC(lm(ln_kWh ~ revpercapita + dac + irr + population + obf + income , data = counties_x))
+
+#result testing all of them: ln_kWhpercapita ~ revpercapita + population + income, data = counties_x
+#result testing all of them: roundedkWhper ~ revpercapita + population, data = counties_x
+#ln_kWh ~ revpercapita + irr + population, data = counties_x
+```
+
+```{r, counties regression}
+#bc the percapita values have a right skew, I'm curious to see what poisson gives 
+
+counties.testa <- glm(roundedbudgetper ~ population, family = "poisson", data = counties_x) #StepAIC variables 
+
+counties.testb <- glm(roundedkWhper ~  revpercapita + population, family = "poisson", data = counties_x) #StepAIC variables 
+
+counties.testc <- glm(roundedbudgetper ~ revpercapita + dac + irr + obf + income, family = "poisson", data = counties_x) #intuitive picks based on collinearity 
+
+counties.testd <- glm(roundedkWhper ~ revpercapita + dac + irr + obf + income, family = "poisson", data = counties_x) #intuitive picks based on collinearity 
+
+stargazer(counties.testa, counties.testb, counties.testc, counties.testd, type="text", title="Results", align=TRUE, omit.stat=c("LL","ser","f"), no.space=TRUE)
+```
+
+```{r, counties regression}
+#regression from budget
+
+counties.2 <- glm(ln_budget ~  revpercapita + irr, data = counties_x) #Step AIC picks
+
+counties.4 <- glm(ln_budget ~ revpercapita + dac + irr + obf + income, data = counties_x) #intuitive picks
+
+counties.6 <- glm(ln_budgetpercapita ~ revpercapita + population + obf + income, data = counties_x) #Step AIC picks
+
+counties.8 <- glm(ln_budgetpercapita ~ revpercapita + dac + irr + obf + income, data = counties_x) #intuitive picks
+
+stargazer(counties.2, counties.4, counties.6, counties.8, type="text", title="Results", align=TRUE, omit.stat=c("LL","ser","f"), no.space=TRUE)
+```
+
+```{r, counties regression}
+#regression from kWh
+
+counties.1 <- glm(ln_kWh ~  revpercapita + irr + population, data = counties_x) #Step AIC picks
+
+counties.3 <- glm(ln_kWh ~ revpercapita + dac + irr + obf + income, data = counties_x) #intuitive picks
+
+counties.5 <- glm(ln_kWhpercapita ~ revpercapita + population + income, data = counties_x) #Step AIC picks
+
+counties.7 <- glm(ln_kWhpercapita ~ revpercapita + dac + irr + obf + income, data = counties_x) #intuitive picks
+
+stargazer(counties.1, counties.3, counties.5, counties.7, type="text", title="Results", align=TRUE, omit.stat=c("LL","ser","f"), no.space=TRUE)
+```
+
+```{r, counties regression}
+#final regression picks BUDGET
+
+stargazer(counties.2, counties.4, counties.6, counties.8, counties.testa, counties.testc,  type="text", title="Investment Regression Results (County)", align=TRUE, dep.var.labels=c("Log of Budget", "Log Budget Per Capita", "Budget Per Capita"), order=c("revpercapita", "income", "irr", "dac", "obf", "population"), covariate.labels=c("Revenue per Capita","Income", "IRR","DAC Proportion", "Percent of On-bill Financing","Population"), omit.stat=c("LL","ser","f"), no.space=TRUE)
+```
+```{r, counties regression}
+#final regression picks KWH
+
+stargazer(counties.1, counties.3, counties.5, counties.7, counties.testb, counties.testd, type="text", title="Energy Savings Regression Results (County)", align=TRUE, dep.var.labels=c("Log of kWh", "Log Kwh Per Capita", " kWh Per Capita"), order=c("revpercapita", "income", "irr", "dac", "obf", "population"), covariate.labels=c("Revenue per Capita","Income", "IRR","DAC Proportion", "Percent of On-bill Financing","Population"), omit.stat=c("LL","ser","f"), no.space=TRUE)
+```
+
+##Cities
+
+```{r, Start Cities}
+#read in data for cities EE programs 
+cities <- read.csv("cities_3.csv")
+```
+
+```{r, cities transformations}
+#log-transform 
+cities$ln_budget <- log(cities$budget + 1)
+cities$ln_kWh <- log(cities$kWh + 1)
+cities$ln_rev <- log(cities$revenue)
+
+#round budget and kWh
+cities$roundedbudget <- round(cities$budget, 0)
+cities$roundedkWh <- round(cities$kWh, 0)
+
+#add a binary indicator
+cities$ybudget <- ifelse(cities$budget>0, 1, 0)
+cities$ykWh <- ifelse(cities$kWh>0, 1, 0)
+
+#per student
+cities$budgetpercapita <- cities$budget/cities$population
+cities$revpercapita <- cities$revenue/cities$population
+cities$kWhpercapita <- cities$kWh/cities$population
+
+cities$ln_budgetpercapita <- log(cities$budgetpercapita)
+cities$ln_revpercapita <- log(cities$revpercapita)
+cities$ln_kWhpercapita <- log(cities$kWhpercapita + 1)
+
+#round budget and kWh
+cities$roundedbudgetper <- round(cities$budgetpercapita, 0)
+cities$roundedkWhper <- round(cities$kWhpercapita, 0)
+```
+
+```{r, city subsetting}
+#get rid of cities with NAs for tax revenue
+cities_na <- na.omit(cities)
+```
+
+```{r, cities subsetting outliers}
+#outliers
+#boxplot(cities_na$budget)
+
+test.cities <- glm(budget ~ 1, data = cities_na)
+citiesCDs <- cooks.distance(test.cities)
+
+# Plot the Cook's Distance using the traditional 4/n criterion
+cities_sample_size <- nrow(cities_na)
+plot(citiesCDs, pch="*", cex=2, main="Influential Obs by Cooks distance")  # plot cook's distance
+abline(h = 4/cities_sample_size, col="red")  # add cutoff line
+text(x=1:length(citiesCDs)+1, y=citiesCDs, labels=ifelse(citiesCDs>4/cities_sample_size, names(citiesCDs),""), col="red")  # add labels
+
+#326 (SAN FRANCISCO) and 325 (SAN DIEGO) are outliers and 201 (LA) and 26 (BAKERSFIELD)
+```
+```{r, cities subsetting}
+#taking out the outliers 
+cities_x <- cities_na[!(cities_na$city %in% c("SAN DIEGO", "SAN FRANCISCO", "BAKERSFIELD", "LOS ANGELES")),] 
+```
+
+```{r, cities scatterplot}
+plot.cities_x <- data.frame(cities_x$kWh, cities_x$budget, cities_x$income, cities_x$ruca, cities_x$dac, cities_x$ces_score, cities_x$ces_percentile, cities_x$obf, cities_x$resource, cities_x$revenue, cities_x$population, cities_x$revpercapita) 
+colnames(plot.cities_x)<-c("kWh", "budget", "income", "ruca", "dac", "ces_score", "ces_percentile", "obf","resource", "revenue", "population", "revpercap") 
+pairs.panels(plot.cities_x, density = TRUE, cor=TRUE, lm=TRUE) 
+```
+
+```{r, cities visualize}
+#explore our y-variables for full cities dataset
+hist(cities$budget)
+hist(cities$kWh)
+hist(cities$ln_budget)
+hist(cities$ln_kWh)
+hist(cities$budgetpercapita)
+hist(cities$kWhpercapita)
+hist(cities$ln_budgetpercapita)
+hist(cities$ln_kWhpercapita)
+#explore our y-variables for just cities that had tax revenue
+hist(cities_na$budget)
+hist(cities_na$kWh)
+hist(cities_na$ln_budget)
+hist(cities_na$ln_kWh)
+hist(cities_na$budgetpercapita)
+hist(cities_na$kWhpercapita)
+hist(cities_na$ln_budgetpercapita)
+hist(cities_na$ln_kWhpercapita)
+```
+```{r, cities visualize}
+#explore our y-variables for dataset WITHOUT outliers nor cities that didn't have tax revenue information 
+hist(cities_x$budget)
+hist(cities_x$kWh)
+hist(cities_x$ln_budget)
+hist(cities_x$ln_kWh)
+hist(cities_x$budgetpercapita)
+hist(cities_x$kWhpercapita)
+hist(cities_x$ln_budgetpercapita)
+hist(cities_x$ln_kWhpercapita)
+```
+
+```{r, City Step AIC selection}
+
+#performs stepwise model selection by AIC for budget
+#all variables: revpercapita + ruca + dac + population + obf + income + resource 
+stepAIC(lm(ln_kWhpercapita ~ revpercapita + ruca + dac + population + obf + income + resource , data = cities_x))
+
+#result testing all of them: lm(formula = roundedbudgetper ~ revpercapita + ruca + dac + obf +  income + resource, data = cities_x)
+#lm(formula = ln_budget ~ population + obf + resource, data = cities_x)
+#lm(formula = ln_budgetpercapita ~ revpercapita + ruca + population + obf + resource, data = cities_x)
+```
+
+```{r, City Step AIC selection}
+
+#performs stepwise model selection by AIC for kWh
+stepAIC(lm(roundedkWhper ~ revpercapita + ruca + dac + population + obf + income + resource , data = cities_x))
+
+#result testing all of them: roundedkWhper ~ revpercapita + ruca + dac + obf + income, data = cities_x)
+#lm(formula = ln_kWh ~ population + obf, data = cities_x)
+#lm(formula = ln_kWhpercapita ~ revpercapita + ruca + dac + obf, data = cities_x)
+```
+
+```{r, cities regression}
+#bc the percapita values have a right skew, I'm curious to see what poisson gives 
+
+cities.testa <- glm(roundedbudgetper ~ revpercapita + ruca + dac + obf +  income + resource, family = "poisson", data = cities_x) #StepAIC variables 
+
+cities.testb <- glm(roundedkWhper ~  revpercapita + ruca + dac + obf + income, family = "poisson", data = cities_x) #StepAIC variables 
+
+cities.testc <- glm(roundedbudgetper ~ revpercapita + ruca + dac + population + obf + income + resource, family = "poisson", data = cities_x) #intuitive picks based on collinearity 
+
+cities.testd <- glm(roundedkWhper ~ revpercapita + ruca + dac + population + obf + income + resource , family = "poisson", data = cities_x) #intuitive picks based on collinearity 
+
+stargazer(cities.testa, cities.testb, cities.testc, cities.testd, type="text", title="Results", align=TRUE, omit.stat=c("LL","ser","f"), no.space=TRUE)
+```
+
+```{r, cities regression}
+#regression from budget
+
+cities.2 <- glm(ln_budget ~  population + obf + resource, data = cities_x) #Step AIC picks
+
+cities.4 <- glm(ln_budget ~ revpercapita + ruca + dac + population + obf + income + resource, data = cities_x) #intuitive picks
+
+cities.6 <- glm(ln_budgetpercapita ~ revpercapita + ruca + population + obf + resource, data = cities_x) #Step AIC picks
+
+cities.8 <- glm(ln_budgetpercapita ~ revpercapita + ruca + dac + population + obf + income + resource, data = cities_x) #intuitive picks
+
+stargazer(cities.2, cities.4, cities.6, cities.8, type="text", title="Results", align=TRUE, omit.stat=c("LL","ser","f"), no.space=TRUE)
+```
+
+```{r, cities regression}
+#regression from kWh
+
+cities.1 <- glm(ln_kWh ~  population + obf, data = cities_x) #Step AIC picks
+
+cities.3 <- glm(ln_kWh ~ revpercapita + ruca + dac + population + obf + income + resource, data = cities_x) #intuitive picks
+
+cities.5 <- glm(ln_kWhpercapita ~ revpercapita + ruca + dac + obf, data = cities_x) #Step AIC picks
+
+cities.7 <- glm(ln_kWhpercapita ~ revpercapita + ruca + dac + population + obf + income + resource, data = cities_x) #intuitive picks
+
+stargazer(cities.1, cities.3, cities.5, cities.7, type="text", title="Results", align=TRUE, omit.stat=c("LL","ser","f"), no.space=TRUE)
+```
+
+```{r, cities regression}
+#final regression picks BUDGET
+
+stargazer(cities.2, cities.4, cities.6, cities.8, cities.testa, cities.testc,  type="text", title="Investment Regression Results (Cities)", align=TRUE, dep.var.labels=c("Log of Budget", "Log Budget Per Capita", "Budget Per Capita"), order=c("revpercapita", "income", "ruca", "dac", "obf", "resource", "population"), covariate.labels=c("Revenue per Capita","Income", "RUCA","DAC Proportion", "Percent of On-bill Financing","Percent of Resource Programs", "Population"), omit.stat=c("LL","ser","f"), no.space=TRUE)
+```
+```{r, cities regression}
+#final regression picks KWH
+
+stargazer(cities.1, cities.3, cities.5, cities.7, cities.testb, cities.testd, type="text", title="Energy Savings Regression Results (Cities)", align=TRUE, dep.var.labels=c("Log of kWh", "Log Kwh Per Capita", " kWh Per Capita"), order=c("revpercapita", "income", "ruca", "dac", "obf", "resource", "population"), covariate.labels=c("Revenue per Capita","Income", "RUCA","DAC Proportion", "Percent of On-bill Financing", "Percent of Resource Programs","Population"), omit.stat=c("LL","ser","f"), no.space=TRUE)
+```
+
+
+##MISC. K12 Attempts 
+
+```{r, K12 regression}
+par(mfrow=c(2,2))
+plot(K12.3)
+res.K12.3 <- K12.3$residuals#fetching residuals 
+qqPlot(K12.3)
+shapiro.test(res.K12.3) #seeing if data is normal
+summary(K12.3)
+```
+```{r, K12 model validation}
+exp(summary(K12.8)$coefficients[,1])
+K12$predict_b <- predict(K12.8, K12, type = "response")
+
+chisq.test(K12$budget, K12$predict_b) 
+```
+
+```{r, K12 model validation}
+plot(K12.8)
+plot(fitdist(K12_x$roundedbudgetper,"pois"))
+```
+
+```{r, K12 regression}
+#linear regression 
+
+K12x_1.glm <- glm(ln_budgetperstudent ~ lcff + no_title1 + irr + dac + ces_percentile + ces_score + frmp_count + free_meal_count + obf + income + perc_eligible_free + perc_eligible_frpm + number_of_schools + perc_title1 + enrollment + resource, data = K12_x) #all variables
+
+K12x_2.glm <- glm(ln_budgetperstudent ~ lcffperstudent + irr + dac + obf + income + perc_eligible_frpm + perc_title1 + resource, data = K12_x) #variables I am curious about + perc
+
+K12x_3.glm <- glm(ln_budgetperstudent ~ ces_percentile + ces_score + perc_eligible_free + perc_eligible_frpm + perc_title1, data = K12_x) #StepAIC picks 
+
+K12x_4.glm <- glm(ln_budgetperstudent ~ lcff + no_title1 + irr + dac + frmp_count + obf + income + resource, data = K12_x) #variables I am curious about + counts
+```
+
+```{r, K12 regression}
+summary(K12x_1.glm) 
+summary(K12x_2.glm) 
+summary(K12x_3.glm) #has the smallest AIC and has the most conclusive results!!!!
+summary(K12x_4.glm) 
+
+#anova(counties_2f.glm, counties_2g.glm, counties_2h.glm, counties_2i.glm, counties_2j.glm, test="Chisq") #lower p-value means it explains the variance more which is best
+AIC(K12x_1.glm, K12x_2.glm, K12x_3.glm, K12x_4.glm)
+BIC(K12x_1.glm, K12x_2.glm, K12x_3.glm, K12x_4.glm)
+```
+
+```{r, K12 regression results}
+stargazer(K12x_2.glm, K12x_3.glm, K12x_4.glm, type="text", title="Results", align=TRUE, omit.stat=c("LL","ser","f"), no.space=TRUE)
+```
+
+```{r, K12 regression}
+#linear regression 
+
+K12x_a.glm <- glm(ln_budget ~ lcff + no_title1 + irr + dac + ces_percentile + ces_score + frmp_count + free_meal_count + obf + income + perc_eligible_free + perc_eligible_frpm + number_of_schools + perc_title1 + enrollment + resource, data = K12_x) #all variables
+
+K12x_b.glm <- glm(ln_budget ~ lcff + irr + dac + obf + income + perc_eligible_frpm + number_of_schools + perc_title1, data = K12_x) #variables I am curious about + perc
+
+K12x_c.glm <- glm(ln_budget ~ no_title1 + frmp_count + free_meal_count +  perc_eligible_frpm + number_of_schools + perc_title1, data = K12_x) #StepAIC picks 
+
+K12x_d.glm <- glm(ln_budget ~ lcff + no_title1 + irr + dac + frmp_count + obf + income + number_of_schools + resource, data = K12_x) #variables I am curious about + counts
+```
+
+```{r, K12 regression}
+summary(K12x_a.glm) 
+summary(K12x_b.glm) 
+summary(K12x_c.glm) #has the smallest AIC and has the most conclusive results!!!!
+summary(K12x_d.glm) 
+
+AIC(K12x_a.glm, K12x_b.glm, K12x_c.glm, K12x_d.glm)
+BIC(K12x_a.glm, K12x_b.glm, K12x_c.glm, K12x_d.glm)
+```
+
+```{r, K12 regression}
+#linear regression
+
+K12x_5.glm <- glm(ln_kWhperstudent ~ lcff + no_title1 + irr + dac + ces_percentile + ces_score + frmp_count + free_meal_count + obf + income + perc_eligible_free + perc_eligible_frpm + number_of_schools + perc_title1 + enrollment + resource, data = K12_x) #all variables
+
+K12x_6.glm <- glm(ln_kWhperstudent ~ lcff + irr + dac + obf + income + perc_eligible_frpm + number_of_schools + perc_title1 + resource, data = K12_x) #variables I am curious about + perc
+
+K12x_7.glm <- glm(ln_kWhperstudent ~ lcff + ces_percentile + ces_score + frmp_count + free_meal_count + number_of_schools + perc_title1, data = K12_x) #StepAIC picks 
+
+K12x_8.glm <- glm(ln_kWhperstudent ~ lcff + no_title1 + irr + dac + frmp_count + obf + income + number_of_schools + resource, data = K12_x) #variables I am curious about + counts
+```
+
+```{r, K12 regression}
+summary(K12x_5.glm) 
+summary(K12x_6.glm) 
+summary(K12x_7.glm) #has the smallest AIC and most conclusive results
+summary(K12x_8.glm) 
+
+AIC(K12x_5.glm, K12x_6.glm, K12x_7.glm, K12x_8.glm)
+BIC(K12x_5.glm, K12x_6.glm, K12x_7.glm, K12x_8.glm)
+```
+
+```{r, K12 regression}
+#poisson regression—INCONCLUSIVE
+
+#round budget and kWh
+K12_x$roundedbudgetperstudent <- round(K12_x$ln_budgetperstudent, 0)
+K12_x$roundedkWhperstudent <- round(K12_x$ln_kWhperstudent, 0)
+
+K12x_9.glm <- glm(roundedbudgetperstudent ~ lcff + no_title1 + irr + dac + ces_percentile + ces_score + frmp_count + free_meal_count + obf + income + perc_eligible_free + perc_eligible_frpm + number_of_schools + perc_title1 + enrollment + resource, data = K12_x, family = "poisson") #all variables
+
+K12x_10.glm <- glm(roundedbudgetperstudent ~ lcff + irr + dac + obf + income + perc_eligible_frpm + number_of_schools + perc_title1 + resource, data = K12_x, family = "poisson") #variables I am curious about + perc
+
+K12x_11.glm <- glm(roundedbudgetperstudent ~ no_title1 + frmp_count + free_meal_count +  perc_eligible_frpm + number_of_schools + perc_title1, data = K12_x, family = "poisson") #StepAIC picks 
+
+K12x_12.glm <- glm(roundedbudgetperstudent ~ lcff + no_title1 + irr + dac + frmp_count + obf + income + number_of_schools + resource, data = K12_x, family = "poisson") #variables I am curious about + counts
+```
+
+```{r, K12 regression}
+summary(K12x_9.glm) 
+summary(K12x_10.glm) 
+summary(K12x_11.glm) 
+summary(K12x_12.glm) 
+
+AIC(K12x_9.glm, K12x_10.glm, K12x_11.glm, K12x_12.glm)
+BIC(K12x_9.glm, K12x_10.glm, K12x_11.glm, K12x_12.glm)
+```
+
+```{r, K12 NA}
+#poisson budget regression 
+
+K12fu_2.glm <- glm(roundedbudget ~ lcff + no_title1 + irr + dac + frmp_count + obf, data = K12, family = "poisson") 
+
+K12fu_3.glm <- glm(roundedbudget ~ lcff + no_title1 + ces_percentile + ces_score + frmp_count + obf + income + number_of_schools + enrollment + perc_ba + perc_aa, data = K12, family = "poisson") 
+
+K12fu_4.glm <- glm(roundedbudget ~ lcff + no_title1 + irr + dac + frmp_count + obf + income + resource + perc_ia + perc_na + perc_ba + perc_wa + perc_aa, data = K12, family = "poisson") 
+
+summary(K12fu_2.glm) 
+summary(K12fu_3.glm) 
+summary(K12fu_4.glm)
+
+AIC(K12fu_2.glm, K12fu_3.glm, K12fu_4.glm)
+BIC(K12fu_2.glm, K12fu_3.glm, K12fu_4.glm)
+
+```
+```{r, model validation !!!}
+exp(summary(K12fu_4.glm)$coefficients[,1])
+K12$predict_b <- predict(K12fu_4.glm, K12, type = "response")
+
+chisq.test(K12$budget, K12$predict_b) #note, try out with models with limited variables as well 
+```
+
+```{r}
+plot(K12fu_4.glm)
+
+library('fitdistrplus')
+plot(fitdist(K12$roundedbudget,"pois"))
+```
+
+```{r, K12 NA}
+#negative binomial budget regression 
+
+K12fu_6.glm <- glm(ybudget ~ lcff + no_title1 + irr + dac + frpm_count + obf, data = K12, family = "binomial") 
+
+K12fu_7.glm <- glm(ybudget ~ lcff + no_title1 + ces_percentile + ces_score + frpm_count + obf + income + number_of_schools + enrollment + perc_ba + perc_aa, data = K12, family = "binomial") 
+
+K12fu_8.glm <- glm(ybudget ~ tot_lcff + no_title1_status + irr + dac_proportion + frpm_count + perc_obf + median_household_income_usd + perc_resource + perc_ia + perc_na + perc_ba + perc_wa + perc_aa, data = K12, family = "binomial") #all variables, note that income/ces_score/resource has a high correlation 
+
+summary(K12fu_6.glm) #p-value should be < 0.05 to be significant 
+summary(K12fu_7.glm) 
+summary(K12fu_8.glm) 
+
+AIC(K12fu_6.glm, K12fu_7.glm, K12fu_8.glm)
+AIC(K12fu_6.glm, K12fu_7.glm, K12fu_8.glm)
+```
+
+```{r, K12 NA}
+#hurdle budget regression
+#learn more: https://data.library.virginia.edu/getting-started-with-hurdle-models/
+
+K12fu_10.glm <- hurdle(roundedbudget ~ tot_lcff + no_title1_status + irr + dac_proportion + frpm_count + perc_obf, data = K12) 
+
+K12fu_11.glm <- hurdle(ybudget ~ tot_lcff + no_title1_status + ces_percentile_median + ces_score_median + frpm_count + perc_obf + median_household_income_usd + number_of_schools + enrollment + perc_ba + perc_aa, data = K12) 
+
+K12fu_12.glm <- hurdle(roundedbudget ~ tot_lcff + no_title1_status + irr + dac_proportion + frpm_count + perc_obf + median_household_income_usd + perc_resource + perc_ia + perc_na + perc_ba + perc_wa + perc_aa, data = K12) #all variables, note that income/ces_score/resource has a high correlation 
+
+summary(K12fu_10.glm) #p-value should be < 0.05 to be significant 
+summary(K12fu_11.glm) 
+summary(K12fu_12.glm)
+
+AIC(K12fu_10.glm, K12fu_11.glm, K12fu_12.glm)
+AIC(K12fu_10.glm, K12fu_11.glm, K12fu_12.glm)
+```
+
+```{r, K12 NA}
+#spline budget regression
+#learn more: https://medium.com/analytics-vidhya/spline-regression-in-r-960ca82aa62c
+
+K12fu_14.glm <- lm(budget ~ splines::bs(ln_enrollment, knots = c(8.707481,10.336310, 11.532670)) + tot_lcff + no_title1_status + irr + dac_proportion + frpm_count + perc_obf, data = K12) 
+
+K12fu_15.glm <- lm(budget ~ splines::bs(ln_enrollment, knots = c(8.707481,10.336310, 11.532670)) + tot_lcff + no_title1_status + ces_percentile_median + ces_score_median + frpm_count + perc_obf + median_household_income_usd + number_of_schools + enrollment + perc_ba + perc_aa, data = K12) 
+
+K12fu_16.glm <- lm(budget ~ splines::bs(ln_enrollment, knots = c(8.707481,10.336310, 11.532670)) + tot_lcff + no_title1_status + irr + dac_proportion + frpm_count + perc_obf + median_household_income_usd + perc_resource + perc_ia + perc_na + perc_ba + perc_wa + perc_aa, data = K12) #all variables, note that income/ces_score/resource has a high correlation 
+
+summary(K12fu_14.glm) #p-value should be < 0.05 to be significant 
+summary(K12fu_15.glm)
+summary(K12fu_16.glm)
+
+AIC(K12fu_14.glm, K12fu_15.glm, K12fu_16.glm)
+BIC(K12fu_14.glm, K12fu_15.glm, K12fu_16.glm)
+```
+
+```{r, K12 5}
+
+#K12 subset ungrouped
+
+#performs stepwise model selection by AIC
+stepAIC(lm(budget ~ tot_lcff + no_title1_status + irr + dac_proportion + ces_percentile_median + ces_score_median + frpm_count + free_meal_count + perc_obf + median_household_income_usd + perc_eligible_free + perc_eligible_frpm + number_of_schools + perc_title1_status + enrollment + perc_resource, data = K12_subset))
+```
+
+```{r, this one}
+#lcff + no_title1 + irr + dac + ces_percentile + ces_score + frmp_count + free_meal_count + obf + income + perc_eligible_free + perc_eligible_frpm + number_of_schools + perc_title1 + enrollment + resource + perc_ia + perc_na + perc_ba + perc_wa + perc_aa
+
+K12s_5.glm <- glm(budgetperstudent ~ lcff + no_title1 + frmp_count + income + irr + dac + obf + resource, data = K12_x) 
+summary(K12s_5.glm)
+
+exp(summary(K12s_5.glm)$coefficients[,1])
+K12_subset$predict_b <- predict(K12s_5.glm, K12_subset, type = "response")
+
+chisq.test(K12_subset$budget, K12_subset$predict_b)
+```
+
+```{r, this one}
+K12s_6.glm <- glm(kWhperstudent ~ lcffperstudent + perc_title1 + perc_eligible_frpm + income + irr + dac + obf + resource, data = K12_x) 
+summary(K12s_6.glm)
+
+exp(summary(K12s_6.glm)$coefficients[,1])
+K12_subset$predict_b <- predict(K12s_6.glm, K12_subset, type = "response")
+
+chisq.test(K12_subset$budget, K12_subset$predict_b)
+```
+
+```{r, this one}
+#t-tests
+t.test(K12_no$irr, K12_subset$irr, na.action = na.omit)
+#t.test(no_participate$budgetperstudent, participate$budgetperstudent, na.action = na.omit)
+#t.test(no_participate$kWhperstudent, participate$kWhperstudent, na.action = na.omit)
+```
+
+```{r, K12 —}
+#linear budget regression 
+
+K12s_2.glm <- glm(lnbudgetperschool ~ lcffperschool + no_title1_status + ces_percentile_median + ces_score_median + frpm_count + perc_eligible_free + perc_eligible_frpm + perc_ba + perc_aa, data = K12_x) #StepAIC
+
+K12s_3.glm <- glm(ln_budget ~ tot_lcff + no_title1_status + irr + dac_proportion + perc_eligible_frpm + perc_obf, data = K12_x) #variables I am curious about 
+
+K12s_4.glm <- glm(lnbudgetperschool ~ lcffperschool + no_title1_status + irr + dac_proportion + frpm_count + perc_obf + median_household_income_usd + perc_resource + perc_ia + perc_na + perc_ba + perc_wa + perc_aa, data = K12_x) #all variables, note that income/ces_score/resource has a high correlation 
+
+summary(K12s_2.glm) #p-value should be < 0.05 to be significant 
+summary(K12s_3.glm) 
+summary(K12s_4.glm) 
+
+AIC(K12s_2.glm, K12s_3.glm, K12s_4.glm)
+BIC(K12s_2.glm, K12s_3.glm, K12s_4.glm)
+```
+
+```{r}
+#Checking to see if the regression actually fits the data
+with(counties1a_glm.nb, cbind(res.deviance = deviance, df = df.residual,
+  p = pchisq(deviance, df.residual, lower.tail=TRUE)))
+with(counties1b_glm.nb, cbind(res.deviance = deviance, df = df.residual,
+  p = pchisq(deviance, df.residual, lower.tail=TRUE)))
+with(counties1c_glm.nb, cbind(res.deviance = deviance, df = df.residual,
+  p = pchisq(deviance, df.residual, lower.tail=TRUE)))
+with(counties1d_glm.nb, cbind(res.deviance = deviance, df = df.residual,
+  p = pchisq(deviance, df.residual, lower.tail=TRUE)))
+with(counties1e_glm.nb, cbind(res.deviance = deviance, df = df.residual,
+  p = pchisq(deviance, df.residual, lower.tail=TRUE)))
+```
+
