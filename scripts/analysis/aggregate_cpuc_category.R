@@ -4,7 +4,7 @@
 
 # ------------------------------ inputs ------------------------------ 
 
-  data_path   = '/Volumes/GoogleDrive/.shortcut-targets-by-id/1-BTh8T0PMwHDs3KZ9V--KPrNWRUgRxvV/2020_CAEECC_Public_Sector_Underserved/data/processed'
+  data_path   = '/Volumes/GoogleDrive/.shortcut-targets-by-id/1-BTh8T0PMwHDs3KZ9V--KPrNWRUgRxvV/2020_CAEECC_Public_Sector_Underserved/data/processed/cpuc'
   data_file   = 'cpuc_claims_selected_programs_2017_2019.csv'
 
 # outputs -------
@@ -135,7 +135,7 @@
            x = NULL,
            y = NULL, 
            fill = NULL) +
-      scale_y_continuous(labels = scales::comma, expand = c(0,0), limits = c(0,40)) +
+      scale_y_continuous(labels = scales::comma, expand = c(0,0), limits = c(0,70), breaks = seq(0, 70, 10)) +
       scale_fill_manual(values = pal_category) + 
       guides(fill = "none") +
       theme_line 
@@ -168,7 +168,7 @@
            x = NULL,
            y = NULL, 
            fill = NULL) +
-      scale_y_continuous(expand = c(0,0), limits = c(0,0.6), breaks = seq(0, 0.6, 0.1)) +
+      scale_y_continuous(expand = c(0,0), limits = c(0,0.8), breaks = seq(0, 0.8, 0.1)) +
       scale_fill_manual(values = pal_category) + 
       guides(fill = "none") +
       theme_line 
@@ -233,7 +233,7 @@
            x = NULL,
            y = NULL, 
            fill = NULL) +
-      scale_y_continuous(labels = scales::comma, expand = c(0,0), limits = c(0,6e3)) +
+      scale_y_continuous(labels = scales::comma, expand = c(0,0), limits = c(0,7e3), breaks = seq(0,7e3,1e3)) +
       scale_fill_manual(values = pal_category) + 
       guides(fill = "none") +
       theme_line 
