@@ -217,19 +217,6 @@ K12_2 <- subset(K12, ln_enrollment > 8.707647 & ln_enrollment <= 10.336342)
 K12_3 <- subset(K12, ln_enrollment > 10.336342 & ln_enrollment <= 11.532680)
 K12_4 <- subset(K12, ln_enrollment > 11.532680)
 
-#Create quantiles of budget
-quantile(K12$budgetperstudent)
-
-#create top and bottom quantile
-K12fbottomq_budget = subset(K12, budget <= 0.04525726)
-K12ftopq_budget = subset(K12, budget > 0.04525726)
-
-#create quantiles of energy savings
-quantile(K12$kWhperstudent)
-
-#create top and bottom quantile
-K12fbottomq_energy = subset(K12, kWh <= 0.006379012)
-K12ftopq_energy = subset(K12, kWh > 0.006379012)
 ```
 
 ```{r, K12 subsetting outliers}
@@ -251,7 +238,6 @@ text(x=1:length(K12CDs)+1, y=K12CDs, labels=ifelse(K12CDs>4/K12_sample_size, nam
 #taking out the outliers 
 K12_x <- K12_subset[!(K12_subset$county %in% c("LOS ANGELES")),] 
 ```
-
 
 
 ```{r, K12 scatterplot a}
@@ -378,12 +364,27 @@ stargazer(K12.1, K12.3, K12.5, K12.7, type="text", title="Results", align=TRUE, 
 ```{r, K12 regression}
 #final regression picks BUDGET
 
-stargazer(K12.2, K12.4, K12.6, K12.8, K12.testa, K12.testc,  type="text", title="Investment Regression Results (K12)", align=TRUE, dep.var.labels=c("Log of Budget", "Log Budget Per Student", "Budget Per Student"), order=c("perc_eligible_frpm", "perc_title1", "perc_eligible_free", "lcff", "lcffperstudent", "income", "irr", "dac","ces_score_median", "ces_percentile_median", "obf", "resource"), covariate.labels=c("Percent Eligible for Free or Reduced Meal Plan","Percent of Title 1 Schools", "LCFF","LCFF per student","Income", "IRR","DAC Proportion", "CES Percentile","CES Score", "Percent of On-bill Financing","Percent of Resource Programs"), omit.stat=c("LL","ser","f"), no.space=TRUE)
+stargazer(K12.2, K12.4, K12.6, K12.8, K12.testa, K12.testc,  type="text", title="Investment Regression Results (K12)", align=TRUE, dep.var.labels=c("Log of Budget", "Log Budget Per Student", "Budget Per Student"), order=c("perc_eligible_frpm", "perc_title1", "perc_eligible_free", "lcff", "lcffperstudent", "income", "irr", "dac", "obf"), covariate.labels=c("Percent Eligible for Free or Reduced Meal Plan","Percent of Title 1 Schools", "LCFF","LCFF per student","Income", "IRR","DAC Proportion", "Percent of On-bill Financing"), omit.stat=c("LL","ser","f"), no.space=TRUE)
 ```
 ```{r, K12 regression}
 #final regression picks KWH
 
-stargazer(K12.1, K12.3, K12.5, K12.7, K12.testb, K12.testd, type="text", title="Energy Savings Regression Results (K12)", align=TRUE, dep.var.labels=c("Log of kWh", "Log Kwh Per Student", " kWh Per Student"), order=c("perc_eligible_frpm", "perc_title1", "perc_eligible_free", "lcff", "lcffperstudent", "income", "irr", "dac","ces_score_median", "ces_percentile_median", "obf", "resource"), covariate.labels=c("Percent Eligible for Free or Reduced Meal Plan","Percent of Title 1 Schools", "LCFF","LCFF per student","Income", "IRR","DAC Proportion", "CES Percentile","CES Score", "Percent of On-bill Financing","Percent of Resource Programs"), omit.stat=c("LL","ser","f"), no.space=TRUE)
+stargazer(K12.1, K12.3, K12.5, K12.7, K12.testb, K12.testd, type="text", title="Energy Savings Regression Results (K12)", align=TRUE, dep.var.labels=c("Log of kWh", "Log Kwh Per Student", " kWh Per Student"), order=c("perc_eligible_frpm", "perc_title1", "perc_eligible_free", "lcff", "lcffperstudent", "income", "irr", "dac", "obf"), covariate.labels=c("Percent Eligible for Free or Reduced Meal Plan","Percent of Title 1 Schools", "LCFF","LCFF per student","Income", "IRR","DAC Proportion", "Percent of On-bill Financing"), omit.stat=c("LL","ser","f"), no.space=TRUE)
+```
+```{r, K12 subsetting}
+#Create quantiles of budget
+quantile(K12$budgetperstudent)
+
+#create top and bottom quantile
+K12fbottomq_budget = subset(K12, budgetperstudent <= 0) 
+K12ftopq_budget = subset(K12, budgetperstudent > 0.81462460)
+
+#create quantiles of energy savings
+quantile(K12$kWhperstudent)
+
+#create top and bottom quantile
+K12fbottomq_energy = subset(K12, kWhperstudent <= 0) 
+K12ftopq_energy = subset(K12, kWhperstudent > 1.618383175)
 ```
 
 
@@ -393,66 +394,68 @@ t.test(K12fbottomq_budget$irr, K12ftopq_budget$irr, na.action = na.omit) #signif
 t.test(K12fbottomq_energy$irr, K12ftopq_energy$irr, na.action = na.omit) #significant
 
 #t tests to compare means of lcff in top and bottom
-t.test(K12fbottomq_budget$lcff, K12ftopq_budget$lcff) #not sig
-t.test(K12fbottomq_energy$lcff, K12ftopq_energy$lcff) #not sig
+t.test(K12fbottomq_budget$lcffperstudent, K12ftopq_budget$lcffperstudent) #not sig
+t.test(K12fbottomq_energy$lcffperstudent, K12ftopq_energy$lcffperstudent) #not sig
 
 #t tests to compare means of perc_title_1 in top and bottom
 t.test(K12fbottomq_budget$perc_title1, K12ftopq_budget$perc_title1) #not sig
 t.test(K12fbottomq_energy$perc_title1, K12ftopq_energy$perc_title1) #not sig
 
 #t tests to compare means of perc_frpm in top and bottom
-t.test(K12fbottomq_budget$perc_eligible_frpm, K12ftopq_budget$perc_eligible_frpm) 
-t.test(K12fbottomq_energy$perc_eligible_frpm, K12ftopq_energy$perc_eligible_frpm) 
+t.test(K12fbottomq_budget$perc_eligible_frpm, K12ftopq_budget$perc_eligible_frpm) #not sig
+t.test(K12fbottomq_energy$perc_eligible_frpm, K12ftopq_energy$perc_eligible_frpm) #not sig
 
 #t tests to compare means of no_title_1 in top and bottom
 t.test(K12fbottomq_budget$no_title1, K12ftopq_budget$no_title1) 
 t.test(K12fbottomq_energy$no_title1, K12ftopq_energy$no_title1) 
 
 #t tests to compare means of dac proportion in top and bottom
-t.test(K12fbottomq_budget$dac, K12ftopq_budget$dac) 
-t.test(K12fbottomq_energy$dac, K12ftopq_energy$dac) 
+t.test(K12fbottomq_budget$dac, K12ftopq_budget$dac) #not sig
+t.test(K12fbottomq_energy$dac, K12ftopq_energy$dac) #not sig
 
 #t tests to compare means of ces score median in top and bottom
-t.test(K12fbottomq_budget$ces_score, K12ftopq_budget$ces_score)  
-t.test(K12fbottomq_energy$ces_score, K12ftopq_energy$ces_score) 
+t.test(K12fbottomq_budget$ces_score, K12ftopq_budget$ces_score)  #not sig
+t.test(K12fbottomq_energy$ces_score, K12ftopq_energy$ces_score) #not sig
 
 #compare WA
-t.test(K12fbottomq_budget$perc_wa, K12ftopq_budget$perc_wa)  
-t.test(K12fbottomq_energy$perc_wa, K12ftopq_energy$perc_wa) 
+t.test(K12fbottomq_budget$perc_wa, K12ftopq_budget$perc_wa)  #not sig
+t.test(K12fbottomq_energy$perc_wa, K12ftopq_energy$perc_wa)  #not sig
 
 #compare BA
-t.test(K12fbottomq_budget$perc_ba, K12ftopq_budget$perc_ba)  
-t.test(K12fbottomq_energy$perc_ba, K12ftopq_energy$perc_ba) 
+t.test(K12fbottomq_budget$perc_ba, K12ftopq_budget$perc_ba)  #sig
+t.test(K12fbottomq_energy$perc_ba, K12ftopq_energy$perc_ba)  #not sig
 
 #compare AA
-t.test(K12fbottomq_budget$perc_aa, K12ftopq_budget$perc_aa)  
-t.test(K12fbottomq_energy$perc_aa, K12ftopq_energy$perc_aa) 
+t.test(K12fbottomq_budget$perc_aa, K12ftopq_budget$perc_aa)  #sig
+t.test(K12fbottomq_energy$perc_aa, K12ftopq_energy$perc_aa)  #sig
 
 #compare IA
-t.test(K12fbottomq_budget$perc_ia, K12ftopq_budget$perc_ia)  
-t.test(K12fbottomq_energy$perc_ia, K12ftopq_energy$perc_ia) 
+t.test(K12fbottomq_budget$perc_ia, K12ftopq_budget$perc_ia)  #sig
+t.test(K12fbottomq_energy$perc_ia, K12ftopq_energy$perc_ia)  #sig
 
 #compare NA
-t.test(K12fbottomq_budget$perc_na, K12ftopq_budget$perc_na)  
-t.test(K12fbottomq_energy$perc_na, K12ftopq_energy$perc_na) 
+t.test(K12fbottomq_budget$perc_na, K12ftopq_budget$perc_na)  #not sig
+t.test(K12fbottomq_energy$perc_na, K12ftopq_energy$perc_na)  #not sig 
 
 #compare income per capita
-t.test(K12fbottomq_budget$incomepercapita, K12ftopq_budget$income) 
-t.test(K12fbottomq_energy$incomepercapita, K12ftopq_energy$income) 
-
-#t tests to compare means of budget per capita in top and bottom
-t.test(K12fbottomq_energy$budget_per_cap, K12ftopq_energy$budget_per_cap) 
+t.test(K12fbottomq_budget$income, K12ftopq_budget$income) #sig
+t.test(K12fbottomq_energy$income, K12ftopq_energy$income) #sig
 ```
 
 ```{r, K12 subsetting}
-#curious to see how t-tests differ when its just within the group that is participating 
+#curious to see how t-tests differ when its just within the group that is participating ((K12 SUBSET))
+
 quantile(K12_subset$budgetperstudent)
-K12sbottomq_budget = subset(K12_subset, budget <= 0.22256311)
-K12stopq_budget = subset(K12_subset, budget > 2.87458264)
+#K12sbottomq_budget = subset(K12_subset, budgetperstudent <= 0.22256311)
+#K12stopq_budget = subset(K12_subset, budgetperstudent > 2.87458264)
 
 quantile(K12_subset$kWhperstudent)
-K12sbottomq_energy = subset(K12_subset, kWh <= 0.3356844)
-K12stopq_energy = subset(K12_subset, kWh > 4.4421836)
+#K12sbottomq_energy = subset(K12_subset, kWhperstudent <= 0.3356844)
+#K12stopq_energy = subset(K12_subset, kWhperstudent > 4.4421836)
+
+```
+
+```{r, K12 t-tests}
 
 #compare WA
 t.test(K12sbottomq_budget$perc_wa, K12stopq_budget$perc_wa)  
@@ -555,9 +558,54 @@ l <- xyplot(kWh ~ revenue, data = merged_countiesdata)
 #arranging the maps for irr
 grid.arrange(g, h, i, ncol=2)
 ```
+```{r, counties spatial}
+
+#Budget
+merged_countiesdata$ln_budget <- log(merged_countiesdata$budget + 1)
+
+#visualize
+ggplot(data = merged_countiesdata)+
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `ln_budget`))+ #change the fill argument from plot to plot
+  coord_fixed(1.3)+
+  ggtitle("budget (Log) by County")+ #change title from plot to plot
+  theme_classic()+ #order matters in ggplot
+  scale_fill_viridis() +
+  theme(axis.title.x = element_blank(),
+                           axis.title.y = element_blank(),
+                           axis.text = element_blank(),
+                           axis.ticks = element_blank(),
+                           panel.grid = element_blank())
+
+#xy plot
+xyplot(budget ~ dac, data = merged_countiesdata)
+xyplot(kWh ~ budget, data = merged_countiesdata)
+```
+
+```{r, counties spatial}
+
+#kWh
+merged_countiesdata$ln_kWh <- log(merged_countiesdata$kWh + 1)
+
+#visualize
+ggplot(data = merged_countiesdata)+
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `ln_kWh`))+ #change the fill argument from plot to plot
+  coord_fixed(1.3)+
+  ggtitle("kWh (Log) by County")+ #change title from plot to plot
+  theme_classic()+ #order matters in ggplot
+  scale_fill_viridis() +
+  theme(axis.title.x = element_blank(),
+                           axis.title.y = element_blank(),
+                           axis.text = element_blank(),
+                           axis.ticks = element_blank(),
+                           panel.grid = element_blank())
+
+#xy plot 
+xyplot(kWh ~ dac, data = merged_countiesdata)
+xyplot(kWh ~ budget, data = merged_countiesdata)
+```
+
 ```{r, counties transformations}
 #log-transform 
-counties$ln_budget <- log(counties$budget + 1)
 counties$ln_kWh <- log(counties$kWh + 1)
 counties$ln_rev <- log(counties$revenue)
 counties$ln_population <- log(counties$population)
@@ -582,23 +630,6 @@ counties$ln_kWhpercapita <- log(counties$kWhpercapita + 1)
 #round 
 counties$roundedbudgetper <- round(counties$budgetpercapita, 0)
 counties$roundedkWhper <- round(counties$kWhpercapita, 0)
-```
-
-```{r, counties subsetting}
-
-#Create quantiles of budget
-quantile(counties$budgetpercapita)
-
-#create top and bottom quantile
-#bottomq_budget = subset(counties, Budget <= 1.528228)
-#topq_budget = subset(counties, Budget > 7.940744)
-
-#create quantiles of energy savings
-quantile(counties$kWhpercapita)
-
-#create top and bottom quantile
-#bottomq_energy = subset(counties, TotalFirstYearGrosskWh <= 1.377546)
-#topq_energy = subset(counties, TotalFirstYearGrosskWh > 11.231349)
 ```
 
 ```{r, counties subsetting}
@@ -682,21 +713,21 @@ hist(counties_x$ln_kWhpercapita)
 ```{r, County Step AIC selection}
 
 #performs stepwise model selection by AIC for budget
-stepAIC(lm(ln_budget ~ revpercapita + dac + irr + population + obf + income, data = counties_x))
+stepAIC(lm(ln_budget ~ revenue + dac + irr + population + obf + income, data = counties_x))
 
 #result testing all of them: ln_budgetpercapita ~ revpercapita + population + obf + income, data = counties_x
 #result testing all of them: roundedbudgetper ~ population, data = counties_x
-#ln_budget ~ revpercapita + irr, data = counties_x)
+#ln_budget ~ irr, data = counties_x)
 ```
 
 ```{r, County Step AIC selection}
 
 #performs stepwise model selection by AIC for kWh
-stepAIC(lm(ln_kWh ~ revpercapita + dac + irr + population + obf + income , data = counties_x))
+stepAIC(lm(ln_kWh ~ revenue + dac + irr + population + obf + income , data = counties_x))
 
 #result testing all of them: ln_kWhpercapita ~ revpercapita + population + income, data = counties_x
 #result testing all of them: roundedkWhper ~ revpercapita + population, data = counties_x
-#ln_kWh ~ revpercapita + irr + population, data = counties_x
+#ln_kWh ~ irr + population, data = counties_x
 ```
 
 ```{r, counties regression}
@@ -716,9 +747,9 @@ stargazer(counties.testa, counties.testb, counties.testc, counties.testd, type="
 ```{r, counties regression}
 #regression from budget
 
-counties.2 <- glm(ln_budget ~  revpercapita + irr, data = counties_x) #Step AIC picks
+counties.2 <- glm(ln_budget ~  irr, data = counties_x) #Step AIC picks
 
-counties.4 <- glm(ln_budget ~ revpercapita + dac + irr + obf + income, data = counties_x) #intuitive picks
+counties.4 <- glm(ln_budget ~ revenue + dac + irr + obf + income, data = counties_x) #intuitive picks
 
 counties.6 <- glm(ln_budgetpercapita ~ revpercapita + population + obf + income, data = counties_x) #Step AIC picks
 
@@ -730,9 +761,9 @@ stargazer(counties.2, counties.4, counties.6, counties.8, type="text", title="Re
 ```{r, counties regression}
 #regression from kWh
 
-counties.1 <- glm(ln_kWh ~  revpercapita + irr + population, data = counties_x) #Step AIC picks
+counties.1 <- glm(ln_kWh ~  irr + population, data = counties_x) #Step AIC picks
 
-counties.3 <- glm(ln_kWh ~ revpercapita + dac + irr + obf + income, data = counties_x) #intuitive picks
+counties.3 <- glm(ln_kWh ~ revenue + dac + irr + obf + income, data = counties_x) #intuitive picks
 
 counties.5 <- glm(ln_kWhpercapita ~ revpercapita + population + income, data = counties_x) #Step AIC picks
 
@@ -744,13 +775,34 @@ stargazer(counties.1, counties.3, counties.5, counties.7, type="text", title="Re
 ```{r, counties regression}
 #final regression picks BUDGET
 
-stargazer(counties.2, counties.4, counties.6, counties.8, counties.testa, counties.testc,  type="text", title="Investment Regression Results (County)", align=TRUE, dep.var.labels=c("Log of Budget", "Log Budget Per Capita", "Budget Per Capita"), order=c("revpercapita", "income", "irr", "dac", "obf", "population"), covariate.labels=c("Revenue per Capita","Income", "IRR","DAC Proportion", "Percent of On-bill Financing","Population"), omit.stat=c("LL","ser","f"), no.space=TRUE)
+stargazer(counties.2, counties.4, counties.6, counties.8, counties.testa, counties.testc,  type="text", title="Investment Regression Results (County)", align=TRUE, dep.var.labels=c("Log of Budget", "Log Budget Per Capita", "Budget Per Capita"), order=c("revenue", "revpercapita", "income", "irr", "dac", "obf", "population"), covariate.labels=c("Revenue","Revenue per Capita","Income", "IRR","DAC Proportion", "Percent of On-bill Financing","Population"), omit.stat=c("LL","ser","f"), no.space=TRUE)
 ```
 ```{r, counties regression}
 #final regression picks KWH
 
-stargazer(counties.1, counties.3, counties.5, counties.7, counties.testb, counties.testd, type="text", title="Energy Savings Regression Results (County)", align=TRUE, dep.var.labels=c("Log of kWh", "Log Kwh Per Capita", " kWh Per Capita"), order=c("revpercapita", "income", "irr", "dac", "obf", "population"), covariate.labels=c("Revenue per Capita","Income", "IRR","DAC Proportion", "Percent of On-bill Financing","Population"), omit.stat=c("LL","ser","f"), no.space=TRUE)
+stargazer(counties.1, counties.3, counties.5, counties.7, counties.testb, counties.testd, type="text", title="Energy Savings Regression Results (County)", align=TRUE, dep.var.labels=c("Log of kWh", "Log Kwh Per Capita", " kWh Per Capita"), order=c("revenue", "revpercapita", "income", "irr", "dac", "obf", "population"), covariate.labels=c("Revenue", "Revenue per Capita","Income", "IRR","DAC Proportion", "Percent of On-bill Financing","Population"), omit.stat=c("LL","ser","f"), no.space=TRUE)
 ```
+```{r, counties subsetting}
+
+#Create quantiles of budget
+quantile(counties$budgetpercapita)
+
+#create top and bottom quantile
+countiesfbottomq_budget = subset(counties, budgetpercapita <= 1.528228)
+countiesftopq_budget = subset(counties, budgetpercapita > 7.940744)
+
+#create quantiles of energy savings
+quantile(counties$kWhpercapita)
+
+#create top and bottom quantile
+countiesfbottomq_energy = subset(counties, kWhpercapita <= 1.377546)
+countiesftopq_energy = subset(counties, kWhpercapita > 11.231349)
+```
+
+```{r}
+t.test(countiesfbottomq_budget$perc_aa, countiesftopq_budget$perc_aa)  
+```
+
 
 ##Cities
 
@@ -854,20 +906,20 @@ hist(cities_x$ln_kWhpercapita)
 
 #performs stepwise model selection by AIC for budget
 #all variables: revpercapita + ruca + dac + population + obf + income + resource 
-stepAIC(lm(ln_kWhpercapita ~ revpercapita + ruca + dac + population + obf + income + resource , data = cities_x))
+stepAIC(lm(ln_budget ~ revenue + ruca + dac + population + obf + income + resource , data = cities_x))
 
 #result testing all of them: lm(formula = roundedbudgetper ~ revpercapita + ruca + dac + obf +  income + resource, data = cities_x)
-#lm(formula = ln_budget ~ population + obf + resource, data = cities_x)
+#lm(formula = ln_budget ~ revenue + obf + resource, data = cities_x)
 #lm(formula = ln_budgetpercapita ~ revpercapita + ruca + population + obf + resource, data = cities_x)
 ```
 
 ```{r, City Step AIC selection}
 
 #performs stepwise model selection by AIC for kWh
-stepAIC(lm(roundedkWhper ~ revpercapita + ruca + dac + population + obf + income + resource , data = cities_x))
+stepAIC(lm(ln_kWh ~ revenue + ruca + dac + population + obf + income + resource , data = cities_x))
 
 #result testing all of them: roundedkWhper ~ revpercapita + ruca + dac + obf + income, data = cities_x)
-#lm(formula = ln_kWh ~ population + obf, data = cities_x)
+#lm(formula = ln_kWh ~ revenue + obf, data = cities_x)
 #lm(formula = ln_kWhpercapita ~ revpercapita + ruca + dac + obf, data = cities_x)
 ```
 
@@ -888,9 +940,9 @@ stargazer(cities.testa, cities.testb, cities.testc, cities.testd, type="text", t
 ```{r, cities regression}
 #regression from budget
 
-cities.2 <- glm(ln_budget ~  population + obf + resource, data = cities_x) #Step AIC picks
+cities.2 <- glm(ln_budget ~  revenue + obf + resource, data = cities_x) #Step AIC picks
 
-cities.4 <- glm(ln_budget ~ revpercapita + ruca + dac + population + obf + income + resource, data = cities_x) #intuitive picks
+cities.4 <- glm(ln_budget ~ revenue + ruca + dac + obf + income + resource, data = cities_x) #intuitive picks
 
 cities.6 <- glm(ln_budgetpercapita ~ revpercapita + ruca + population + obf + resource, data = cities_x) #Step AIC picks
 
@@ -902,9 +954,9 @@ stargazer(cities.2, cities.4, cities.6, cities.8, type="text", title="Results", 
 ```{r, cities regression}
 #regression from kWh
 
-cities.1 <- glm(ln_kWh ~  population + obf, data = cities_x) #Step AIC picks
+cities.1 <- glm(ln_kWh ~  revenue + obf, data = cities_x) #Step AIC picks
 
-cities.3 <- glm(ln_kWh ~ revpercapita + ruca + dac + population + obf + income + resource, data = cities_x) #intuitive picks
+cities.3 <- glm(ln_kWh ~ revenue + ruca + dac + obf + income + resource, data = cities_x) #intuitive picks
 
 cities.5 <- glm(ln_kWhpercapita ~ revpercapita + ruca + dac + obf, data = cities_x) #Step AIC picks
 
@@ -916,13 +968,89 @@ stargazer(cities.1, cities.3, cities.5, cities.7, type="text", title="Results", 
 ```{r, cities regression}
 #final regression picks BUDGET
 
-stargazer(cities.2, cities.4, cities.6, cities.8, cities.testa, cities.testc,  type="text", title="Investment Regression Results (Cities)", align=TRUE, dep.var.labels=c("Log of Budget", "Log Budget Per Capita", "Budget Per Capita"), order=c("revpercapita", "income", "ruca", "dac", "obf", "resource", "population"), covariate.labels=c("Revenue per Capita","Income", "RUCA","DAC Proportion", "Percent of On-bill Financing","Percent of Resource Programs", "Population"), omit.stat=c("LL","ser","f"), no.space=TRUE)
+stargazer(cities.2, cities.4, cities.6, cities.8, cities.testa, cities.testc,  type="text", title="Investment Regression Results (Cities)", align=TRUE, dep.var.labels=c("Log of Budget", "Log Budget Per Capita", "Budget Per Capita"), order=c("revenue","revpercapita", "income", "ruca", "dac", "obf", "resource", "population"), covariate.labels=c("Revenue", "Revenue per Capita","Income", "RUCA","DAC Proportion", "Percent of On-bill Financing","Percent of Resource Programs", "Population"), omit.stat=c("LL","ser","f"), no.space=TRUE)
 ```
 ```{r, cities regression}
 #final regression picks KWH
 
-stargazer(cities.1, cities.3, cities.5, cities.7, cities.testb, cities.testd, type="text", title="Energy Savings Regression Results (Cities)", align=TRUE, dep.var.labels=c("Log of kWh", "Log Kwh Per Capita", " kWh Per Capita"), order=c("revpercapita", "income", "ruca", "dac", "obf", "resource", "population"), covariate.labels=c("Revenue per Capita","Income", "RUCA","DAC Proportion", "Percent of On-bill Financing", "Percent of Resource Programs","Population"), omit.stat=c("LL","ser","f"), no.space=TRUE)
+stargazer(cities.1, cities.3, cities.5, cities.7, cities.testb, cities.testd, type="text", title="Energy Savings Regression Results (Cities)", align=TRUE, dep.var.labels=c("Log of kWh", "Log Kwh Per Capita", " kWh Per Capita"), order=c("revenue","revpercapita", "income", "ruca", "dac", "obf", "resource", "population"), covariate.labels=c("Revenue","Revenue per Capita","Income", "RUCA","DAC Proportion", "Percent of On-bill Financing", "Percent of Resource Programs","Population"), omit.stat=c("LL","ser","f"), no.space=TRUE)
 ```
+```{r, cities subsetting}
+#Create quantiles of budget
+quantile(cities$budgetpercapita)
+
+#create top and bottom quantile
+citiesfbottomq_budget = subset(cities, budgetpercapita <= 1.292106)
+citiesftopq_budget = subset(cities, budgetpercapita > 8.699818)
+
+#create quantiles of energy savings
+quantile(cities$kWhpercapita)
+
+#create top and bottom quantile
+citiesfbottomq_energy = subset(cities, kWhpercapita <= 1.141914)
+citiesftopq_energy = subset(cities, kWhpercapita > 13.167434)
+```
+
+```{r, cities t-tests}
+
+#t tests to compare means of dac proportion in top and bottom
+t.test(citiesfbottomq_budget$dac, citiesftopq_budget$dac) 
+t.test(citiesfbottomq_energy$dac, citiesftopq_energy$dac) 
+
+#t tests to compare means of ces score median in top and bottom
+t.test(citiesfbottomq_budget$ces_score, citiesftopq_budget$ces_score)  
+t.test(citiesfbottomq_energy$ces_score, citiesftopq_energy$ces_score) 
+
+#t tests to compare means of ruca in top and bottom
+t.test(citiesfbottomq_budget$ruca, citiesftopq_budget$ruca) 
+t.test(citiesfbottomq_energy$ruca, citiesftopq_energy$ruca) 
+
+#t tests to compare means of population in top and bottom
+t.test(citiesfbottomq_budget$population, citiesftopq_budget$population) #significant
+t.test(citiesfbottomq_energy$population, citiesftopq_energy$population) #significant
+
+#t tests to compare means of revenue in top and bottom
+t.test(citiesfbottomq_budget$revenue, citiesftopq_budget$revenue) 
+t.test(citiesfbottomq_energy$revenue, citiesftopq_energy$revenue) 
+
+#t tests to compare means of ces score median in top and bottom
+t.test(citiesfbottomq_budget$income, citiesftopq_budget$income)  
+t.test(citiesfbottomq_energy$income, citiesftopq_energy$income) 
+```
+
+```{r}
+#t tests to compare means of dac proportion in top and bottom
+t.test(citiesfbottomq_budget$dac, citiesftopq_budget$dac) 
+t.test(citiesfbottomq_energy$dac, citiesftopq_energy$dac) 
+
+#t tests to compare means of ces score median in top and bottom
+t.test(citiesfbottomq_budget$ces_score, citiesftopq_budget$ces_score)  
+t.test(citiesfbottomq_energy$ces_score, citiesftopq_energy$ces_score) 
+```
+
+
+```{r, cities t-tests}
+#compare WA
+t.test(citiesfbottomq_budget$perc_wa, citiesftopq_budget$perc_wa)  
+t.test(citiesfbottomq_energy$perc_wa, citiesftopq_energy$perc_wa) 
+
+#compare BA
+t.test(citiesfbottomq_budget$perc_ba, citiesftopq_budget$perc_ba)  
+t.test(citiesfbottomq_energy$perc_ba, citiesftopq_energy$perc_ba) 
+
+#compare AA
+t.test(citiesfbottomq_budget$perc_aa, citiesftopq_budget$perc_aa)  
+t.test(citiesfbottomq_energy$perc_aa, citiesftopq_energy$perc_aa) 
+
+#compare IA
+t.test(citiesfbottomq_budget$perc_ia, citiesftopq_budget$perc_ia)  
+t.test(citiesfbottomq_energy$perc_ia, citiesftopq_energy$perc_ia) 
+
+#compare NA
+t.test(citiesfbottomq_budget$perc_na, citiesftopq_budget$perc_na)  
+t.test(citiesfbottomq_energy$perc_na, citiesftopq_energy$perc_na) 
+```
+
 
 
 ##MISC. K12 Attempts 
