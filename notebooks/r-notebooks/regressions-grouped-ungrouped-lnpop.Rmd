@@ -297,14 +297,38 @@ t.test(budget_percap_lq$dac_proportion, budget_percap_uq$dac_proportion)
 t.test(budget_percap_lq$ces_score_median, budget_percap_uq$ces_score_median)
 t.test(budget_percap_lq$median_household_income_usd, budget_percap_uq$median_household_income_usd)
 t.test(budget_percap_lq$ruca_average, budget_percap_uq$ruca_average)
-t.test(budget_percap_lq$proportion.White.alone, budget_percap_uq$proportion.White.alone)
+t.test(budget_percap_lq$total_population, budget_percap_uq$total_population)
 t.test(budget_percap_lq$proportion.Black.or.African.American.alone, budget_percap_uq$proportion.Black.or.African.American.alone)
 t.test(budget_percap_lq$total_population, budget_percap_uq$total_population)
 t.test(budget_percap_lq$Total.Tax.Revenue, budget_percap_uq$Total.Tax.Revenue)
-t.test(budget_percap_lq$Budget, budget_percap_uq$Budget)
+t.test(budget_percap_lq$proportion.White.alone, budget_percap_uq$proportion.White.alone)
+t.test(budget_percap_lq$proportion.Asian.alone, budget_percap_uq$proportion.Asian.alone)
+t.test(budget_percap_lq$proportion.American.Indian.and.Alaska.Native.alone, budget_percap_uq$proportion.American.Indian.and.Alaska.Native.alone)
+t.test(budget_percap_lq$proportion.Native.Hawaiian.and.Other.Pacific.Islander.alone, budget_percap_uq$proportion.Native.Hawaiian.and.Other.Pacific.Islander.alone)
 
 
 ```
+
+```{r}
+
+#t tests with quintiles split by budget per capita, testing 
+
+t.test(fyg_percap_lq$dac_proportion, fyg_percap_uq$dac_proportion)
+t.test(fyg_percap_lq$ces_score_median, fyg_percap_uq$ces_score_median)
+t.test(fyg_percap_lq$median_household_income_usd, fyg_percap_uq$median_household_income_usd)
+t.test(fyg_percap_lq$ruca_average, fyg_percap_uq$ruca_average)
+t.test(fyg_percap_lq$total_population, fyg_percap_uq$total_population)
+t.test(fyg_percap_lq$proportion.Black.or.African.American.alone, fyg_percap_uq$proportion.Black.or.African.American.alone)
+t.test(fyg_percap_lq$total_population, fyg_percap_uq$total_population)
+t.test(fyg_percap_lq$Total.Tax.Revenue, fyg_percap_uq$Total.Tax.Revenue)
+t.test(fyg_percap_lq$proportion.White.alone, fyg_percap_uq$proportion.White.alone)
+t.test(fyg_percap_lq$proportion.Asian.alone, fyg_percap_uq$proportion.Asian.alone)
+t.test(fyg_percap_lq$proportion.American.Indian.and.Alaska.Native.alone, fyg_percap_uq$proportion.American.Indian.and.Alaska.Native.alone)
+t.test(fyg_percap_lq$proportion.Native.Hawaiian.and.Other.Pacific.Islander.alone, fyg_percap_uq$proportion.Native.Hawaiian.and.Other.Pacific.Islander.alone)
+
+
+```
+
 
 ```{r}
 
