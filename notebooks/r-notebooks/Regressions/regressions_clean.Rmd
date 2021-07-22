@@ -364,12 +364,14 @@ stargazer(K12.1, K12.3, K12.5, K12.7, type="text", title="Results", align=TRUE, 
 ```{r, K12 regression}
 #final regression picks BUDGET
 
-stargazer(K12.2, K12.4, K12.6, K12.8, K12.testa, K12.testc,  type="text", title="Investment Regression Results (K12)", align=TRUE, dep.var.labels=c("Log of Budget", "Log Budget Per Student", "Budget Per Student"), order=c("perc_eligible_frpm", "perc_title1", "perc_eligible_free", "lcff", "lcffperstudent", "income", "irr", "dac", "obf"), covariate.labels=c("Percent Eligible for Free or Reduced Meal Plan","Percent of Title 1 Schools", "LCFF","LCFF per student","Income", "IRR","DAC Proportion", "Percent of On-bill Financing"), omit.stat=c("LL","ser","f"), no.space=TRUE)
+#type="text" if you want to see the table in the console 
+
+stargazer(K12.2, K12.4, K12.6, K12.8, type="text", title="Investment Regression Results (K12)", align=TRUE, dep.var.labels=c("Log of Budget", "Log Budget Per Student"), order=c("perc_eligible_frpm", "perc_title1", "perc_eligible_free", "lcff", "lcffperstudent", "income", "irr", "dac", "obf"), covariate.labels=c("Percent Eligible for Free or Reduced Meal Plan","Percent of Title 1 Schools", "LCFF","LCFF per student","Income", "IRR","DAC Proportion", "Percent of On-bill Financing"), omit.stat=c("LL","ser","f"), no.space=TRUE)
 ```
 ```{r, K12 regression}
 #final regression picks KWH
 
-stargazer(K12.1, K12.3, K12.5, K12.7, K12.testb, K12.testd, type="text", title="Energy Savings Regression Results (K12)", align=TRUE, dep.var.labels=c("Log of kWh", "Log Kwh Per Student", " kWh Per Student"), order=c("perc_eligible_frpm", "perc_title1", "perc_eligible_free", "lcff", "lcffperstudent", "income", "irr", "dac", "obf"), covariate.labels=c("Percent Eligible for Free or Reduced Meal Plan","Percent of Title 1 Schools", "LCFF","LCFF per student","Income", "IRR","DAC Proportion", "Percent of On-bill Financing"), omit.stat=c("LL","ser","f"), no.space=TRUE)
+stargazer(K12.1, K12.3, K12.5, K12.7, type="text", title="Energy Savings Regression Results (K12)", align=TRUE, dep.var.labels=c("Log of kWh", "Log Kwh Per Student"), order=c("perc_eligible_frpm", "perc_title1", "perc_eligible_free", "lcff", "lcffperstudent", "income", "irr", "dac", "obf"), covariate.labels=c("Percent Eligible for Free or Reduced Meal Plan","Percent of Title 1 Schools", "LCFF","LCFF per student","Income", "IRR","DAC Proportion", "Percent of On-bill Financing"), omit.stat=c("LL","ser","f"), no.space=TRUE)
 ```
 ```{r, K12 subsetting}
 #Create quantiles of budget
@@ -609,6 +611,7 @@ xyplot(kWh ~ budget, data = merged_countiesdata)
 counties$ln_kWh <- log(counties$kWh + 1)
 counties$ln_rev <- log(counties$revenue)
 counties$ln_population <- log(counties$population)
+counties$ln_budget <- log(counties$budget + 1)
 
 #round budget and kWh
 counties$roundedbudget <- round(counties$budget, 0)
@@ -775,12 +778,12 @@ stargazer(counties.1, counties.3, counties.5, counties.7, type="text", title="Re
 ```{r, counties regression}
 #final regression picks BUDGET
 
-stargazer(counties.2, counties.4, counties.6, counties.8, counties.testa, counties.testc,  type="text", title="Investment Regression Results (County)", align=TRUE, dep.var.labels=c("Log of Budget", "Log Budget Per Capita", "Budget Per Capita"), order=c("revenue", "revpercapita", "income", "irr", "dac", "obf", "population"), covariate.labels=c("Revenue","Revenue per Capita","Income", "IRR","DAC Proportion", "Percent of On-bill Financing","Population"), omit.stat=c("LL","ser","f"), no.space=TRUE)
+stargazer(counties.2, counties.4, counties.6, counties.8, type="text", title="Investment Regression Results (County)", align=TRUE, dep.var.labels=c("Log of Budget", "Log Budget Per Capita"), order=c("revenue", "revpercapita", "income", "irr", "dac", "obf", "population"), covariate.labels=c("Revenue","Revenue per Capita","Income", "IRR","DAC Proportion", "Percent of On-bill Financing","Population"), omit.stat=c("LL","ser","f"), no.space=TRUE)
 ```
 ```{r, counties regression}
 #final regression picks KWH
 
-stargazer(counties.1, counties.3, counties.5, counties.7, counties.testb, counties.testd, type="text", title="Energy Savings Regression Results (County)", align=TRUE, dep.var.labels=c("Log of kWh", "Log Kwh Per Capita", " kWh Per Capita"), order=c("revenue", "revpercapita", "income", "irr", "dac", "obf", "population"), covariate.labels=c("Revenue", "Revenue per Capita","Income", "IRR","DAC Proportion", "Percent of On-bill Financing","Population"), omit.stat=c("LL","ser","f"), no.space=TRUE)
+stargazer(counties.1, counties.3, counties.5, counties.7, type="text", title="Energy Savings Regression Results (County)", align=TRUE, dep.var.labels=c("Log of kWh", "Log Kwh Per Capita"), order=c("revenue", "revpercapita", "income", "irr", "dac", "obf", "population"), covariate.labels=c("Revenue", "Revenue per Capita","Income", "IRR","DAC Proportion", "Percent of On-bill Financing","Population"), omit.stat=c("LL","ser","f"), no.space=TRUE)
 ```
 ```{r, counties subsetting}
 
@@ -968,12 +971,12 @@ stargazer(cities.1, cities.3, cities.5, cities.7, type="text", title="Results", 
 ```{r, cities regression}
 #final regression picks BUDGET
 
-stargazer(cities.2, cities.4, cities.6, cities.8, cities.testa, cities.testc,  type="text", title="Investment Regression Results (Cities)", align=TRUE, dep.var.labels=c("Log of Budget", "Log Budget Per Capita", "Budget Per Capita"), order=c("revenue","revpercapita", "income", "ruca", "dac", "obf", "resource", "population"), covariate.labels=c("Revenue", "Revenue per Capita","Income", "RUCA","DAC Proportion", "Percent of On-bill Financing","Percent of Resource Programs", "Population"), omit.stat=c("LL","ser","f"), no.space=TRUE)
+stargazer(cities.2, cities.4, cities.6, cities.8, type="text", title="Investment Regression Results (Cities)", align=TRUE, dep.var.labels=c("Log of Budget", "Log Budget Per Capita"), order=c("revenue","revpercapita", "income", "ruca", "dac", "obf", "resource", "population"), covariate.labels=c("Revenue", "Revenue per Capita","Income", "RUCA","DAC Proportion", "Percent of On-bill Financing","Percent of Resource Programs", "Population"), omit.stat=c("LL","ser","f"), no.space=TRUE)
 ```
 ```{r, cities regression}
 #final regression picks KWH
 
-stargazer(cities.1, cities.3, cities.5, cities.7, cities.testb, cities.testd, type="text", title="Energy Savings Regression Results (Cities)", align=TRUE, dep.var.labels=c("Log of kWh", "Log Kwh Per Capita", " kWh Per Capita"), order=c("revenue","revpercapita", "income", "ruca", "dac", "obf", "resource", "population"), covariate.labels=c("Revenue","Revenue per Capita","Income", "RUCA","DAC Proportion", "Percent of On-bill Financing", "Percent of Resource Programs","Population"), omit.stat=c("LL","ser","f"), no.space=TRUE)
+stargazer(cities.1, cities.3, cities.5, cities.7, type="text", title="Energy Savings Regression Results (Cities)", align=TRUE, dep.var.labels=c("Log of kWh", "Log Kwh Per Capita"), order=c("revenue","revpercapita", "income", "ruca", "dac", "obf", "resource", "population"), covariate.labels=c("Revenue","Revenue per Capita","Income", "RUCA","DAC Proportion", "Percent of On-bill Financing", "Percent of Resource Programs","Population"), omit.stat=c("LL","ser","f"), no.space=TRUE)
 ```
 ```{r, cities subsetting}
 #Create quantiles of budget
