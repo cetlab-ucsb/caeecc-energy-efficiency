@@ -42,6 +42,34 @@ library(GISTools)
 
 ```
 
+```{r, cite packages}
+citation("readr")
+citation("data.table")
+citation("dplyr")
+citation("ggplot2")
+citation("tidyverse")
+citation("psych")
+citation("car") 
+citation("nlme") 
+citation("fitdistrplus")
+citation("stargazer") 
+
+#for spatial purposes 
+citation("sf")
+citation("tigris")
+citation("maps")
+citation("tmap")
+citation("USAboundaries")
+citation("maptools")
+citation("stringr")
+citation("viridis")
+citation("bit64")
+citation("gridExtra")
+citation("grid")
+citation("lattice")
+citation("GISTools")
+```
+
 ```{r, Start}
 #read in data for K-12 EE programs 
 K12 <- read.csv("k12_counties_3.csv")
@@ -366,12 +394,12 @@ stargazer(K12.1, K12.3, K12.5, K12.7, type="text", title="Results", align=TRUE, 
 
 #type="text" if you want to see the table in the console 
 
-stargazer(K12.2, K12.4, K12.6, K12.8, type="text", title="Investment Regression Results (K12)", align=TRUE, dep.var.labels=c("Log of Budget", "Log Budget Per Student"), order=c("perc_eligible_frpm", "perc_title1", "perc_eligible_free", "lcff", "lcffperstudent", "income", "irr", "dac", "obf"), covariate.labels=c("Percent Eligible for Free or Reduced Meal Plan","Percent of Title 1 Schools", "LCFF","LCFF per student","Income", "IRR","DAC Proportion", "Percent of On-bill Financing"), omit.stat=c("LL","ser","f"), no.space=TRUE)
+stargazer(K12.2, K12.4, K12.6, K12.8, type="text", title="Budget Regression Results (K12)", align=TRUE, dep.var.labels=c("Log of Budget", "Log Budget Per Student"), order=c("perc_eligible_frpm", "perc_title1", "perc_eligible_free", "lcff", "lcffperstudent", "income", "irr", "dac", "obf"), covariate.labels=c("Percent Eligible for Free or Reduced Meal Plan","Percent of Title 1 Schools", "LCFF","LCFF per student","Income", "IRR","DAC Proportion", "Percent of On-bill Financing"), omit.stat=c("LL","ser","f"), no.space=TRUE)
 ```
 ```{r, K12 regression}
 #final regression picks KWH
 
-stargazer(K12.1, K12.3, K12.5, K12.7, type="text", title="Energy Savings Regression Results (K12)", align=TRUE, dep.var.labels=c("Log of kWh", "Log Kwh Per Student"), order=c("perc_eligible_frpm", "perc_title1", "perc_eligible_free", "lcff", "lcffperstudent", "income", "irr", "dac", "obf"), covariate.labels=c("Percent Eligible for Free or Reduced Meal Plan","Percent of Title 1 Schools", "LCFF","LCFF per student","Income", "IRR","DAC Proportion", "Percent of On-bill Financing"), omit.stat=c("LL","ser","f"), no.space=TRUE)
+stargazer(K12.1, K12.3, K12.5, K12.7, type="text", title="Energy Savings Regression Results (K12)", align=TRUE, dep.var.labels=c("Log of kWh", "Log kWh Per Student"), order=c("perc_eligible_frpm", "perc_title1", "perc_eligible_free", "lcff", "lcffperstudent", "income", "irr", "dac", "obf"), covariate.labels=c("Percent Eligible for Free or Reduced Meal Plan","Percent of Title 1 Schools", "LCFF","LCFF per student","Income", "IRR","DAC Proportion", "Percent of On-bill Financing"), omit.stat=c("LL","ser","f"), no.space=TRUE)
 ```
 ```{r, K12 subsetting}
 #Create quantiles of budget
@@ -442,6 +470,28 @@ t.test(K12fbottomq_energy$perc_na, K12ftopq_energy$perc_na)  #not sig
 #compare income per capita
 t.test(K12fbottomq_budget$income, K12ftopq_budget$income) #sig
 t.test(K12fbottomq_energy$income, K12ftopq_energy$income) #sig
+```
+
+```{r, K12 Mann-Whitney}
+#compare WA
+wilcox.test(K12fbottomq_budget$perc_wa, K12ftopq_budget$perc_wa)  #W = 280, p-value = 0.0209 sig
+wilcox.test(K12fbottomq_energy$perc_wa, K12ftopq_energy$perc_wa)  #W = 284, p-value = 0.06052 not sig
+
+#compare BA
+wilcox.test(K12fbottomq_budget$perc_ba, K12ftopq_budget$perc_ba)  #W = 100, p-value = 0.00935 sig
+wilcox.test(K12fbottomq_energy$perc_ba, K12ftopq_energy$perc_ba)  #W = 128, p-value = 0.03676 sig
+
+#compare AA
+wilcox.test(K12fbottomq_budget$perc_aa, K12ftopq_budget$perc_aa)  #W = 63, p-value = 0.0001866 sig
+wilcox.test(K12fbottomq_energy$perc_aa, K12ftopq_energy$perc_aa)  #W = 83, p-value = 0.0008458 sig
+
+#compare IA
+wilcox.test(K12fbottomq_budget$perc_ia, K12ftopq_budget$perc_ia)  #W = 315, p-value = 0.0007997 sig
+wilcox.test(K12fbottomq_energy$perc_ia, K12ftopq_energy$perc_ia)  #W = 317, p-value = 0.005653 sig
+
+#compare NA
+wilcox.test(K12fbottomq_budget$perc_na, K12ftopq_budget$perc_na)  #W = 92, p-value = 0.004585 sig
+wilcox.test(K12fbottomq_energy$perc_na, K12ftopq_energy$perc_na)  #W = 117, p-value = 0.01715 sig
 ```
 
 ```{r, K12 subsetting}
@@ -633,6 +683,10 @@ counties$ln_kWhpercapita <- log(counties$kWhpercapita + 1)
 #round 
 counties$roundedbudgetper <- round(counties$budgetpercapita, 0)
 counties$roundedkWhper <- round(counties$kWhpercapita, 0)
+
+#scaling
+counties$rev_scale <- counties$revenue/10000
+counties$pop_scale <- counties$population/10000
 ```
 
 ```{r, counties subsetting}
@@ -754,7 +808,7 @@ counties.2 <- glm(ln_budget ~  irr, data = counties_x) #Step AIC picks
 
 counties.4 <- glm(ln_budget ~ revenue + dac + irr + obf + income, data = counties_x) #intuitive picks
 
-counties.6 <- glm(ln_budgetpercapita ~ revpercapita + population + obf + income, data = counties_x) #Step AIC picks
+counties.6 <- glm(ln_budgetpercapita ~ revpercapita + pop_scale + obf + income, data = counties_x) #Step AIC picks
 
 counties.8 <- glm(ln_budgetpercapita ~ revpercapita + dac + irr + obf + income, data = counties_x) #intuitive picks
 
@@ -768,7 +822,7 @@ counties.1 <- glm(ln_kWh ~  irr + population, data = counties_x) #Step AIC picks
 
 counties.3 <- glm(ln_kWh ~ revenue + dac + irr + obf + income, data = counties_x) #intuitive picks
 
-counties.5 <- glm(ln_kWhpercapita ~ revpercapita + population + income, data = counties_x) #Step AIC picks
+counties.5 <- glm(ln_kWhpercapita ~ revpercapita + pop_scale + income, data = counties_x) #Step AIC picks
 
 counties.7 <- glm(ln_kWhpercapita ~ revpercapita + dac + irr + obf + income, data = counties_x) #intuitive picks
 
@@ -778,12 +832,12 @@ stargazer(counties.1, counties.3, counties.5, counties.7, type="text", title="Re
 ```{r, counties regression}
 #final regression picks BUDGET
 
-stargazer(counties.2, counties.4, counties.6, counties.8, type="text", title="Investment Regression Results (County)", align=TRUE, dep.var.labels=c("Log of Budget", "Log Budget Per Capita"), order=c("revenue", "revpercapita", "income", "irr", "dac", "obf", "population"), covariate.labels=c("Revenue","Revenue per Capita","Income", "IRR","DAC Proportion", "Percent of On-bill Financing","Population"), omit.stat=c("LL","ser","f"), no.space=TRUE)
+stargazer(counties.2, counties.4, counties.6, counties.8, type="text", title="Budget Regression Results (County)", align=TRUE, dep.var.labels=c("Log of Budget", "Log Budget Per Capita"), order=c("revenue", "revpercapita", "income", "irr", "dac", "obf", "pop_scale", "population"), covariate.labels=c("Revenue","Revenue per Capita","Income", "IRR","DAC Proportion", "Percent of On-bill Financing","Population (Scaled)", "Population"), omit.stat=c("LL","ser","f"), no.space=TRUE)
 ```
 ```{r, counties regression}
 #final regression picks KWH
 
-stargazer(counties.1, counties.3, counties.5, counties.7, type="text", title="Energy Savings Regression Results (County)", align=TRUE, dep.var.labels=c("Log of kWh", "Log Kwh Per Capita"), order=c("revenue", "revpercapita", "income", "irr", "dac", "obf", "population"), covariate.labels=c("Revenue", "Revenue per Capita","Income", "IRR","DAC Proportion", "Percent of On-bill Financing","Population"), omit.stat=c("LL","ser","f"), no.space=TRUE)
+stargazer(counties.1, counties.3, counties.5, counties.7, type="text", title="Energy Savings Regression Results (County)", align=TRUE, dep.var.labels=c("Log of kWh", "Log kWh Per Capita"), order=c("revenue", "revpercapita", "income", "irr", "dac", "obf", "pop_scale", "population"), covariate.labels=c("Revenue", "Revenue per Capita","Income", "IRR","DAC Proportion", "Percent of On-bill Financing","Population (Scaled)", "Population"), omit.stat=c("LL","ser","f"), no.space=TRUE)
 ```
 ```{r, counties subsetting}
 
@@ -802,8 +856,26 @@ countiesfbottomq_energy = subset(counties, kWhpercapita <= 1.377546)
 countiesftopq_energy = subset(counties, kWhpercapita > 11.231349)
 ```
 
-```{r}
-t.test(countiesfbottomq_budget$perc_aa, countiesftopq_budget$perc_aa)  
+```{r, counties Mann-Whitney}
+#compare WA
+wilcox.test(countiesfbottomq_budget$perc_wa, countiesftopq_budget$perc_wa)  #W = 99, p-value = 0.5949 not sig
+wilcox.test(countiesfbottomq_energy$perc_wa, countiesftopq_energy$perc_wa)  #W = 107, p-value = 0.8381 not sig
+
+#compare BA
+wilcox.test(countiesfbottomq_budget$perc_ba, countiesftopq_budget$perc_ba)  #W = 103, p-value = 0.713 not sig
+wilcox.test(countiesfbottomq_energy$perc_ba, countiesftopq_energy$perc_ba)  #W = 89, p-value = 0.3453 not sig
+
+#compare AA
+wilcox.test(countiesfbottomq_budget$perc_aa, countiesftopq_budget$perc_aa)  #W = 86, p-value = 0.2854 not sig
+wilcox.test(countiesfbottomq_energy$perc_aa, countiesftopq_energy$perc_aa)  #W = 71, p-value = 0.08919 not sig
+
+#compare IA
+wilcox.test(countiesfbottomq_budget$perc_ia, countiesftopq_budget$perc_ia)  #W = 138, p-value = 0.3046 not sig
+wilcox.test(countiesfbottomq_energy$perc_ia, countiesftopq_energy$perc_ia)  #W = 152, p-value = 0.1064 not sig
+
+#compare NA
+wilcox.test(countiesfbottomq_budget$perc_na, countiesftopq_budget$perc_na)  #W = 103, p-value = 0.713 not sig
+wilcox.test(countiesfbottomq_energy$perc_na, countiesftopq_energy$perc_na)  #W = 95, p-value = 0.4864 not sig
 ```
 
 
@@ -840,6 +912,9 @@ cities$ln_kWhpercapita <- log(cities$kWhpercapita + 1)
 #round budget and kWh
 cities$roundedbudgetper <- round(cities$budgetpercapita, 0)
 cities$roundedkWhper <- round(cities$kWhpercapita, 0)
+
+#scaling
+cities$pop_scale <- cities$population/10000
 ```
 
 ```{r, city subsetting}
@@ -947,7 +1022,7 @@ cities.2 <- glm(ln_budget ~  revenue + obf + resource, data = cities_x) #Step AI
 
 cities.4 <- glm(ln_budget ~ revenue + ruca + dac + obf + income + resource, data = cities_x) #intuitive picks
 
-cities.6 <- glm(ln_budgetpercapita ~ revpercapita + ruca + population + obf + resource, data = cities_x) #Step AIC picks
+cities.6 <- glm(ln_budgetpercapita ~ revpercapita + ruca + pop_scale + obf + resource, data = cities_x) #Step AIC picks
 
 cities.8 <- glm(ln_budgetpercapita ~ revpercapita + ruca + dac + population + obf + income + resource, data = cities_x) #intuitive picks
 
@@ -971,12 +1046,12 @@ stargazer(cities.1, cities.3, cities.5, cities.7, type="text", title="Results", 
 ```{r, cities regression}
 #final regression picks BUDGET
 
-stargazer(cities.2, cities.4, cities.6, cities.8, type="text", title="Investment Regression Results (Cities)", align=TRUE, dep.var.labels=c("Log of Budget", "Log Budget Per Capita"), order=c("revenue","revpercapita", "income", "ruca", "dac", "obf", "resource", "population"), covariate.labels=c("Revenue", "Revenue per Capita","Income", "RUCA","DAC Proportion", "Percent of On-bill Financing","Percent of Resource Programs", "Population"), omit.stat=c("LL","ser","f"), no.space=TRUE)
+stargazer(cities.2, cities.4, cities.6, cities.8, type="text", title="Budget Regression Results (Cities)", align=TRUE, dep.var.labels=c("Log of Budget", "Log Budget Per Capita"), order=c("revenue","revpercapita", "income", "ruca", "dac", "obf", "resource", "pop_scale"), covariate.labels=c("Revenue", "Revenue per Capita","Income", "RUCA","DAC Proportion", "Percent of On-bill Financing","Percent of Resource Programs", "Population (Scaled)"), omit.stat=c("LL","ser","f"), no.space=TRUE)
 ```
 ```{r, cities regression}
 #final regression picks KWH
 
-stargazer(cities.1, cities.3, cities.5, cities.7, type="text", title="Energy Savings Regression Results (Cities)", align=TRUE, dep.var.labels=c("Log of kWh", "Log Kwh Per Capita"), order=c("revenue","revpercapita", "income", "ruca", "dac", "obf", "resource", "population"), covariate.labels=c("Revenue","Revenue per Capita","Income", "RUCA","DAC Proportion", "Percent of On-bill Financing", "Percent of Resource Programs","Population"), omit.stat=c("LL","ser","f"), no.space=TRUE)
+stargazer(cities.1, cities.3, cities.5, cities.7, type="text", title="Energy Savings Regression Results (Cities)", align=TRUE, dep.var.labels=c("Log of kWh", "Log kWh Per Capita"), order=c("revenue","revpercapita", "income", "ruca", "dac", "obf", "resource", "pop_scale"), covariate.labels=c("Revenue","Revenue per Capita","Income", "RUCA","DAC Proportion", "Percent of On-bill Financing", "Percent of Resource Programs","Population (1000)"), omit.stat=c("LL","ser","f"), no.space=TRUE)
 ```
 ```{r, cities subsetting}
 #Create quantiles of budget
@@ -1054,7 +1129,27 @@ t.test(citiesfbottomq_budget$perc_na, citiesftopq_budget$perc_na)
 t.test(citiesfbottomq_energy$perc_na, citiesftopq_energy$perc_na) 
 ```
 
+```{r, cities Mann-Whitney}
+#compare WA
+wilcox.test(citiesfbottomq_budget$perc_wa, citiesftopq_budget$perc_wa)  #W = 5356, p-value = 0.7231 not sig
+wilcox.test(citiesfbottomq_energy$perc_wa, citiesftopq_energy$perc_wa)  #W = 5043, p-value = 0.3407 not sig
 
+#compare BA
+wilcox.test(citiesfbottomq_budget$perc_ba, citiesftopq_budget$perc_ba)  #W = 5838, p-value = 0.4604 not sig
+wilcox.test(citiesfbottomq_energy$perc_ba, citiesftopq_energy$perc_ba)  #W = 6265, p-value = 0.06571 not sig
+
+#compare AA
+wilcox.test(citiesfbottomq_budget$perc_aa, citiesftopq_budget$perc_aa)  #W = 6006, p-value = 0.2628 not sig
+wilcox.test(citiesfbottomq_energy$perc_aa, citiesftopq_energy$perc_aa)  #W = 6324.5, p-value = 0.0481 sig
+
+#compare IA
+wilcox.test(citiesfbottomq_budget$perc_ia, citiesftopq_budget$perc_ia)  #W = 5534.5, p-value = 0.961 not sig
+wilcox.test(citiesfbottomq_energy$perc_ia, citiesftopq_energy$perc_ia)  #W = 5166, p-value = 0.5019 not sig
+
+#compare NA
+wilcox.test(citiesfbottomq_budget$perc_na, citiesftopq_budget$perc_na)  #W = 6101.5, p-value = 0.1762 not sig
+wilcox.test(citiesfbottomq_energy$perc_na, citiesftopq_energy$perc_na)  #W = 5496, p-value = 0.9347 not sig
+```
 
 ##MISC. K12 Attempts 
 
