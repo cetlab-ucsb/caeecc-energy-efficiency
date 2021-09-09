@@ -335,10 +335,10 @@ hist(K12_x$ln_kWhperstudent)
 ```
 
 ```{r, K12 Step AIC selection}
-#testing these variables: lcff_scaled + lcffperstudent + irr + dac + obf + resource + income + perc_eligible_frpm + perc_title1 + population_scaled
+#testing these variables: lcff_scaled + lcffperstudent_scaled + irr + dac + obf + income + perc_eligible_frpm + perc_title1
 
 #performs stepwise model selection by AIC for budget
-stepAIC(lm(ln_budgetperstudent ~ lcff_scaled + lcffperstudent_scaled + irr + dac + obf + resource + income_scaled + perc_eligible_frpm + perc_title1, data = K12_x))
+stepAIC(lm(ln_budget ~ lcff_scaled + lcffperstudent_scaled + irr + dac + obf + income_scaled + perc_eligible_frpm + perc_title1, data = K12_x))
 
 #ln_budget ~ lcff_scaled + income_scaled + perc_eligible_frpm + perc_title1, data = K12_x
 #ln_budgetperstudent ~ lcff_scaled + dac + perc_eligible_frpm + perc_title1, data = K12_x
@@ -346,24 +346,10 @@ stepAIC(lm(ln_budgetperstudent ~ lcff_scaled + lcffperstudent_scaled + irr + dac
 
 ```{r, K12 Step AIC selection}
 #performs stepwise model selection by AIC for kWh
-stepAIC(lm(ln_kWh ~ lcff_scaled + lcffperstudent_scaled + irr + dac + obf + resource + income_scaled + perc_eligible_frpm + perc_title1, data = K12_x))
+stepAIC(lm(ln_kWhperstudent ~ lcff_scaled + lcffperstudent_scaled + irr + dac + obf + income_scaled + perc_eligible_frpm + perc_title1, data = K12_x))
 
 #ln_kWh ~ lcff_scaled + lcffperstudent_scaled, data = K12_x
 #ln_kWhperstudent ~ lcff_scaled + lcffperstudent_scaled + dac + perc_eligible_frpm + perc_title1, data = K12_x
-```
-
-```{r, K12 regression}
-#bc the ln_perstudent values have a right skew, I'm curious to see what poisson gives 
-
-K12.testa <- glm(roundedbudgetper ~ irr + perc_title1, family = "poisson", data = K12_x) #StepAIC variables 
-
-K12.testb <- glm(roundedkWhper ~  lcffperstudent + dac + perc_eligible_frpm, family = "poisson", data = K12_x) #StepAIC variables 
-
-K12.testc <- glm(roundedbudgetper ~ lcffperstudent + irr + dac + perc_eligible_frpm + perc_title1 + obf + resource, family = "poisson", data = K12_x) #intuitive picks based on collinearity 
-
-K12.testd <- glm(roundedkWhper ~ lcffperstudent + irr + dac + perc_eligible_frpm + perc_title1 + obf + resource, family = "poisson", data = K12_x) #intuitive picks based on collinearity 
-
-stargazer(K12.testa, K12.testb, K12.testc, K12.testd, type="text", title="Results", align=TRUE, omit.stat=c("LL","ser","f"), no.space=TRUE)
 ```
 
 ```{r, K12 regression}
@@ -802,33 +788,20 @@ hist(counties_x$ln_kWhpercapita)
 ```{r, County Step AIC selection}
 
 #performs stepwise model selection by AIC for budget
-stepAIC(lm(ln_budgetpercapita ~ revenue_scaled + revpercapita_scaled + dac + irr + population_scaled + obf + resource + income_scaled, data = counties_x))
+stepAIC(lm(ln_budget ~ revenue_scaled + revpercapita_scaled + dac + irr + population_scaled + obf + income_scaled, data = counties_x))
 
-#result testing all of them: ln_budgetpercapita ~ revpercapita_scaled + population_scaled + obf, data = counties_x
-#result testing all of them: ln_budget ~ revenue_scaled + revpercapita_scaled + irr + population_scaled + obf, data = counties_x
+#ln_budgetpercapita ~ revpercapita_scaled + population_scaled + obf, data = counties_x
+#ln_budget ~ revenue_scaled + revpercapita_scaled + irr + population_scaled + obf, data = counties_x
+
 ```
 
 ```{r, County Step AIC selection}
 
 #performs stepwise model selection by AIC for kWh
-stepAIC(lm(ln_kWhpercapita ~ revenue_scaled + revpercapita_scaled + dac + irr + population_scaled + obf + resource + income_scaled, data = counties_x))
+stepAIC(lm(ln_kWh ~ revenue_scaled + revpercapita_scaled + dac + irr + population_scaled + obf + income_scaled, data = counties_x))
 
-#result testing all of them: ln_kWhpercapita ~ revpercapita_scaled + irr + population_scaled, data = counties_x
-#result testing all of them: ln_kWh ~ revenue_scaled + revpercapita_scaled + irr + population_scaled, data = counties_x
-```
-
-```{r, counties regression}
-#bc the percapita values have a right skew, I'm curious to see what poisson gives 
-
-counties.testa <- glm(roundedbudgetper ~ population, family = "poisson", data = counties_x) #StepAIC variables 
-
-counties.testb <- glm(roundedkWhper ~  revpercapita + population, family = "poisson", data = counties_x) #StepAIC variables 
-
-counties.testc <- glm(roundedbudgetper ~ revpercapita + dac + irr + obf + income, family = "poisson", data = counties_x) #intuitive picks based on collinearity 
-
-counties.testd <- glm(roundedkWhper ~ revpercapita + dac + irr + obf + income, family = "poisson", data = counties_x) #intuitive picks based on collinearity 
-
-stargazer(counties.testa, counties.testb, counties.testc, counties.testd, type="text", title="Results", align=TRUE, omit.stat=c("LL","ser","f"), no.space=TRUE)
+#ln_kWhpercapita ~ revpercapita_scaled + irr + population_scaled, data = counties_x
+#ln_kWh ~ revenue_scaled + revpercapita_scaled + irr + population_scaled, data = counties_x
 ```
 
 ```{r, counties regression}
@@ -889,13 +862,14 @@ stargazer(counties.1, counties.3, counties.5, counties.7, type="text", title="Re
 
 ```{r, counties regression}
 #final regression picks BUDGET
+#to export table to nice format -> type="html", out= "tablecounty1.htm", title="Budget Regression......
 
-stargazer(counties.2, counties.4, counties.6, counties.8, type="text", title="Budget Regression Results (County)", align=TRUE, dep.var.labels=c("Log of Budget", "Log Budget Per Capita"), order=c("revenue_scaled", "revpercapita_scaled", "income_scaled", "irr", "dac", "obf", "population_scaled"), covariate.labels=c("Revenue (Scaled by 100000)", "Revenue per capita (Scaled by 100000)", "Income (Scaled by 100000)","IRR","DAC Proportion", "Percent of On-bill Financing","Population (Scaled by 100000)"), omit.stat=c("LL","ser","f"), no.space=TRUE)
+stargazer(counties.2, counties.4, counties.6, counties.8, type="html", out= "tablecounty1.htm", title="Budget Regression Results (County)", align=TRUE, dep.var.labels=c("Log of Budget", "Log Budget Per Capita"), order=c("revenue_scaled", "revpercapita_scaled", "income_scaled", "irr", "dac", "obf", "population_scaled"), covariate.labels=c("Revenue (Scaled by 100000)", "Revenue per capita (Scaled by 100000)", "Income (Scaled by 100000)","IRR","DAC Proportion", "Percent of On-bill Financing","Population (Scaled by 100000)"), omit.stat=c("LL","ser","f"), no.space=TRUE)
 ```
 ```{r, counties regression}
 #final regression picks KWH
 
-stargazer(counties.1, counties.3, counties.5, counties.7, type="text", title="Energy Savings Regression Results (County)", align=TRUE, dep.var.labels=c("Log of kWh", "Log kWh Per Capita"), order=c("revenue_scaled", "revpercapita_scaled", "income_scaled", "irr", "dac", "obf", "population_scaled"), covariate.labels=c("Revenue (Scaled by 100000)", "Revenue per capita (Scaled by 100000)", "Income (Scaled by 100000)","IRR","DAC Proportion", "Percent of On-bill Financing","Population (Scaled by 100000)"), omit.stat=c("LL","ser","f"), no.space=TRUE)
+stargazer(counties.1, counties.3, counties.5, counties.7, type="html", out= "tablecounty2.htm", title="Energy Savings Regression Results (County)", align=TRUE, dep.var.labels=c("Log of kWh", "Log kWh Per Capita"), order=c("revenue_scaled", "revpercapita_scaled", "income_scaled", "irr", "dac", "obf", "population_scaled"), covariate.labels=c("Revenue (Scaled by 100000)", "Revenue per capita (Scaled by 100000)", "Income (Scaled by 100000)","IRR","DAC Proportion", "Percent of On-bill Financing","Population (Scaled by 100000)"), omit.stat=c("LL","ser","f"), no.space=TRUE)
 ```
 ```{r, counties subsetting}
 
@@ -912,6 +886,61 @@ quantile(counties$kWhpercapita)
 #create top and bottom quantile
 countiesfbottomq_energy = subset(counties, kWhpercapita <= 1.377546)
 countiesftopq_energy = subset(counties, kWhpercapita > 11.231349)
+```
+
+```{r}
+#t tests to compare means of irr in top and bottom
+t.test(bottomq_budget$IRR, topq_budget$IRR, na.action = na.omit) #super sig--> makes sense because only real significance in regression
+t.test(bottomq_energy$IRR, topq_energy$IRR, na.action = na.omit, var.equal = TRUE) #significant
+
+#t tests to compare means of budget per capita in top and bottom
+t.test(bottomq_energy$budget_per_cap, topq_energy$budget_per_cap) #significant -> this more important cuz shoes relationship between energy and budget
+
+#t tests to compare means of total revenue in top and bottom
+t.test(bottomq_budget$TotalRevenue, topq_budget$TotalRevenue) #significant
+t.test(bottomq_energy$TotalRevenue, topq_energy$TotalRevenue) #not significant
+
+#t tests to compare means of population in top and bottom
+t.test(bottomq_budget$Population, topq_budget$Population) #significant
+t.test(bottomq_energy$Population, topq_energy$Population) #not significant, not different 
+
+#t tests to compare means of dac proportion in top and bottom
+t.test(bottomq_budget$dac_proportion, topq_budget$dac_proportion, var.equal = TRUE) #not significant--> not significant in regressions
+t.test(bottomq_energy$dac_proportion, topq_energy$dac_proportion, var.equal = TRUE) #not significant
+
+#t tests to compare means of ces score median in top and bottom
+t.test(bottomq_budget$ces_score_median, topq_budget$ces_score_median, var.equal = TRUE) #not significant --> makes sense because not significant with budget in regression
+t.test(bottomq_energy$ces_score_median, topq_energy$ces_score_median) #not significant
+
+#t tests to compare means of mean income in top and bottom
+t.test(bottomq_budget$Mean.Income, topq_budget$Mean.Income, var.equal = TRUE) #not sig --> makes sense because not significant in any of the regressions
+t.test(bottomq_energy$Mean.Income, topq_energy$Mean.Income, var.equal = TRUE) #not sig --> makes sense because not significant in any of the regressions
+```
+
+```{r}
+#look at average percentage of certain demographics within top and bottom quantile based on budget per cap
+t.test(bottomq_budget$perc_wa_avg,topq_budget$perc_wa_avg)
+
+t.test(bottomq_budget$perc_ba_avg, topq_budget$perc_ba_avg)
+
+t.test(bottomq_budget$perc_aa_avg, topq_budget$perc_aa_avg)
+
+t.test(bottomq_budget$perc_ia_avg, topq_budget$perc_ia_avg)
+
+t.test(bottomq_budget$perc_na_avg, topq_budget$perc_na_avg, var.equal = TRUE)
+```
+
+```{r}
+#look at average percentage of certain demographics within top and bottom quantile based on kwh per cap
+t.test(bottomq_energy$perc_wa_avg, topq_energy$perc_wa_avg)
+
+t.test(bottomq_energy$perc_ba_avg, topq_energy$perc_ba_avg)
+
+t.test(bottomq_energy$perc_aa_avg, topq_energy$perc_aa_avg)
+
+t.test(bottomq_energy$perc_ia_avg, topq_energy$perc_ia_avg)
+
+t.test(bottomq_energy$perc_na_avg, topq_energy$perc_na_avg)
 ```
 
 ```{r, counties Mann-Whitney}
@@ -1051,34 +1080,20 @@ hist(cities_x$ln_kWhpercapita)
 
 #performs stepwise model selection by AIC for budget
 #all variables: revenue_scaled + revpercapita_scaled + ruca + dac + population_scaled + obf + income_scaled + resource 
-stepAIC(lm(ln_budgetpercapita ~ revenue_scaled + revpercapita_scaled + ruca + dac + population_scaled + obf + income_scaled + resource, data = cities_x))
+stepAIC(lm(ln_budget ~ revenue_scaled + revpercapita_scaled + ruca + dac + population_scaled + obf + income_scaled + resource, data = cities_x))
 
-#lm(formula = ln_budget ~ revenue_scaled + obf + resource, data = cities_x)
-#lm(formula = ln_budgetpercapita ~ revenue_scaled + revpercapita_scaled + ruca + population_scaled + obf + resource, data = cities_x)
+#ln_budget ~ revenue_scaled + obf + resource, data = cities_x)
+#ln_budgetpercapita ~ revenue_scaled + revpercapita_scaled + ruca + population_scaled + obf + resource, data = cities_x)
 ```
 
 ```{r, City Step AIC selection}
 
 #performs stepwise model selection by AIC for kWh
-stepAIC(lm(ln_kWhpercapita ~ revenue_scaled + revpercapita_scaled + ruca + dac + population_scaled + obf + income_scaled + resource, data = cities_x))
+stepAIC(lm(ln_kWh ~ revenue_scaled + revpercapita_scaled + ruca + dac + population_scaled + obf + income_scaled + resource, data = cities_x))
 
 #result testing all of them: roundedkWhper ~ revpercapita + ruca + dac + obf + income, data = cities_x)
-#lm(formula = ln_kWh ~ revenue_scaled + obf, data = cities_x)
-#lm(formula = ln_kWhpercapita ~ revenue_scaled + ruca + dac + population_scaled + obf, data = cities_x)
-```
-
-```{r, cities regression}
-#bc the percapita values have a right skew, I'm curious to see what poisson gives 
-
-cities.testa <- glm(roundedbudgetper ~ revpercapita + ruca + dac + obf +  income + resource, family = "poisson", data = cities_x) #StepAIC variables 
-
-cities.testb <- glm(roundedkWhper ~  revpercapita + ruca + dac + obf + income, family = "poisson", data = cities_x) #StepAIC variables 
-
-cities.testc <- glm(roundedbudgetper ~ revpercapita + ruca + dac + population + obf + income + resource, family = "poisson", data = cities_x) #intuitive picks based on collinearity 
-
-cities.testd <- glm(roundedkWhper ~ revpercapita + ruca + dac + population + obf + income + resource , family = "poisson", data = cities_x) #intuitive picks based on collinearity 
-
-stargazer(cities.testa, cities.testb, cities.testc, cities.testd, type="text", title="Results", align=TRUE, omit.stat=c("LL","ser","f"), no.space=TRUE)
+#ln_kWh ~ revenue_scaled + obf, data = cities_x)
+#ln_kWhpercapita ~ revenue_scaled + ruca + dac + population_scaled + obf, data = cities_x)
 ```
 
 ```{r, cities regression}
@@ -1099,12 +1114,16 @@ summary(cities.8)
 =======
 cities.2 <- glm(ln_budget ~  revenue_scaled + obf + resource, data = cities_x) #Step AIC picks
 
-cities.4 <- glm(ln_budget ~ revenue_scaled + ruca + dac + obf + income_scaled + resource, data = cities_x) #intuitive picks
+cities.4 <- glm(ln_budget ~ revenue_scaled + revpercapita_scaled + ruca + dac + population_scaled + obf + income_scaled + resource, data = cities_x) #intuitive picks
 
 cities.6 <- glm(ln_budgetpercapita ~ revenue_scaled + revpercapita_scaled + ruca + population_scaled + obf + resource, data = cities_x) #Step AIC picks
 
+<<<<<<< HEAD
 cities.8 <- glm(ln_budgetpercapita ~ revpercapita_scaled + ruca + population_scaled + obf + resource, data = cities_x) #intuitive picks
 >>>>>>> 98a7956963b1883ec3a935a9b6213d4a763a9bdf
+=======
+cities.8 <- glm(ln_budgetpercapita ~ revenue_scaled + revpercapita_scaled + ruca + dac + population_scaled + obf + income_scaled + resource, data = cities_x) #intuitive picks
+>>>>>>> fd626fd1f30587d4f1928bd7f1de9cf74b0a4a0c
 
 stargazer(cities.2, cities.4, cities.6, cities.8, type="text", title="Results", align=TRUE, omit.stat=c("LL","ser","f"), no.space=TRUE)
 ```
@@ -1127,12 +1146,16 @@ summary(cities.7)
 =======
 cities.1 <- glm(ln_kWh ~ revenue_scaled + obf, data = cities_x) #Step AIC picks
 
-cities.3 <- glm(ln_kWh ~ revpercapita_scaled + ruca + dac + obf + income_scaled + resource, data = cities_x) #intuitive picks
+cities.3 <- glm(ln_kWh ~ revenue_scaled + revpercapita_scaled + ruca + dac + population_scaled + obf + income_scaled + resource, data = cities_x) #intuitive picks
 
 cities.5 <- glm(ln_kWhpercapita ~ revenue_scaled + ruca + dac + population_scaled + obf, data = cities_x) #Step AIC picks
 
+<<<<<<< HEAD
 cities.7 <- glm(ln_kWhpercapita ~ revpercapita_scaled + ruca + dac + population_scaled + obf + income_scaled + resource, data = cities_x) #intuitive picks
 >>>>>>> 98a7956963b1883ec3a935a9b6213d4a763a9bdf
+=======
+cities.7 <- glm(ln_kWhpercapita ~ revenue_scaled + revpercapita_scaled + ruca + dac + population_scaled + obf + income_scaled + resource, data = cities_x) #intuitive picks
+>>>>>>> fd626fd1f30587d4f1928bd7f1de9cf74b0a4a0c
 
 stargazer(cities.1, cities.3, cities.5, cities.7, type="text", title="Results", align=TRUE, omit.stat=c("LL","ser","f"), no.space=TRUE)
 ```
@@ -1146,7 +1169,6 @@ stargazer(cities.2, cities.4, cities.6, cities.8, type="text", title="Budget Reg
 #final regression picks KWH
 
 stargazer(cities.1, cities.3, cities.5, cities.7, type="text", title="Energy Savings Regression Results (Cities)", align=TRUE, dep.var.labels=c("Log of kWh", "Log kWh Per Capita"), order=c("revenue_scaled","revpercapita_scaled", "income_scaled", "ruca", "dac", "obf", "resource", "population_scaled"), covariate.labels=c("Revenue (Scaled by 100000)", "Revenue per Capita (Scaled by 100000)","Income (Scaled by 100000)", "RUCA","DAC Proportion", "Percent of On-bill Financing","Percent of Resource Programs", "Population (Scaled by 100000)"), omit.stat=c("LL","ser","f"), no.space=TRUE)
-```
 ```
 ```{r, cities subsetting}
 #Create quantiles of budget
@@ -1356,6 +1378,21 @@ K12x_12.glm <- glm(roundedbudgetperstudent ~ lcff + no_title1 + irr + dac + frmp
 ```
 
 ```{r, K12 regression}
+#most updated poisson for K12 as of 9/2021
+#bc the ln_perstudent values have a right skew, I'm curious to see what poisson gives 
+
+K12.testa <- glm(roundedbudgetper ~ irr + perc_title1, family = "poisson", data = K12_x) #StepAIC variables 
+
+K12.testb <- glm(roundedkWhper ~  lcffperstudent + dac + perc_eligible_frpm, family = "poisson", data = K12_x) #StepAIC variables 
+
+K12.testc <- glm(roundedbudgetper ~ lcffperstudent + irr + dac + perc_eligible_frpm + perc_title1 + obf + resource, family = "poisson", data = K12_x) #intuitive picks based on collinearity 
+
+K12.testd <- glm(roundedkWhper ~ lcffperstudent + irr + dac + perc_eligible_frpm + perc_title1 + obf + resource, family = "poisson", data = K12_x) #intuitive picks based on collinearity 
+
+stargazer(K12.testa, K12.testb, K12.testc, K12.testd, type="text", title="Results", align=TRUE, omit.stat=c("LL","ser","f"), no.space=TRUE)
+```
+
+```{r, K12 regression}
 summary(K12x_9.glm) 
 summary(K12x_10.glm) 
 summary(K12x_11.glm) 
@@ -1517,3 +1554,32 @@ with(counties1e_glm.nb, cbind(res.deviance = deviance, df = df.residual,
   p = pchisq(deviance, df.residual, lower.tail=TRUE)))
 ```
 
+```{r, counties regression}
+#most updated poisson for counties 9/2021
+#bc the percapita values have a right skew, I'm curious to see what poisson gives 
+
+counties.testa <- glm(roundedbudgetper ~ population, family = "poisson", data = counties_x) #StepAIC variables 
+
+counties.testb <- glm(roundedkWhper ~  revpercapita + population, family = "poisson", data = counties_x) #StepAIC variables 
+
+counties.testc <- glm(roundedbudgetper ~ revpercapita + dac + irr + obf + income, family = "poisson", data = counties_x) #intuitive picks based on collinearity 
+
+counties.testd <- glm(roundedkWhper ~ revpercapita + dac + irr + obf + income, family = "poisson", data = counties_x) #intuitive picks based on collinearity 
+
+stargazer(counties.testa, counties.testb, counties.testc, counties.testd, type="text", title="Results", align=TRUE, omit.stat=c("LL","ser","f"), no.space=TRUE)
+```
+
+```{r, cities regression}
+#most updated poisson for counties 9/2021
+#bc the percapita values have a right skew, I'm curious to see what poisson gives 
+
+cities.testa <- glm(roundedbudgetper ~ revpercapita + ruca + dac + obf +  income + resource, family = "poisson", data = cities_x) #StepAIC variables 
+
+cities.testb <- glm(roundedkWhper ~  revpercapita + ruca + dac + obf + income, family = "poisson", data = cities_x) #StepAIC variables 
+
+cities.testc <- glm(roundedbudgetper ~ revpercapita + ruca + dac + population + obf + income + resource, family = "poisson", data = cities_x) #intuitive picks based on collinearity 
+
+cities.testd <- glm(roundedkWhper ~ revpercapita + ruca + dac + population + obf + income + resource , family = "poisson", data = cities_x) #intuitive picks based on collinearity 
+
+stargazer(cities.testa, cities.testb, cities.testc, cities.testd, type="text", title="Results", align=TRUE, omit.stat=c("LL","ser","f"), no.space=TRUE)
+```
