@@ -4,21 +4,24 @@ output: html_notebook
 ---
 
 ```{r}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = '~/Documents/Github/caeecc-energy-efficiency/for github/data')
+```
+
+```{r}
+library(readr)
 library("dplyr")
 library("MASS")
 library(splines)
-library(Ecdat)
 library(car)
-library(lmtest)
 library(stargazer)
 ```
 
 
 ```{r}
 
-#cities <- read.csv('C:/Users/ather/CS Projects/CETLab/caeecc-energy-efficiency/cities_2.csv')
-cities <- read.csv("C:/Users/ather/R/CETLAB/cities_demo_joined.csv")
-cities_full <- read.csv("C:/Users/ather/R/CETLAB/cities_demo_joined.csv")
+cities <- read.csv("cities_3.csv")
+cities_full <- read.csv("cities_3.csv")
 
 demo <- read.csv('C:/Users/ather/R/CETLAB/census_race_combined_by_city.csv')
 demoall <- read.csv('C:/Users/ather/R/CETLAB/census_race_group_by_city.csv')

@@ -8,7 +8,7 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_knit$set(root.dir = '~/Desktop/caeecc-energy-efficiency/for github/data/')
+knitr::opts_knit$set(root.dir = '~/Documents/github/caeecc-energy-efficiency/for github/data/')
 ```
 
 ```{r, load packages}
@@ -364,10 +364,12 @@ stargazer(K12.testa, K12.testb, K12.testc, K12.testd, type="text", title="Result
 #regression from budget
 
 K12.2 <- glm(ln_budget ~  lcff + income + perc_eligible_frpm + perc_title1, data = K12_x) #Step AIC picks
+summary(K12.2)
 
 K12.4 <- glm(ln_budget ~ lcff + irr + dac + obf + resource + income + perc_eligible_frpm + perc_title1, data = K12_x) #intuitive picks
 
 K12.6 <- glm( ln_budgetperstudent ~ dac + perc_eligible_frpm + perc_title1, data = K12_x) #Step AIC picks; important to note this y variable does not meet normal assumptions
+summary(K12.6)
 
 K12.8 <- glm(ln_budgetperstudent ~ lcffperstudent + irr + dac + obf + resource + income + perc_eligible_frpm + perc_title1, data = K12_x) #intuitive picks; important to note this y variable does not meet normal assumptions
 
@@ -378,12 +380,16 @@ stargazer(K12.2, K12.4, K12.6, K12.8, type="text", title="Results", align=TRUE, 
 #regression from kWh
 
 K12.1 <- glm(ln_kWh ~  income + perc_eligible_frpm + perc_title1, data = K12_x) #Step AIC picks
+summary(K12.1)
 
 K12.3 <- glm(ln_kWh ~ lcff + irr + dac + obf + resource + income + perc_eligible_frpm + perc_title1, data = K12_x) #intuitive picks
+summary(K12.3)
 
 K12.5 <- glm( ln_kWhperstudent ~ lcffperstudent + dac + perc_eligible_frpm + perc_title1, data = K12_x) #Step AIC picks; important to note this y variable does not meet normal assumptions
+summary(K12.5)
 
 K12.7 <- glm(ln_kWhperstudent ~ lcffperstudent + irr + dac + obf + resource + income + perc_eligible_frpm + perc_title1, data = K12_x) #intuitive picks; important to note this y variable does not meet normal assumptions
+summary(K12.7)
 
 stargazer(K12.1, K12.3, K12.5, K12.7, type="text", title="Results", align=TRUE, omit.stat=c("LL","ser","f"), no.space=TRUE)
 ```
@@ -804,13 +810,17 @@ stargazer(counties.testa, counties.testb, counties.testc, counties.testd, type="
 ```{r, counties regression}
 #regression from budget
 
-counties.2 <- glm(ln_budget ~  irr, data = counties_x) #Step AIC picks
+counties.2 <- glm(ln_budget ~  irr, data = counties_x)
+summary(counties.2) #Step AIC picks
 
 counties.4 <- glm(ln_budget ~ revenue + dac + irr + obf + income, data = counties_x) #intuitive picks
+summary(counties.4)
 
 counties.6 <- glm(ln_budgetpercapita ~ revpercapita + pop_scale + obf + income, data = counties_x) #Step AIC picks
+summary(counties.6)
 
 counties.8 <- glm(ln_budgetpercapita ~ revpercapita + dac + irr + obf + income, data = counties_x) #intuitive picks
+summary(counties.8)
 
 stargazer(counties.2, counties.4, counties.6, counties.8, type="text", title="Results", align=TRUE, omit.stat=c("LL","ser","f"), no.space=TRUE)
 ```
@@ -818,13 +828,17 @@ stargazer(counties.2, counties.4, counties.6, counties.8, type="text", title="Re
 ```{r, counties regression}
 #regression from kWh
 
-counties.1 <- glm(ln_kWh ~  irr + population, data = counties_x) #Step AIC picks
+counties.1 <- glm(ln_kWh ~  irr + population, data = counties_x)
+summary(counties.1) #Step AIC picks
 
 counties.3 <- glm(ln_kWh ~ revenue + dac + irr + obf + income, data = counties_x) #intuitive picks
+summary(counties.3)
 
 counties.5 <- glm(ln_kWhpercapita ~ revpercapita + pop_scale + income, data = counties_x) #Step AIC picks
+summary(counties.5)
 
 counties.7 <- glm(ln_kWhpercapita ~ revpercapita + dac + irr + obf + income, data = counties_x) #intuitive picks
+summary(counties.7)
 
 stargazer(counties.1, counties.3, counties.5, counties.7, type="text", title="Results", align=TRUE, omit.stat=c("LL","ser","f"), no.space=TRUE)
 ```
@@ -1018,13 +1032,17 @@ stargazer(cities.testa, cities.testb, cities.testc, cities.testd, type="text", t
 ```{r, cities regression}
 #regression from budget
 
-cities.2 <- glm(ln_budget ~  revenue + obf + resource, data = cities_x) #Step AIC picks
+cities.2 <- glm(ln_budget ~  revenue + obf + resource, data = cities_x)
+summary(cities.2) #Step AIC picks
 
 cities.4 <- glm(ln_budget ~ revenue + ruca + dac + obf + income + resource, data = cities_x) #intuitive picks
+summary(cities.4)
 
 cities.6 <- glm(ln_budgetpercapita ~ revpercapita + ruca + pop_scale + obf + resource, data = cities_x) #Step AIC picks
+summary(cities.6)
 
 cities.8 <- glm(ln_budgetpercapita ~ revpercapita + ruca + dac + population + obf + income + resource, data = cities_x) #intuitive picks
+summary(cities.8)
 
 stargazer(cities.2, cities.4, cities.6, cities.8, type="text", title="Results", align=TRUE, omit.stat=c("LL","ser","f"), no.space=TRUE)
 ```
@@ -1033,12 +1051,16 @@ stargazer(cities.2, cities.4, cities.6, cities.8, type="text", title="Results", 
 #regression from kWh
 
 cities.1 <- glm(ln_kWh ~  revenue + obf, data = cities_x) #Step AIC picks
+summary(cities.1)
 
 cities.3 <- glm(ln_kWh ~ revenue + ruca + dac + obf + income + resource, data = cities_x) #intuitive picks
+summary(cities.3)
 
 cities.5 <- glm(ln_kWhpercapita ~ revpercapita + ruca + dac + obf, data = cities_x) #Step AIC picks
+summary(cities.5)
 
 cities.7 <- glm(ln_kWhpercapita ~ revpercapita + ruca + dac + population + obf + income + resource, data = cities_x) #intuitive picks
+summary(cities.7)
 
 stargazer(cities.1, cities.3, cities.5, cities.7, type="text", title="Results", align=TRUE, omit.stat=c("LL","ser","f"), no.space=TRUE)
 ```
@@ -1072,15 +1094,15 @@ citiesftopq_energy = subset(cities, kWhpercapita > 13.167434)
 ```{r, cities t-tests}
 
 #t tests to compare means of dac proportion in top and bottom
-t.test(citiesfbottomq_budget$dac, citiesftopq_budget$dac) 
-t.test(citiesfbottomq_energy$dac, citiesftopq_energy$dac) 
+t.test(citiesfbottomq_budget$dac, citiesftopq_budget$dac, var.equal = TRUE) 
+t.test(citiesfbottomq_energy$dac, citiesftopq_energy$dac, var.equal = TRUE) 
 
 #t tests to compare means of ces score median in top and bottom
-t.test(citiesfbottomq_budget$ces_score, citiesftopq_budget$ces_score)  
-t.test(citiesfbottomq_energy$ces_score, citiesftopq_energy$ces_score) 
+t.test(citiesfbottomq_budget$ces_score, citiesftopq_budget$ces_score, var.equal = TRUE)  
+t.test(citiesfbottomq_energy$ces_score, citiesftopq_energy$ces_score, var.equal = TRUE) 
 
 #t tests to compare means of ruca in top and bottom
-t.test(citiesfbottomq_budget$ruca, citiesftopq_budget$ruca) 
+t.test(citiesfbottomq_budget$ruca, citiesftopq_budget$ruca, var.equal = TRUE) 
 t.test(citiesfbottomq_energy$ruca, citiesftopq_energy$ruca) 
 
 #t tests to compare means of population in top and bottom
@@ -1089,11 +1111,11 @@ t.test(citiesfbottomq_energy$population, citiesftopq_energy$population) #signifi
 
 #t tests to compare means of revenue in top and bottom
 t.test(citiesfbottomq_budget$revenue, citiesftopq_budget$revenue) 
-t.test(citiesfbottomq_energy$revenue, citiesftopq_energy$revenue) 
+t.test(citiesfbottomq_budget$revenue, citiesftopq_budget$revenue) 
 
 #t tests to compare means of ces score median in top and bottom
-t.test(citiesfbottomq_budget$income, citiesftopq_budget$income)  
-t.test(citiesfbottomq_energy$income, citiesftopq_energy$income) 
+t.test(citiesfbottomq_budget$income, citiesftopq_budget$income, var.equal = TRUE)  
+t.test(citiesfbottomq_energy$income, citiesftopq_energy$income, var.equal = TRUE) 
 ```
 
 ```{r}
@@ -1109,23 +1131,23 @@ t.test(citiesfbottomq_energy$ces_score, citiesftopq_energy$ces_score)
 
 ```{r, cities t-tests}
 #compare WA
-t.test(citiesfbottomq_budget$perc_wa, citiesftopq_budget$perc_wa)  
-t.test(citiesfbottomq_energy$perc_wa, citiesftopq_energy$perc_wa) 
+t.test(citiesfbottomq_budget$perc_wa, citiesftopq_budget$perc_wa, var.equal = TRUE)  
+t.test(citiesfbottomq_energy$perc_wa, citiesftopq_energy$perc_wa, var.equal = TRUE) 
 
 #compare BA
-t.test(citiesfbottomq_budget$perc_ba, citiesftopq_budget$perc_ba)  
+t.test(citiesfbottomq_budget$perc_ba, citiesftopq_budget$perc_ba, var.equal = TRUE)  
 t.test(citiesfbottomq_energy$perc_ba, citiesftopq_energy$perc_ba) 
 
 #compare AA
-t.test(citiesfbottomq_budget$perc_aa, citiesftopq_budget$perc_aa)  
+t.test(citiesfbottomq_budget$perc_aa, citiesftopq_budget$perc_aa, var.equal= TRUE)  
 t.test(citiesfbottomq_energy$perc_aa, citiesftopq_energy$perc_aa) 
 
 #compare IA
-t.test(citiesfbottomq_budget$perc_ia, citiesftopq_budget$perc_ia)  
-t.test(citiesfbottomq_energy$perc_ia, citiesftopq_energy$perc_ia) 
+t.test(citiesfbottomq_budget$perc_ia, citiesftopq_budget$perc_ia, var.equal= TRUE)  
+t.test(citiesfbottomq_energy$perc_ia, citiesftopq_energy$perc_ia, var.equal = TRUE) 
 
 #compare NA
-t.test(citiesfbottomq_budget$perc_na, citiesftopq_budget$perc_na)  
+t.test(citiesfbottomq_budget$perc_na, citiesftopq_budget$perc_na, var.equal = TRUE)  
 t.test(citiesfbottomq_energy$perc_na, citiesftopq_energy$perc_na) 
 ```
 
