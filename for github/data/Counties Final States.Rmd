@@ -68,7 +68,7 @@ summary(counties_percap_x_lm1)
 ```
 
 ```{r}
-counties_percap_x_lm2<-lm(ln_budget~revenue_per_cap+Population+IRR+Mean.Income+dac_proportion+X..OBF.Budget+X..Resource.Budget, data=counties_x)
+counties_percap_x_lm2<-lm(ln_budget~TotalRevenue+Population+IRR+Mean.Income+dac_proportion+X..OBF.Budget+X..Resource.Budget, data=counties_x)
 res.counties_percap_x2<-counties_percap_x_lm2$residuals
 qqPlot(counties_percap_x_lm2)
 shapiro.test(res.counties_percap_x2) 
@@ -77,12 +77,12 @@ summary(counties_percap_x_lm2)
 
 ```{r}
 #use step aic to see which configuration of models is best
-stepAIC(lm(ln_budget ~ Mean.Income + revenue_per_cap + Population + IRR + ces_score_median + dac_proportion + X..OBF.Budget + X..Resource.Budget, data = counties_x))
+stepAIC(lm(ln_budget ~ Mean.Income + TotalRevenue + Population + IRR + ces_score_median + dac_proportion + X..OBF.Budget + X..Resource.Budget, data = counties_x))
 ```
 
 ```{r}
 #regression using the recommended variables from step aic for the new dataset
-counties_percap_x_lm3<-lm(ln_budget~revenue_per_cap + IRR, data=counties_x)
+counties_percap_x_lm3<-lm(ln_budget~IRR, data=counties_x)
 res.counties_percap_x3<-counties_percap_x_lm3$residuals
 qqPlot(counties_percap_x_lm3)
 shapiro.test(res.counties_percap_x3) 
@@ -92,7 +92,7 @@ summary(counties_percap_x_lm3)
 
 ```{r}
 library(stargazer)
-stargazer(counties_percap_x_lm, counties_percap_x_lm1, counties_percap_x_lm2, counties_percap_x_lm3, type="text", title="Linear Regression Results Budget Data", align=TRUE, dep.var.labels=c("Log of Budget Per Capita", "Log of Budget"), omit.stat=c("LL","ser","f"), order=c("revenue_per_cap", "Population", "Mean.Income", "IRR", "dac_proportion", "ces_score_mean", "X..OBF.Budget", "X..Resource.Budget"), covariate.labels = c("Revenue Per Capita", "Population", "Mean Income", "IRR", "DAC Proportion", "CES Score", "Percent On-bill Financing", "Precent of Resource Programs"), no.space=TRUE)
+stargazer(counties_percap_x_lm, counties_percap_x_lm1, counties_percap_x_lm2, counties_percap_x_lm3, type="text", title="Linear Regression Results Budget Data", align=TRUE, dep.var.labels=c("Log of Budget Per Capita", "Log of Budget"), omit.stat=c("LL","ser","f"), order=c("revenue_per_cap","TotalRevenue", "Population", "Mean.Income", "IRR", "dac_proportion", "ces_score_mean", "X..OBF.Budget", "X..Resource.Budget"), covariate.labels = c("Revenue Per Capita","Total Revenue", "Population", "Mean Income", "IRR", "DAC Proportion", "CES Score", "Percent On-bill Financing", "Precent of Resource Programs"), no.space=TRUE)
 ```
 
 ```{r}
@@ -129,7 +129,7 @@ summary(counties_percapkwh_lm1)
 ```{r}
 #use the new data set with only ones that have budget data and no oiutliers to look at regression for energy savings using all the variables and look out normality assumptions
 counties_x$ln_kwh <- log(counties_x$TotalFirstYearGrosskWh+1)
-counties_percapkwh_lm2<-lm(ln_kwh~revenue_per_cap+IRR+Mean.Income+ces_score_median+dac_proportion+X..OBF.Budget+X..Resource.Budget, data=counties_x)
+counties_percapkwh_lm2<-lm(ln_kwh~TotalRevenue+IRR+Mean.Income+ces_score_median+dac_proportion+X..OBF.Budget+X..Resource.Budget, data=counties_x)
 res.counties_percapkwh2<-counties_percapkwh_lm2$residuals
 qqPlot(counties_percapkwh_lm2)
 shapiro.test(res.counties_percapkwh2) 
@@ -139,12 +139,12 @@ summary(counties_percapkwh_lm2)
 ```
 ```{r}
 #use step aic to see which configuration of models is best
-stepAIC(lm(ln_kwh ~ Population + Mean.Income + revenue_per_cap + IRR + ces_score_median + dac_proportion + X..OBF.Budget + X..Resource.Budget, data = counties_x))
+stepAIC(lm(ln_kwh ~ Population + Mean.Income + TotalRevenue + IRR + ces_score_median + dac_proportion + X..OBF.Budget + X..Resource.Budget, data = counties_x))
 ```
 
 ```{r}
 #use the new data set with only ones that have budget data and no oiutliers to look at regression for energy savings using all the variables and look out normality assumptions
-counties_percapkwh_lm3<-lm(ln_kwh~Population + revenue_per_cap + IRR, data=counties_x)
+counties_percapkwh_lm3<-lm(ln_kwh~Population + ces_score_median + IRR, data=counties_x)
 res.counties_percapkwh3<-counties_percapkwh_lm3$residuals
 qqPlot(counties_percapkwh_lm3)
 shapiro.test(res.counties_percapkwh3) 
@@ -154,7 +154,7 @@ summary(counties_percapkwh_lm3)
 ```
 
 ```{r}
-stargazer(counties_percapkwh_lm, counties_percapkwh_lm1, counties_percapkwh_lm2, counties_percapkwh_lm3, type="text", title="Linear Regression Results Energy Savings Data", align=TRUE, dep.var.labels=c("Log of Energy Savings Per Capita", "Log of Energy Savings"), omit.stat=c("LL","ser","f"), order=c("revenue_per_cap", "Population", "Mean.Income", "IRR", "dac_proportion", "ces_score_mean", "X..OBF.Budget", "X..Resource.Budget"), covariate.labels = c("Revenue Per Capita", "Population", "Mean Income", "IRR", "DAC Proportion", "CES Score", "Percent On-bill Financing", "Percent of Resource Programs"), no.space=TRUE)
+stargazer(counties_percapkwh_lm, counties_percapkwh_lm1, counties_percapkwh_lm2, counties_percapkwh_lm3, type="text", title="Linear Regression Results Energy Savings Data", align=TRUE, dep.var.labels=c("Log of Energy Savings Per Capita", "Log of Energy Savings"), omit.stat=c("LL","ser","f"), order=c("revenue_per_cap","TotalRevenue", "Population", "Mean.Income", "IRR", "dac_proportion", "ces_score_mean", "X..OBF.Budget", "X..Resource.Budget"), covariate.labels = c("Revenue Per Capita","Total Revenue", "Population", "Mean Income", "IRR", "DAC Proportion", "CES Score", "Percent On-bill Financing", "Percent of Resource Programs"), no.space=TRUE)
 ```
 
 ```{r}
@@ -178,7 +178,7 @@ topq_energy = subset(counties, TotalFirstYearGrosskWh > 11.231349)
 ```{r}
 #t tests to compare means of irr in top and bottom
 t.test(bottomq_budget$IRR, topq_budget$IRR, na.action = na.omit) #super sig--> makes sense because only real significance in regression
-t.test(bottomq_energy$IRR, topq_energy$IRR, na.action = na.omit) #significant
+t.test(bottomq_energy$IRR, topq_energy$IRR, na.action = na.omit, var.equal = TRUE) #significant
 
 #t tests to compare means of budget per capita in top and bottom
 t.test(bottomq_energy$budget_per_cap, topq_energy$budget_per_cap) #significant -> this more important cuz shoes relationship between energy and budget
@@ -192,16 +192,16 @@ t.test(bottomq_budget$Population, topq_budget$Population) #significant
 t.test(bottomq_energy$Population, topq_energy$Population) #not significant, not different 
 
 #t tests to compare means of dac proportion in top and bottom
-t.test(bottomq_budget$dac_proportion, topq_budget$dac_proportion) #not significant--> not significant in regressions
-t.test(bottomq_energy$dac_proportion, topq_energy$dac_proportion) #not significant
+t.test(bottomq_budget$dac_proportion, topq_budget$dac_proportion, var.equal = TRUE) #not significant--> not significant in regressions
+t.test(bottomq_energy$dac_proportion, topq_energy$dac_proportion, var.equal = TRUE) #not significant
 
 #t tests to compare means of ces score median in top and bottom
-t.test(bottomq_budget$ces_score_median, topq_budget$ces_score_median) #not significant --> makes sense because not significant with budget in regression
+t.test(bottomq_budget$ces_score_median, topq_budget$ces_score_median, var.equal = TRUE) #not significant --> makes sense because not significant with budget in regression
 t.test(bottomq_energy$ces_score_median, topq_energy$ces_score_median) #not significant
 
 #t tests to compare means of mean income in top and bottom
-t.test(bottomq_budget$Mean.Income, topq_budget$Mean.Income) #not sig --> makes sense because not significant in any of the regressions
-t.test(bottomq_energy$Mean.Income, topq_energy$Mean.Income) #not sig --> makes sense because not significant in any of the regressions
+t.test(bottomq_budget$Mean.Income, topq_budget$Mean.Income, var.equal = TRUE) #not sig --> makes sense because not significant in any of the regressions
+t.test(bottomq_energy$Mean.Income, topq_energy$Mean.Income, var.equal = TRUE) #not sig --> makes sense because not significant in any of the regressions
 ```
 
 ```{r}
@@ -214,7 +214,7 @@ t.test(bottomq_budget$perc_aa_avg, topq_budget$perc_aa_avg)
 
 t.test(bottomq_budget$perc_ia_avg, topq_budget$perc_ia_avg)
 
-t.test(bottomq_budget$perc_na_avg, topq_budget$perc_na_avg)
+t.test(bottomq_budget$perc_na_avg, topq_budget$perc_na_avg, var.equal = TRUE)
 
 ```
 
@@ -232,16 +232,46 @@ t.test(bottomq_energy$perc_na_avg, topq_energy$perc_na_avg)
 ```
 
 ```{r}
-library(stargazer)
-stargazer(counties_percap_lm, counties_percap_lm1, counties_percap_x_lm, counties_percap_x_lm1, counties_percap_x_lm2, type="text", title="Linear Regression Results Budget Data", align=TRUE, dep.var.labels=c("Full Log of Budget Per Capita","Subset Log of Budget Per Capita"),omit.stat=c("LL","ser","f"), no.space=TRUE)
+ggp1<-ggplot(counties_x, aes(x = IRR, y = ln_budget_per_cap_x)) + 
+  geom_point() +
+  stat_smooth(method = "lm", col = "red")+ ylab("Log of Budget Per Capita")+ xlab("IRR")
+
+ggp2<-ggplot(counties_x, aes(x = IRR, y = ln_kwh_per_cap)) + 
+  geom_point() +
+  stat_smooth(method = "lm", col = "red")+ ylab("Log of Energy Savings Per Capita")+ xlab("IRR")
+
+library(gridExtra)
+grid.arrange(ggp1, ggp2, ncol = 2)
 ```
 
 ```{r}
-stargazer(linear.1, linear.2, probit.model, type="text", title="Regression Results", align=TRUE,  covariate.labels=c("Handling of Complaints","No Special Privileges", "Opportunity to Learn","Performance-Based Raises","Too Critical","Advancement"), omit.stat=c("LL","ser","f"), no.space=TRUE)
+ggp3<-ggplot(counties_x, aes(x = IRR, y = ln_budget)) + 
+  geom_point() +
+  stat_smooth(method = "lm", col = "red")+ ylab("Log of Budget")+ xlab("IRR")
+
+ggp4<-ggplot(counties_x, aes(x = IRR, y = ln_kwh)) + 
+  geom_point() +
+  stat_smooth(method = "lm", col = "red")+ ylab("Log of Energy Savings")+ xlab("IRR")
+
+library(gridExtra)
+grid.arrange(ggp3, ggp4, ncol = 2)
 ```
 
 ```{r}
-library(stargazer)
-stargazer(counties_percapkwh_lm, counties_percapkwh1_lm, counties_percapkwh_lm_x, counties_percapkwh_lm_x1, counties_percapkwh_lm_x2, type="text", title="Linear Regression Results Energy Savings Data", dep.var.labels=c("Full Log of Energy Savings Per Capita","Subset Log of Energy Savings Per Capita"), align=TRUE, omit.stat=c("LL","ser","f"), no.space=TRUE)
+install.packages("remotes")
+remotes::install_github("G-Thomson/gthor")
+ggplotRegression(lm(ln_budget ~ IRR, data = counties_x))
+```
+
+```{r}
+ggplot(counties_x, aes(x = IRR, y = ln_budget_per_cap_x)) + 
+  geom_point() +
+  stat_smooth(method = "lm", col = "red")
+```
+
+```{r}
+ggplot(counties_x, aes(x = IRR, y = ln_kwh)) + 
+  geom_point() +
+  stat_smooth(method = "lm", col = "red")+ ylab("Log of Energy Savings")+ xlab("IRR")
 ```
 
