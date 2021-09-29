@@ -890,44 +890,41 @@ countiesftopq_energy = subset(counties, kWhpercapita > 11.231349)
 
 ```{r}
 #t tests to compare means of irr in top and bottom
-t.test(bottomq_budget$IRR, topq_budget$IRR, na.action = na.omit) #super sig--> makes sense because only real significance in regression
-t.test(bottomq_energy$IRR, topq_energy$IRR, na.action = na.omit, var.equal = TRUE) #significant
-
-#t tests to compare means of budget per capita in top and bottom
-t.test(bottomq_energy$budget_per_cap, topq_energy$budget_per_cap) #significant -> this more important cuz shoes relationship between energy and budget
+t.test(countiesfbottomq_budget$irr, countiesftopq_budget$irr, na.action=na.omit, var.equal = TRUE) #super sig--> makes sense because only real significance in regression
+t.test(countiesfbottomq_energy$irr, countiesftopq_energy$irr, na.action=na.omit) #significant
 
 #t tests to compare means of total revenue in top and bottom
-t.test(bottomq_budget$TotalRevenue, topq_budget$TotalRevenue) #significant
-t.test(bottomq_energy$TotalRevenue, topq_energy$TotalRevenue) #not significant
+t.test(countiesfbottomq_budget$revenue, countiesftopq_budget$revenue) #significant
+t.test(countiesfbottomq_energy$revenue, countiesftopq_energy$revenue) #not significant
 
 #t tests to compare means of population in top and bottom
-t.test(bottomq_budget$Population, topq_budget$Population) #significant
-t.test(bottomq_energy$Population, topq_energy$Population) #not significant, not different 
+t.test(countiesfbottomq_budget$population, countiesftopq_budget$population) #significant
+t.test(countiesfbottomq_energy$population, countiesftopq_energy$population) #not significant, not different 
 
 #t tests to compare means of dac proportion in top and bottom
-t.test(bottomq_budget$dac_proportion, topq_budget$dac_proportion, var.equal = TRUE) #not significant--> not significant in regressions
-t.test(bottomq_energy$dac_proportion, topq_energy$dac_proportion, var.equal = TRUE) #not significant
+t.test(countiesfbottomq_budget$dac, countiesftopq_budget$dac, var.equal = TRUE) #not significant--> not significant in regressions
+t.test(countiesfbottomq_energy$dac, countiesftopq_energy$dac, var.equal = TRUE) #not significant
 
 #t tests to compare means of ces score median in top and bottom
-t.test(bottomq_budget$ces_score_median, topq_budget$ces_score_median, var.equal = TRUE) #not significant --> makes sense because not significant with budget in regression
-t.test(bottomq_energy$ces_score_median, topq_energy$ces_score_median) #not significant
+t.test(countiesfbottomq_budget$ces_score, countiesftopq_budget$ces_score, var.equal = TRUE) #not significant --> makes sense because not significant with budget in regression
+t.test(countiesfbottomq_energy$ces_score, countiesftopq_energy$ces_score) #not significant
 
 #t tests to compare means of mean income in top and bottom
-t.test(bottomq_budget$Mean.Income, topq_budget$Mean.Income, var.equal = TRUE) #not sig --> makes sense because not significant in any of the regressions
-t.test(bottomq_energy$Mean.Income, topq_energy$Mean.Income, var.equal = TRUE) #not sig --> makes sense because not significant in any of the regressions
+t.test(countiesfbottomq_budget$income, countiesftopq_budget$income, var.equal = TRUE) #not sig --> makes sense because not significant in any of the regressions
+t.test(countiesfbottomq_energy$income, countiesftopq_energy$income, var.equal = TRUE) #not sig --> makes sense because not significant in any of the regressions
 ```
 
 ```{r}
 #look at average percentage of certain demographics within top and bottom quantile based on budget per cap
-t.test(bottomq_budget$perc_wa_avg,topq_budget$perc_wa_avg)
+t.test(countiesfbottomq_budget$perc_wa,countiesftopq_budget$perc_wa, var.equal = TRUE)
 
-t.test(bottomq_budget$perc_ba_avg, topq_budget$perc_ba_avg)
+t.test(countiesfbottomq_budget$perc_ba, countiesftopq_budget$perc_ba, var.equal = TRUE)
 
-t.test(bottomq_budget$perc_aa_avg, topq_budget$perc_aa_avg)
+t.test(countiesfbottomq_budget$perc_aa, countiesftopq_budget$perc_aa, var.equal = TRUE)
 
-t.test(bottomq_budget$perc_ia_avg, topq_budget$perc_ia_avg)
+t.test(countiesfbottomq_budget$perc_ia, countiesftopq_budget$perc_ia)
 
-t.test(bottomq_budget$perc_na_avg, topq_budget$perc_na_avg, var.equal = TRUE)
+t.test(countiesfbottomq_budget$perc_na, countiesftopq_budget$perc_na, var.equal = TRUE)
 ```
 
 ```{r}
