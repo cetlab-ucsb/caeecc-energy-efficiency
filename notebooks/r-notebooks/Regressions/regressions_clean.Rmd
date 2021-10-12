@@ -8,7 +8,8 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_knit$set(root.dir = "~/Desktop/caeecc-energy-efficiency/for github/data")
+# knitr::opts_knit$set(root.dir = "~/Desktop/caeecc-energy-efficiency/for github/data")
+knitr::opts_knit$set(root.dir = "/Users/ranjitster/Dropbox/cetlab_repos/underserved_public_sector_EE/caeecc-energy-efficiency/for github/data")
 ```
 
 ```{r}
@@ -130,79 +131,6 @@ CA_counties<- subset(x = all_counties, subset = region == "california")
 K12 <- read.csv("k12_counties_3.csv")
 ```
 
-```{r, K12 spatial}
-#load data
-K12_file   = 'k12_counties_3.csv'
-#df <- fread(K12_file) #, colClasses = c('character', df$county_fips))
-
-K12_df <- fread(K12_file, header = T, colClasses = c('character', rep(NA, 38)))
-# best practice is to classify column as a character as you read the data in.
-```
-
-```{r, K12 spatial}
-#the county names don't match (our data has capitalized first letters County =/= county), so we have to change it
-K12_df_edited <- K12_df
-K12_df_edited$county <- str_to_lower(K12_df_edited$county)
-head(K12_df_edited) #check to see if the county names did change
-```
-```{r, K12 spatial}
-#merge on count name
-#check dimensions before the merge
-dim(K12_df_edited)
-dim(CA_counties)
-
-#merge
-merged_K12data<- left_join(CA_counties, K12_df_edited, by = c("subregion"="county")) #the left_join takes all the unique values from left one and only add the matches from the right (doesn't matter in this case because they WILL match since we checked already)
-dim(merged_K12data)
-```
-
-```{r, K12 spatial}
-
-#visualize
-a <- ggplot(data = merged_K12data)+
-  geom_polygon(aes(x = long, y = lat, group = group, fill= `perc_title1`))+ #change the fill argument from plot to plot
-  coord_fixed(1.3)+
-  ggtitle("Percent of Title 1 Schools")+ #change title from plot to plot
-  theme_classic()+ #order matters in ggplot
-  scale_fill_viridis() +
-  theme(axis.title.x = element_blank(),
-                           axis.title.y = element_blank(),
-                           axis.text = element_blank(),
-                           axis.ticks = element_blank(),
-                           panel.grid = element_blank())
-
-#xy plot of budget/kWh vs perc_title1
-b <- xyplot(budget ~ perc_title1, data = merged_K12data)
-c <- xyplot(kWh ~ perc_title1, data = merged_K12data)
-
-#there are ways to change colors and get rid of the axis (read more into ggplot:http://sape.inf.usi.ch/quick-reference/ggplot2/colour)
-
-```
-```{r, K12 spatial}
-
-#visualize
-d <- ggplot(data = merged_K12data)+
-  geom_polygon(aes(x = long, y = lat, group = group, fill= `perc_eligible_frpm`))+ #change the fill argument from plot to plot
-  coord_fixed(1.3)+
-  ggtitle("Percent of Students Eligible for Free and Reduced Meal Plans")+ #change title from plot to plot
-  theme_classic()+ #order matters in ggplot
-  scale_fill_viridis() +
-  theme(axis.title.x = element_blank(),
-                           axis.title.y = element_blank(),
-                           axis.text = element_blank(),
-                           axis.ticks = element_blank(),
-                           panel.grid = element_blank())
-
-#xy plot of budget/kWh vs perc_eligible_frpm
-e <- xyplot(budget ~ perc_eligible_frpm, data = merged_K12data)
-f <- xyplot(kWh ~ perc_eligible_frpm, data = merged_K12data)
-```
-```{r, K12 spatial}
-#arranging the maps for perc_eligible_frpm and perc_title1
-grid.arrange(a, d, ncol=2)
-
-#more information on Grid Arrange and other complex layouts https://cran.r-project.org/web/packages/gridExtra/vignettes/arrangeGrob.html#multiple-pages-output
-```
 
 ```{r, K12 transformations}
 #log-transform budget, kWh, and enrollment
@@ -497,12 +425,12 @@ wilcox.test(K12fbottomq_energy$perc_na, K12ftopq_energy$perc_na)  #W = 117, p-va
 #curious to see how t-tests differ when its just within the group that is participating ((K12 SUBSET))
 
 quantile(K12_subset$budgetperstudent)
-#K12sbottomq_budget = subset(K12_subset, budgetperstudent <= 0.22256311)
-#K12stopq_budget = subset(K12_subset, budgetperstudent > 2.87458264)
+K12sbottomq_budget = subset(K12_subset, budgetperstudent <= 0.22256311)
+K12stopq_budget = subset(K12_subset, budgetperstudent > 2.87458264)
 
 quantile(K12_subset$kWhperstudent)
-#K12sbottomq_energy = subset(K12_subset, kWhperstudent <= 0.3356844)
-#K12stopq_energy = subset(K12_subset, kWhperstudent > 4.4421836)
+K12sbottomq_energy = subset(K12_subset, kWhperstudent <= 0.3356844)
+K12stopq_energy = subset(K12_subset, kWhperstudent > 4.4421836)
 
 ```
 
@@ -528,45 +456,41 @@ t.test(K12sbottomq_energy$perc_ia, K12stopq_energy$perc_ia)
 t.test(K12sbottomq_budget$perc_na, K12stopq_budget$perc_na)  
 t.test(K12sbottomq_energy$perc_na, K12stopq_energy$perc_na) 
 ```
-##Counties
 
-```{r, Start Counties}
-#read in data for K-12 EE programs 
-counties <- read.csv("counties_3.csv")
-```
+<!-- ```{r, K12 spatial} -->
+<!-- #load data -->
+<!-- K12_file   = 'k12_counties_3.csv' -->
+<!-- #df <- fread(K12_file) #, colClasses = c('character', df$county_fips)) -->
 
-```{r, counties spatial}
-#load data
-counties_file   = 'counties_3.csv'
-#df <- fread(K12_file) #, colClasses = c('character', df$county_fips))
+<!-- K12_df <- fread(K12_file, header = T, colClasses = c('character', rep(NA, 38))) -->
+<!-- # best practice is to classify column as a character as you read the data in. -->
+<!-- ``` -->
 
-counties_df <- fread(counties_file, header = T, colClasses = c('character', rep(NA, 31)))
-```
-
-```{r, counties spatial}
+```{r, K12 spatial}
 #the county names don't match (our data has capitalized first letters County =/= county), so we have to change it
-counties_df_edited <- counties_df
-counties_df_edited$county <- str_to_lower(counties_df_edited$county)
-head(counties_df_edited) #check to see if the county names did change
+K12_to_plot <- K12[!(K12$county %in% c("LOS ANGELES")),] 
+K12_df_edited <- K12_to_plot # no outlier - no Los Angeles
+K12_df_edited$county <- str_to_lower(K12_df_edited$county)
+head(K12_df_edited) #check to see if the county names did change
 ```
-```{r, counties spatial}
+```{r, K12 spatial}
 #merge on count name
 #check dimensions before the merge
-dim(counties_df_edited)
+dim(K12_df_edited)
 dim(CA_counties)
-```
-```{r, counties spatial}
+
 #merge
-merged_countiesdata<- left_join(CA_counties, counties_df_edited, by = c("subregion"="county")) 
-dim(merged_countiesdata)
+merged_K12data<- left_join(CA_counties, K12_df_edited, by = c("subregion"="county")) #the left_join takes all the unique values from left one and only add the matches from the right (doesn't matter in this case because they WILL match since we checked already)
+dim(merged_K12data)
 ```
-```{r, counties spatial}
+
+```{r, K12 spatial}
 
 #visualize
-g <- ggplot(data = merged_countiesdata)+
-  geom_polygon(aes(x = long, y = lat, group = group, fill= `irr`))+ #change the fill argument from plot to plot
+a <- ggplot(data = merged_K12data)+
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `perc_title1`))+ #change the fill argument from plot to plot
   coord_fixed(1.3)+
-  ggtitle("Rurality by County")+ #change title from plot to plot
+  ggtitle("Percent of Title 1 Schools")+ #change title from plot to plot
   theme_classic()+ #order matters in ggplot
   scale_fill_viridis() +
   theme(axis.title.x = element_blank(),
@@ -576,22 +500,20 @@ g <- ggplot(data = merged_countiesdata)+
                            panel.grid = element_blank())
 
 #xy plot of budget/kWh vs perc_title1
-h <- xyplot(budget ~ irr, data = merged_countiesdata)
-i <- xyplot(kWh ~ irr, data = merged_countiesdata)
+b <- xyplot(budget ~ perc_title1, data = merged_K12data)
+c <- xyplot(kWh ~ perc_title1, data = merged_K12data)
 
 #there are ways to change colors and get rid of the axis (read more into ggplot:http://sape.inf.usi.ch/quick-reference/ggplot2/colour)
 
 ```
-```{r, counties spatial}
 
-#LOG Tax Revenue
-merged_countiesdata$log_revenue <- log(merged_countiesdata$revenue + 1)
+```{r, K12 spatial}
 
 #visualize
-j <- ggplot(data = merged_countiesdata)+
-  geom_polygon(aes(x = long, y = lat, group = group, fill= `log_revenue`))+ #change the fill argument from plot to plot
+d <- ggplot(data = merged_K12data)+
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `perc_eligible_frpm`))+ #change the fill argument from plot to plot
   coord_fixed(1.3)+
-  ggtitle("Revenue (Log) by County")+ #change title from plot to plot
+  ggtitle("Percent of Students Eligible for Free and Reduced Meal Plans")+ #change title from plot to plot
   theme_classic()+ #order matters in ggplot
   scale_fill_viridis() +
   theme(axis.title.x = element_blank(),
@@ -601,59 +523,140 @@ j <- ggplot(data = merged_countiesdata)+
                            panel.grid = element_blank())
 
 #xy plot of budget/kWh vs perc_eligible_frpm
-k <- xyplot(budget ~ revenue, data = merged_countiesdata)
-l <- xyplot(kWh ~ revenue, data = merged_countiesdata)
+e <- xyplot(budget ~ perc_eligible_frpm, data = merged_K12data)
+f <- xyplot(kWh ~ perc_eligible_frpm, data = merged_K12data)
+```
+```{r, K12 spatial}
+#arranging the maps for perc_eligible_frpm and perc_title1
+grid.arrange(a, d, ncol=2)
+
+#more information on Grid Arrange and other complex layouts https://cran.r-project.org/web/packages/gridExtra/vignettes/arrangeGrob.html#multiple-pages-output
 ```
 
-```{r, counties spatial}
+
+```{r, counties spatial maps data}
+
+
+# Budget
+k1 <- ggplot(data = merged_K12data)+
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `ln_budget`), color='grey', size=0.1)+ 
+  coord_fixed(1.3)+
+  ggtitle("Log of Budget \n ")+ #change title from plot to plot
+  theme_classic()+ #order matters in ggplot
+  scale_fill_viridis(option = "mako", direction=1, na.value='white') +
+  theme(axis.title.x = element_blank(),
+                           axis.title.y = element_blank(),
+                           axis.text = element_blank(),
+                           axis.ticks = element_blank(),
+                           axis.line = element_blank(),
+                          legend.title = element_blank(),
+        legend.position = "right",
+                plot.title=element_text(size=10),
+                           panel.grid = element_blank())
+
+# Budget per capita
+k2 <- ggplot(data = merged_K12data)+
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `ln_budgetperstudent`), color='grey', size=0.1)+ 
+  coord_fixed(1.3)+
+  ggtitle("Log of Budget per Capita \n ")+ #change title from plot to plot
+  theme_classic()+ #order matters in ggplot
+  scale_fill_viridis(option="mako", direction=1, na.value='white') +
+  theme(axis.title.x = element_blank(),
+                           axis.title.y = element_blank(),
+                           axis.text = element_blank(),
+                           axis.ticks = element_blank(),
+                           axis.line = element_blank(),
+                          legend.title = element_blank(),
+        legend.position = "right",
+                plot.title=element_text(size=10),
+                           panel.grid = element_blank())
+
+# Percent of Students Eligible for Free and Reduced Lunch
+k3 <- ggplot(data = merged_K12data)+
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `perc_eligible_frpm`), color='grey', size=0.1)+ 
+  coord_fixed(1.3)+
+  ggtitle("Students Eligible for Free \nand Reduced Lunch (%)")+ #change title from plot to plot
+  theme_classic()+ #order matters in ggplot
+  scale_fill_viridis(option="mako", direction=1, na.value='white') +
+  theme(axis.title.x = element_blank(),
+                           axis.title.y = element_blank(),
+                           axis.text = element_blank(),
+                           axis.ticks = element_blank(),
+                           axis.line = element_blank(),
+                          legend.title = element_blank(),
+        legend.position = "right",
+                plot.title=element_text(size=10),
+                           panel.grid = element_blank())
+
+# Local Control Funding Formula
+k4 <- ggplot(data = merged_K12data)+
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `lcff_scaled`), color='grey', size=0.1)+ 
+  coord_fixed(1.3)+
+  ggtitle("Local Control Funding Formula\n('00,000)")+ #change title from plot to plot
+  theme_classic()+ #order matters in ggplot
+  scale_fill_viridis(option="mako", direction=1, na.value='white') +
+  theme(axis.title.x = element_blank(),
+                           axis.title.y = element_blank(),
+                           axis.text = element_blank(),
+                           axis.ticks = element_blank(),
+                           axis.line = element_blank(),
+                          legend.title = element_blank(),
+        legend.position = "right",
+                plot.title=element_text(size=10),
+                           panel.grid = element_blank())
+
+# Percent of title 1 schools
+k5 <- ggplot(data = merged_K12data)+
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `perc_title1`), color='grey', size=0.1)+ 
+  coord_fixed(1.3)+
+  ggtitle("Title 1 Schools (%)\n ")+ #change title from plot to plot
+  theme_classic()+ #order matters in ggplot
+  scale_fill_viridis(option="mako", direction=-1, na.value='white') +
+  theme(axis.title.x = element_blank(),
+                           axis.title.y = element_blank(),
+                           axis.text = element_blank(),
+                           axis.ticks = element_blank(),
+                           axis.line = element_blank(),
+                           legend.title = element_blank(),
+        legend.position = "right",
+                plot.title=element_text(size=10),
+                           panel.grid = element_blank())
+
+# Disadvantaged Community (%)
+k6 <- ggplot(data = merged_K12data)+
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `dac`), color='grey', size=0.1)+ 
+  coord_fixed(1.3)+
+  ggtitle("Disadvantaged Community \nProportion")+ #change title from plot to plot
+  theme_classic()+ #order matters in ggplot
+  scale_fill_viridis(option="mako", direction=-1, na.value='white') +
+  theme(axis.title.x = element_blank(),
+                           axis.title.y = element_blank(),
+                           axis.text = element_blank(),
+                           axis.ticks = element_blank(),
+                           axis.line = element_blank(),
+                           legend.title = element_blank(),
+                          legend.position = "right",
+        plot.title=element_text(size=10),
+                           panel.grid = element_blank())
+
+#there are ways to change colors and get rid of the axis (read more into ggplot:http://sape.inf.usi.ch/quick-reference/ggplot2/colour)
+
+
 #arranging the maps for irr
-grid.arrange(g, h, i, ncol=2)
-```
-```{r, counties spatial}
-
-#Budget
-merged_countiesdata$ln_budget <- log(merged_countiesdata$budget + 1)
-
-#visualize
-ggplot(data = merged_countiesdata)+
-  geom_polygon(aes(x = long, y = lat, group = group, fill= `ln_budget`))+ #change the fill argument from plot to plot
-  coord_fixed(1.3)+
-  ggtitle("budget (Log) by County")+ #change title from plot to plot
-  theme_classic()+ #order matters in ggplot
-  scale_fill_viridis() +
-  theme(axis.title.x = element_blank(),
-                           axis.title.y = element_blank(),
-                           axis.text = element_blank(),
-                           axis.ticks = element_blank(),
-                           panel.grid = element_blank())
-
-#xy plot
-xyplot(budget ~ dac, data = merged_countiesdata)
-xyplot(kWh ~ budget, data = merged_countiesdata)
+grid.arrange(k1, k3, k4, k2, k5, k6, ncol=3)
+k = arrangeGrob(k1, k3, k4, k2, k5, k6, ncol=3)
+ggsave(file = "maps_K12_county_analysis.png", k)
 ```
 
-```{r, counties spatial}
 
-#kWh
-merged_countiesdata$ln_kWh <- log(merged_countiesdata$kWh + 1)
 
-#visualize
-ggplot(data = merged_countiesdata)+
-  geom_polygon(aes(x = long, y = lat, group = group, fill= `ln_kWh`))+ #change the fill argument from plot to plot
-  coord_fixed(1.3)+
-  ggtitle("kWh (Log) by County")+ #change title from plot to plot
-  theme_classic()+ #order matters in ggplot
-  scale_fill_viridis() +
-  theme(axis.title.x = element_blank(),
-                           axis.title.y = element_blank(),
-                           axis.text = element_blank(),
-                           axis.ticks = element_blank(),
-                           panel.grid = element_blank())
+##Counties
 
-#xy plot 
-xyplot(kWh ~ dac, data = merged_countiesdata)
-xyplot(kWh ~ budget, data = merged_countiesdata)
+```{r, Start Counties}
+#read in data for K-12 EE programs 
+counties <- read.csv("counties_3.csv")
 ```
+
 
 ```{r, counties transformations}
 #log-transform 
@@ -920,6 +923,246 @@ wilcox.test(countiesfbottomq_budget$perc_na, countiesftopq_budget$perc_na)  #W =
 wilcox.test(countiesfbottomq_energy$perc_na, countiesftopq_energy$perc_na)  #W = 95, p-value = 0.4864 not sig
 ```
 
+# ```{r, counties spatial}
+# #load data
+# counties_file   = 'counties_3.csv'
+# #df <- fread(K12_file) #, colClasses = c('character', df$county_fips))
+# 
+# counties_df <- fread(counties_file, header = T, colClasses = c('character', rep(NA, 31)))
+# ```
+
+```{r, counties spatial}
+#the county names don't match (our data has capitalized first letters County =/= county), so we have to change it
+counties_to_include = counties[!(counties$county %in% c("LOS ANGELES", "SAN DIEGO", "SAN FRANCISCO")),]
+counties_df_edited <- counties_to_include # no outliers - LA, SF, SD
+
+counties_df_edited$county <- str_to_lower(counties_df_edited$county)
+head(counties_df_edited) #check to see if the county names did change
+```
+```{r, counties spatial}
+#merge on count name
+#check dimensions before the merge
+dim(counties_df_edited)
+dim(CA_counties)
+```
+```{r, counties spatial}
+#merge
+merged_countiesdata<- left_join(CA_counties, counties_df_edited, by = c("subregion"="county")) 
+dim(merged_countiesdata)
+```
+```{r, counties spatial}
+
+#visualize
+g <- ggplot(data = merged_countiesdata)+
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `irr`))+ #change the fill argument from plot to plot
+  coord_fixed(1.3)+
+  ggtitle("Rurality by County")+ #change title from plot to plot
+  theme_classic()+ #order matters in ggplot
+  scale_fill_viridis() +
+  theme(axis.title.x = element_blank(),
+                           axis.title.y = element_blank(),
+                           axis.text = element_blank(),
+                           axis.ticks = element_blank(),
+                           panel.grid = element_blank())
+
+#xy plot of budget/kWh vs perc_title1
+h <- xyplot(budget ~ irr, data = merged_countiesdata)
+i <- xyplot(kWh ~ irr, data = merged_countiesdata)
+
+#there are ways to change colors and get rid of the axis (read more into ggplot:http://sape.inf.usi.ch/quick-reference/ggplot2/colour)
+
+```
+
+```{r, counties spatial}
+
+#LOG Tax Revenue
+merged_countiesdata$log_revenue <- log(merged_countiesdata$revenue + 1)
+
+#visualize
+j <- ggplot(data = merged_countiesdata)+
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `log_revenue`))+ #change the fill argument from plot to plot
+  coord_fixed(1.3)+
+  ggtitle("Revenue (Log) by County")+ #change title from plot to plot
+  theme_classic()+ #order matters in ggplot
+  scale_fill_viridis() +
+  theme(axis.title.x = element_blank(),
+                           axis.title.y = element_blank(),
+                           axis.text = element_blank(),
+                           axis.ticks = element_blank(),
+                           panel.grid = element_blank())
+
+#xy plot of budget/kWh vs perc_eligible_frpm
+k <- xyplot(budget ~ revenue, data = merged_countiesdata)
+l <- xyplot(kWh ~ revenue, data = merged_countiesdata)
+```
+
+```{r, counties spatial}
+#arranging the maps for irr
+grid.arrange(g, h, i, ncol=2)
+```
+```{r, counties spatial}
+
+#Budget
+merged_countiesdata$ln_budget <- log(merged_countiesdata$budget + 1)
+
+#visualize
+ggplot(data = merged_countiesdata)+
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `ln_budget`))+ #change the fill argument from plot to plot
+  coord_fixed(1.3)+
+  ggtitle("budget (Log) by County")+ #change title from plot to plot
+  theme_classic()+ #order matters in ggplot
+  scale_fill_viridis() +
+  theme(axis.title.x = element_blank(),
+                           axis.title.y = element_blank(),
+                           axis.text = element_blank(),
+                           axis.ticks = element_blank(),
+                           panel.grid = element_blank())
+
+#xy plot
+xyplot(budget ~ dac, data = merged_countiesdata)
+xyplot(kWh ~ budget, data = merged_countiesdata)
+```
+
+```{r, counties spatial}
+
+#kWh
+merged_countiesdata$ln_kWh <- log(merged_countiesdata$kWh + 1)
+
+#visualize
+ggplot(data = merged_countiesdata)+
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `ln_kWh`))+ #change the fill argument from plot to plot
+  coord_fixed(1.3)+
+  ggtitle("kWh (Log) by County")+ #change title from plot to plot
+  theme_classic()+ #order matters in ggplot
+  scale_fill_viridis() +
+  theme(axis.title.x = element_blank(),
+                           axis.title.y = element_blank(),
+                           axis.text = element_blank(),
+                           axis.ticks = element_blank(),
+                           panel.grid = element_blank())
+
+#xy plot 
+xyplot(kWh ~ dac, data = merged_countiesdata)
+xyplot(kWh ~ budget, data = merged_countiesdata)
+```
+
+```{r, counties spatial maps data}
+
+# Budget
+g1 <- ggplot(data = merged_countiesdata)+
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `ln_budget`), color='grey', size=0.1)+ 
+  coord_fixed(1.3)+
+  ggtitle("Log of Budget\n ")+ #change title from plot to plot
+  theme_classic()+ #order matters in ggplot
+  scale_fill_viridis(option = "mako", direction=1, na.value='white') +
+  theme(axis.title.x = element_blank(),
+                           axis.title.y = element_blank(),
+                           axis.text = element_blank(),
+                           axis.ticks = element_blank(),
+                           axis.line = element_blank(),
+                          legend.title = element_blank(),
+                           legend.position = "right",
+                          plot.title=element_text(size=10),
+                           panel.grid = element_blank())
+
+# Budget per capita
+g2 <- ggplot(data = merged_countiesdata)+
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `ln_budgetpercapita`), color='grey', size=0.1)+ 
+  coord_fixed(1.3)+
+  ggtitle("Log of Budget per capita\n ")+ #change title from plot to plot
+  theme_classic()+ #order matters in ggplot
+  scale_fill_viridis(option="mako", direction=1, na.value='white') +
+  theme(axis.title.x = element_blank(),
+                           axis.title.y = element_blank(),
+                           axis.text = element_blank(),
+                           axis.ticks = element_blank(),
+                           axis.line = element_blank(),
+                          legend.title = element_blank(),
+        legend.position = "right",
+                  plot.title=element_text(size=10),
+                           panel.grid = element_blank())
+
+# IRR
+g3 <- ggplot(data = merged_countiesdata)+
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `irr`), color='grey', size=0.1)+ 
+  coord_fixed(1.3)+
+  ggtitle("Rurality (Index of \nRelative Rurality)")+ #change title from plot to plot
+  theme_classic()+ #order matters in ggplot
+  scale_fill_viridis(option="mako", direction=-1, na.value='white') +
+  theme(axis.title.x = element_blank(),
+                           axis.title.y = element_blank(),
+                           axis.text = element_blank(),
+                           axis.ticks = element_blank(),
+                           axis.line = element_blank(),
+                          legend.title = element_blank(),
+        legend.position = "right",
+                  plot.title=element_text(size=10),
+                           panel.grid = element_blank())
+
+# Revenue per Capita
+g4 <- ggplot(data = merged_countiesdata)+
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `revpercapita`), color='grey', size=0.1)+ 
+  coord_fixed(1.3)+
+  ggtitle("Revenue per Capita\n(USD)")+ #change title from plot to plot
+  theme_classic()+ #order matters in ggplot
+  scale_fill_viridis(option="mako", direction=-1, na.value='white') +
+  theme(axis.title.x = element_blank(),
+                           axis.title.y = element_blank(),
+                           axis.text = element_blank(),
+                           axis.ticks = element_blank(),
+                           axis.line = element_blank(),
+                          legend.title = element_blank(),
+        legend.position = "right",
+                  plot.title=element_text(size=10),
+                           panel.grid = element_blank())
+
+# Population
+g5 <- ggplot(data = merged_countiesdata)+
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `population_scaled`), color='grey', size=0.1)+ 
+  coord_fixed(1.3)+
+  ggtitle("Population \n('00,000)")+ #change title from plot to plot
+  theme_classic()+ #order matters in ggplot
+  scale_fill_viridis(option="mako", direction=-1, na.value='white') +
+  theme(axis.title.x = element_blank(),
+                           axis.title.y = element_blank(),
+                           axis.text = element_blank(),
+                           axis.ticks = element_blank(),
+                           axis.line = element_blank(),
+                           legend.title = element_blank(),
+        legend.position = "right",
+                  plot.title=element_text(size=10),
+                           panel.grid = element_blank())
+
+# Percent of on bill financing
+g6 <- ggplot(data = merged_countiesdata)+
+  geom_polygon(aes(x = long, y = lat, group = group, fill= `obf`), color='grey', size=0.1)+ 
+  coord_fixed(1.3)+
+  ggtitle("Percent of On-bill \nFinancing")+ #change title from plot to plot
+  theme_classic()+ #order matters in ggplot
+  scale_fill_viridis(option="mako", direction=1, na.value='white') +
+  theme(axis.title.x = element_blank(),
+                           axis.title.y = element_blank(),
+                           axis.text = element_blank(),
+                           axis.ticks = element_blank(),
+                           axis.line = element_blank(),
+                           legend.title = element_blank(),
+                          legend.position = "right",
+                  plot.title=element_text(size=10),
+                           panel.grid = element_blank())
+
+#there are ways to change colors and get rid of the axis (read more into ggplot:http://sape.inf.usi.ch/quick-reference/ggplot2/colour)
+
+
+#arranging the maps 
+grid.arrange(g1, g3, g4, g2, g5, g6, ncol=3)
+g = arrangeGrob(g1, g3, g4, g2, g5, g6, ncol=3)
+ggsave(file = "maps_local_govt_county_analysis.png", g)
+```
+
+```{r, local govt and K12 maps}
+#arranging local government and K12 maps
+grid.arrange(g1, g3, g4, g2, g5, g6, k1, k2, k3, k4, k5, k6, ncol=2)
+```
 
 ##Cities
 
