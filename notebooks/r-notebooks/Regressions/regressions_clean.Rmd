@@ -77,6 +77,39 @@ citation("lattice")
 citation("GISTools")
 ```
 
+```{r, program summary}
+
+claims_category <- read.csv("cpuc_claims_aggregated_by_category_2017_2019.csv")
+claims_program <- read.csv("cpuc_claims_aggregated_by_program_2017_2019.csv")
+
+
+p_claims_no_programs <- ggplot(claims_category, aes(category, PrgID)) +
+  geom_bar(stat = 'identity', width = 0.7) +
+  labs(y = "Number of Public Sector \nEnergy Efficiency Programs \n2017-2019", x = NULL) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle=90, hjust=1, vjust=0.5), legend.title = element_blank())
+
+
+p_claims_costs <- ggplot(claims_category, aes(category, TotalGrossMeasureCost/10^6)) +
+  geom_bar(stat = 'identity', width = 0.7) +
+  labs(y = "Public Sector Energy Efficiency \nProgram Budget 2017-2019 \n (million USD)", x = NULL) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle=90, hjust=1, vjust=0.5), legend.title = element_blank())
+
+
+
+g_claims_costs <- ggplotGrob(p_claims_costs + labs(tag = "B"))
+
+g_claims_no_programs <- ggplotGrob(p_claims_no_programs + labs(tag = "A")) 
+
+grob_claims <- arrangeGrob(grobs = list(cbind(g_claims_no_programs, g_claims_costs, size = "first")), ncol = 1)
+
+grid.newpage()
+grid.draw(grob_claims)
+
+ggsave(file = paste0("claims_summary", ".png"), grob_claims, width=6, height=4)
+```
+
 ```{r, Start}
 #read in data for K-12 EE programs 
 K12 <- read.csv("k12_counties_3.csv")
@@ -89,7 +122,7 @@ Things to look for: Small AIC, Large R^2, p-value should be < 0.05 to be signifi
 
 Every group is treated differently, but there is some similarity in the workflow and how regressions were set up. Chunks in each section follows as so:
 
-1. Spatial code (only for K12 and counties) 
+
 2. Perform necessary transformations of variables to use for later (log-transformation, rounding, etc.)
 3. Subset dataset to groups we want to analyze (those who participated, those who didn't, quantiles, omitting NAs (city-specific))
 4. Identify outliers through the use of Cook's distance (using the 4/n cutoff) and take them out (K12_x, counties_x, cities_x)
@@ -101,6 +134,7 @@ Every group is treated differently, but there is some similarity in the workflow
 10. Perform normal regressions for kWh
 11. Create regression results table by compiling all regressions together using stargazer package
 12. T-tests on full dataset (only for K12)
+1. Spatial code (only for K12 and counties) 
 
 ##Setting up Maps
 
@@ -468,7 +502,7 @@ t.test(K12sbottomq_energy$perc_na, K12stopq_energy$perc_na)
 
 ```{r, K12 spatial}
 #the county names don't match (our data has capitalized first letters County =/= county), so we have to change it
-K12_to_plot <- K12[!(K12$county %in% c("LOS ANGELES")),] 
+K12_to_plot <- K12[!(K12$county %in% c("LOS ANGELES")),] # K12 has all counties. K12_x has no outliers or NAs
 K12_df_edited <- K12_to_plot # no outlier - no Los Angeles
 K12_df_edited$county <- str_to_lower(K12_df_edited$county)
 head(K12_df_edited) #check to see if the county names did change
@@ -543,7 +577,7 @@ k1 <- ggplot(data = merged_K12data)+
   coord_fixed(1.3)+
   ggtitle("Log of Budget \n ")+ #change title from plot to plot
   theme_classic()+ #order matters in ggplot
-  scale_fill_viridis(option = "mako", direction=1, na.value='white') +
+  scale_fill_viridis(option = "mako", direction=1, na.value='white', discrete = TRUE) +
   theme(axis.title.x = element_blank(),
                            axis.title.y = element_blank(),
                            axis.text = element_blank(),
@@ -933,7 +967,7 @@ wilcox.test(countiesfbottomq_energy$perc_na, countiesftopq_energy$perc_na)  #W =
 
 ```{r, counties spatial}
 #the county names don't match (our data has capitalized first letters County =/= county), so we have to change it
-counties_to_include = counties[!(counties$county %in% c("LOS ANGELES", "SAN DIEGO", "SAN FRANCISCO")),]
+counties_to_include = counties_x[!(counties_x$county %in% c("LOS ANGELES", "SAN DIEGO", "SAN FRANCISCO")),] # Use counties for all; counties_x to exclude zero budgets and outliers. 
 counties_df_edited <- counties_to_include # no outliers - LA, SF, SD
 
 counties_df_edited$county <- str_to_lower(counties_df_edited$county)
@@ -1156,7 +1190,7 @@ g6 <- ggplot(data = merged_countiesdata)+
 #arranging the maps 
 grid.arrange(g1, g3, g4, g2, g5, g6, ncol=3)
 g = arrangeGrob(g1, g3, g4, g2, g5, g6, ncol=3)
-ggsave(file = "maps_local_govt_county_analysis.png", g)
+ggsave(file = "maps_local_govt_county_analysis_no_NAs.png", g)
 ```
 
 ```{r, local govt and K12 maps}
