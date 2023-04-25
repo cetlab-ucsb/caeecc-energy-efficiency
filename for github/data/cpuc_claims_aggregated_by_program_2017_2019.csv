@@ -1,0 +1,107 @@
+PrgID,ProgramName,Grouping,category,TotalFirstYearGrosskW,TotalFirstYearGrosskWh,TotalFirstYearGrossTherm,TotalGrossIncentive,TotalGrossMeasureCost,TotalGrossMeasureCost_ER,TotalLifecycleGrosskW,TotalLifecycleGrosskWh,TotalLifecycleGrossTherm,rank_cost,group_cost
+PGE210112,School Energy Efficiency,Education (),Other Education,171.051510223,2146258.37968593,97645.6640478201,887900.16901597,6205204.57,0,2051.791048206,26430405.3713612,448359.3069927,3,School Energy Efficiency
+PGE210135,Water Infrastructure and System Efficiency,"",Uncategorized,17.810588486,604761.48,0,40180.4704753,999952.89,0,267.158827287,9071422.2,0,24,Non-top 10
+PGE210139,SEI Energize Schools Program,Education (Higher Education UC/CSU/CCC),Higher Education,0,0,0,0,0,0,0,0,0,81.5,Non-top 10
+PGE21025,California Wastewater Process Optimization,"",Uncategorized,31.86,279024.3,0,4870.998511,9742,0,477.9,4185364.5,0,56,Non-top 10
+PGE2110011,California Community Colleges,Education (Higher Education CCC),Higher Education,567.636521339,1670630.2444,31181.36675844,555122.55030249,4498018.86,0,5631.04090336,17953505.2526,317471.683734976,6,California Community Colleges
+PGE2110012,University of California/California State University,Education (Higher Education UC/CSU),Higher Education,379.4745,2745096.976,216353.536,826167.79289,5005184.75,26541.6,1975.9597,16051630.64,2344556.71,5,University of California/California State University
+PGE2110013,State of California,State (),State,70.917602388,310779.54155,-236.2603635,69529.10999812,93635.75,0,770.223718208,3452304.7848,-3672.861816,43,Non-top 10
+PGE2110014,Department of Corrections and Rehabilitation,State (Correctional Facilities),State,211.176,3178345.5,-926.55,838083.48271,3041900.16,0,2069.9568,35038034.928,-8661.096,9,Department of Corrections and Rehabilitation
+PGE2110051,Local Government Energy Action Resources (LGEAR),Local Government (),Local Government,942.087898911,8115439.8856765,-25530.329383313,1436218.95255966,3859086.73,2783164.19,8918.663648021,87781418.510928,-252864.934996464,7,Local Government Energy Action Resources (LGEAR)
+PGE2110052,Strategic Energy Resources,Local Government (),Local Government,0,0,0,0,0,0,0,0,0,81.5,Non-top 10
+PGE211007,Association of Monterey Bay Area Governments (AMBAG),Local Government (),Local Government,750.074575360001,5635157.033651,-23902.138152965,1176965.25928594,6056249.22,4510355.65,7631.18768017701,63429628.49442,-278139.411492806,4,Association of Monterey Bay Area Governments (AMBAG)
+PGE211009,East Bay,Local Government (Counties),Local Government,369.900470049,4225255.98810001,-11066.653807106,756766.40732863,1816899.54,579202.41,3727.883939073,46744705.403558,-98631.108371454,16,Non-top 10
+PGE211010,Fresno,Local Government (Counties),Local Government,65.43548418,1193574.91002,-743.872557014,221624.8097947,380677.73,188286.82,564.788435694,13450501.1247,-5168.490037226,34,Non-top 10
+PGE211011,Kern,Local Government (Counties),Local Government,582.500515558,5150224.77320099,-14362.429977033,957534.8105448,1151531.97,395666.61,6031.056316992,57686344.10223,-142950.784736609,19,Non-top 10
+PGE211012,Madera,Local Government (Counties),Local Government,14.625364394,211951.89,-232.678624329,40201.62998292,86670.89,22394.64,89.412372367,2248094.13768,-1366.129011628,44,Non-top 10
+PGE211013,Marin County,Local Government (Counties),Local Government,31.67529962,783530.179330995,-4155.668422217,128198.33946819,993725.55,337976.44,353.601585504,7533942.53453004,-27908.62274973,25,Non-top 10
+PGE211014,Mendocino/Lake County,Local Government (Counties),Local Government,88.000461625,548285.528522,-3195.886777288,115230.77039637,305795.11,173061.32,689.84440691,5241802.802726,-29790.98121645,38,Non-top 10
+PGE211015,Napa County,Local Government (Counties),Local Government,57.026899912,193520.12569,-1206.627248298,40040.5399702,71035.4,27780.71,419.049233609,1433552.2481,-8930.61516128,48,Non-top 10
+PGE211016,Redwood Coast,Local Government (Counties),Local Government,385.057928406,1537839.319704,-16732.989467471,357811.96983571,666529.98,173405.15,2073.58548205,9838517.89192,-90733.562835672,28,Non-top 10
+PGE211018,San Luis Obispo County,Local Government (Counties),Local Government,174.047540511,1044707.4223,-3969.018446677,218941.309944536,307381.56,72907.6,1539.397456755,10536464.0079,-36594.806473703,37,Non-top 10
+PGE211019,San Mateo County,Local Government (Counties),Local Government,132.095956197,1166042.520008,-4137.847435492,226756.06999462,1150339.14,936565.26,1393.368726102,13266737.29807,-41222.61435702,20,Non-top 10
+PGE211020,Santa Barbara,Local Government (Counties),Local Government,166.515673724,1703201.25598,-2462.091840052,262194.32139125,329840.12,101669.92,1780.289077003,19638967.3722,-25386.329358429,36,Non-top 10
+PGE211021,Sierra Nevada,Local Government (Counties),Local Government,141.266448362,1429152.54516,-3280.545556459,256449.988913891,419948.63,147982.85,1550.347991004,16670330.69758,-36342.734820315,31,Non-top 10
+PGE211022,Sonoma County,Local Government (Counties),Local Government,394.97340901,2288552.935422,-9409.188580476,417279.50901839,1241146.92,891960.63,3683.990769016,23613437.11522,-82162.47113127,18,Non-top 10
+PGE211023,Silicon Valley,Local Government (Counties),Local Government,544.083994652,3795903.99149821,-5270.486524333,739039.438634074,2255755.04,1366399.15,4896.244557799,39632016.7869849,-76894.099500469,13,Non-top 10
+PGE211024,San Francisco,Local Government (Counties),Local Government,1049.816414752,3986480.338561,-9403.163088795,959744.49189118,2142202.7,389290.7,6846.994917408,30673364.84202,-91292.181755552,15,Non-top 10
+PGE211026,North Valley,Local Government (Counties),Local Government,27.513625645,294748.677,-458.848541232,45268.78977053,153323.3,84112.05,202.903456347,3120122.826,-2904.84941623,42,Non-top 10
+PGE211027,Sutter Buttes,Local Government (Counties),Local Government,13.751585277,57437.15004,-356.015249983,13634.62996457,14715.18,5200.15,162.999122381,681013.86768,-4216.97861991,53,Non-top 10
+PGE211028,Yolo,Local Government (Counties),Local Government,17.1615222,214871.0832,-343.7235,33694.2799059,39928.58,15610.68,205.9382664,2578452.99842,-4124.682,50,Non-top 10
+PGE211029,Solano,Local Government (Counties),Local Government,526.865343181,3631203.178374,-12980.097445636,658127.78786051,1051587.1,681144,4704.477800414,37015583.97487,-116615.475249278,21,Non-top 10
+PGE211030,Northern San Joaquin Valley,Local Government (Counties),Local Government,231.408626235,1698184.00701,-5971.494865849,314173.11959363,403456.21,145140.2,2562.490989446,19536304.30952,-65809.509711465,32,Non-top 10
+PGE211031,Valley Innovative Energy Watch (VIEW),"",Uncategorized,27.488052373,364325.661882,-582.446882795,58201.180457,78155.18,25794.22,289.937349957,4224085.88924,-6182.578274,46,Non-top 10
+SCE-13-L-002B,City of Long Beach Energy Leader Partnership,Local Government (Cities),Local Government,12.1635023664,2367978.847968,-22.075054848,422428.54,2661179.36,0,60.817511832,26223739.67184,-110.37527424,12,Non-top 10
+SCE-13-L-002F,Gateway Cities Energy Leader Partnership,Local Government (Cities),Local Government,16.8415655616,289174.281536,-27.97501879,107826.38,399255.5,0,84.402412128,1250741.69216,-140.235595878,33,Non-top 10
+SCE-13-L-002H,Eastern Sierra Energy Leader Partnership,Local Government (Counties),Local Government,6.2843561088,16058.696192,-116.385798144,23108,23108,0,31.421780544,80293.48096,-581.92899072,51,Non-top 10
+SCE-13-L-002I,Energy Leader Partnership Strategic Support,Local Government (),Local Government,0,0,0,0,0,0,0,0,0,81.5,Non-top 10
+SCE-13-L-002J,Desert Cities Energy Leader Partnership,Local Government (Cities),Local Government,5.0968564416,15609.420288,-2.626951218,18444,18444,0,25.484282208,78047.10144,-13.134756096,52,Non-top 10
+SCE-13-L-002K,Kern County Energy Leader Partnership,Local Government (Counties),Local Government,0,0,0,0,0,0,0,0,0,81.5,Non-top 10
+SCE-13-L-002L,Orange County Cities Energy Leader Partnership,Local Government (Counties),Local Government,199.1507223,1599709.591904,-2776.001789364,447594.46,2243431.6,0,1816.6256115,14089058.37952,-22133.368946816,14,Non-top 10
+SCE-13-L-002M,San Gabriel Valley Energy Leader Partnership,Local Government (Counties),Local Government,2.1815725248,6133.8976,-9.122677632,10123.22,10123.22,0,11.903766624,33682.48064,-50.10644736,55,Non-top 10
+SCE-13-L-002N,San Joaquin Valley Energy Leader Partnership,Local Government (Counties),Local Government,3.247723248,8905.29024,-30.8877184,11932.8,11932.8,0,16.23861624,44526.4512,-154.438592,54,Non-top 10
+SCE-13-L-002O,South Bay Energy Leader Partnership,Local Government (Counties),Local Government,0,0,0,0,0,0,0,0,0,81.5,Non-top 10
+SCE-13-L-002P,South Santa Barbara County Energy Leader Partnership,Local Government (Counties),Local Government,34.04580456,226647.256352,-39.081493744,121199.42,2815052.8,0,343.41649512,1870125.487216,-196.498215642,11,Non-top 10
+SCE-13-L-002Q,Ventura County Energy Leader Partnership,Local Government (Counties),Local Government,20.5791042072,58875.565056,-60.163367758,84099.4,84099.4,0,102.895521036,294377.82528,-300.816838784,45,Non-top 10
+SCE-13-L-002R,Western Riverside Energy Leader Partnership,Local Government (Counties),Local Government,12.4938411032,35881.073168,-31.285638848,47140.76,47140.76,0,64.817862744,186678.8059012,-163.063613244,49,Non-top 10
+SCE-13-L-002Rollup,Energy Leader Partnership Program,Local Government (),Local Government,0,0,0,0,0,0,0,0,0,81.5,Non-top 10
+SCE-13-L-002S,High Desert Regional Energy Leader Partnership,Local Government (Counties),Local Government,58.314513936,303908.232688,-67.594168532,87102.76,266106.8,0,213.544838676,1023587.2881536,-453.324188344,39,Non-top 10
+SCE-13-L-002T,West Side Community Energy Leader Partnership,Local Government (Counties),Local Government,11.88764964,925201.747176,-3.135167344,129739.76,1041938.36,0,132.27744708,10573978.812384,-17.364770248,22,Non-top 10
+SCE-13-L-002U,Local Government Strategic Planning Pilot Program,Local Government (),Local Government,0,0,0,0,0,0,0,0,0,81.5,Non-top 10
+SCE-13-L-002V,North Orange County Cities,Local Government (Cities),Local Government,42.7795001088,626768.96,1234.091827308,134550.77,536985.5,0,285.482459904,4125348.39904,20027.359785836,30,Non-top 10
+SCE-13-L-002W,San Bernardino Association of Governments,"",Uncategorized,83.1865775992,930017.140904,-350.252186896,394772.16,631159.56,0,416.786391276,3472018.710688,-1758.661553216,29,Non-top 10
+SCE-13-L-002Y,Grandfathered Street Lights,Local Government (),Local Government,0,32096046.4,0,15312940.32,27453400.55,0,0,128384185.6,0,1,Grandfathered Street Lights
+SCE-13-L-003A,California Community Colleges Energy Efficiency Partnership,Education (Higher Education CCC),Higher Education,493.101,5520692.88,16315.146,1517507.38,11508818.292,0,4925.547,43822103.76,108727.848,2,California Community Colleges Energy Efficiency Partnership
+SCE-13-L-003B,California Dept. of Corrections and Rehabilitation EE Partnership,State (Correctional Facilities),State,36.567,1308323.808,5015.79,351635.52,2844055.224,0,541.701,16007279.886,75236.85,10,California Dept. of Corrections and Rehabilitation EE Partnership
+SCE-13-L-003C,County of Los Angeles Energy Efficiency Partnership,Local Government (Counties),Local Government,9.63,974694.6,17537.58,189603.24,340538,0,28.89,2924083.8,52612.74,35,Non-top 10
+SCE-13-L-003D,County of Riverside Energy Efficiency Partnership,Local Government (Counties),Local Government,0,0,0,0,0,0,0,0,0,81.5,Non-top 10
+SCE-13-L-003E,County of San Bernardino Energy Efficiency Partnership,Local Government (Counties),Local Government,0,0,0,0,0,0,0,0,0,81.5,Non-top 10
+SCE-13-L-003F,State of California Energy Efficiency Partnership,State (),State,3.38544,77406.084,-147.312,12901.06,218425.42,0,40.62528,928873.008,-1767.744,40,Non-top 10
+SCE-13-L-003G,UC/CSU Energy Efficiency Partnership,Education (Higher Education UC/CSU),Higher Education,168.516,911623.5,0,243099.6,1779367.4,0,1518.948,7263560.52,0,17,Non-top 10
+SCE-13-L-003I,Public Sector Performance-Based Retrofit High Opportunity Program,"",Uncategorized,67.644,948319.488,54863.55,113179.68,187088,0,317.9268,4457101.5936,257858.685,41,Non-top 10
+SCE-13-TP-018,School Energy Efficiency Program,Education (),Other Education,869.533205239046,2913129.37562397,-13279.405818964,3392659.3,3392659.3,0,4428.97342171689,14804729.4270066,-66784.44712831,8,School Energy Efficiency Program
+SCE-13-TP-022,Water Infrastructure Systems Energy Efficiency Program,"",Uncategorized,119.178,997489.62,0,108528.7438,770508,0,881.554927159078,7262306.01754136,0,27,Non-top 10
+SCG3738,PUB-CA Department of Corrections Partnership,State (Correctional Facilities),State,0,0,0,0,0,0,0,0,0,81.5,Non-top 10
+SCG3739,PUB-California Community College Partnership,Education (Higher Education CCC),Higher Education,0,0,0,0,0,0,0,0,0,81.5,Non-top 10
+SCG3740,PUB-UC/CSU/IOU Partnership,Education (Higher Education UC/CSU),Higher Education,0,0,0,0,0,0,0,0,0,81.5,Non-top 10
+SCG3741,PUB-State of CA/IOU Partnership,State (),State,0,0,0,0,0,0,0,0,0,81.5,Non-top 10
+SCG3742,PUB-LA Co Partnership,Local Government (Counties),Local Government,0,0,0,0,0,0,0,0,0,81.5,Non-top 10
+SCG3743,PUB-Kern Co Partnership,Local Government (Counties),Local Government,0,0,0,0,0,0,0,0,0,81.5,Non-top 10
+SCG3744,PUB-Riverside Co Partnership,Local Government (Counties),Local Government,0,0,0,0,0,0,0,0,0,81.5,Non-top 10
+SCG3745,PUB-San Bernardino Co Partnership,Local Government (Counties),Local Government,0,0,0,0,0,0,0,0,0,81.5,Non-top 10
+SCG3746,PUB-Santa Barbara Co Partnership,Local Government (Counties),Local Government,0,0,0,0,0,0,0,0,0,81.5,Non-top 10
+SCG3747,PUB-South Bay Cities Partnership,Local Government (Counties),Local Government,0,0,0,0,0,0,0,0,0,81.5,Non-top 10
+SCG3748,PUB-San Luis Obispo Co Partnership,Local Government (Counties),Local Government,0,0,0,0,0,0,0,0,0,81.5,Non-top 10
+SCG3749,PUB-San Joaquin Valley Partnership,Local Government (Counties),Local Government,0,0,0,0,0,0,0,0,0,81.5,Non-top 10
+SCG3750,PUB-Orange County Cities Partnership,Local Government (Counties),Local Government,0,0,0,0,0,0,0,0,0,81.5,Non-top 10
+SCG3751,PUB-SEEC Partnership,Local Government (),Local Government,0,0,0,0,0,0,0,0,0,81.5,Non-top 10
+SCG3753,PUB-Desert Cities Partnership,Local Government (Cities),Local Government,0,0,0,0,0,0,0,0,0,81.5,Non-top 10
+SCG3754,PUB-Ventura County Partnership,Local Government (Counties),Local Government,0,0,0,0,0,0,0,0,0,81.5,Non-top 10
+SCG3755,PUB-Public Sector EE Innovation,"",Uncategorized,0,0,0,0,0,0,0,0,0,81.5,Non-top 10
+SCG3758,PUB-K-12 Performance Program,Education (K-12),Other Education,0,0,0,0,0,0,0,0,0,81.5,Non-top 10
+SCG3773,PUB-Public Sector Resource,"",Uncategorized,0,0,0,0,0,0,0,0,0,81.5,Non-top 10
+SCG3774,PUB-LG Regional Resource,Local Government (),Local Government,0,0,0,0,0,0,0,0,0,81.5,Non-top 10
+SCG3776,PUB-Gateway Cities Partnership,Local Government (Cities),Local Government,0,0,0,0,0,0,0,0,0,81.5,Non-top 10
+SCG3777,PUB-San Gabriel Valley COG Partnership,Local Government (Counties),Local Government,0,0,0,0,0,0,0,0,0,81.5,Non-top 10
+SCG3779,PUB-West Side Community Energy Partnership,Local Government (),Local Government,0,0,0,0,0,0,0,0,0,81.5,Non-top 10
+SCG3783,PUB-Western Riverside Energy Partnership,Local Government (Counties),Local Government,0,0,0,0,0,0,0,0,0,81.5,Non-top 10
+SCG3801,PUB-North Orange County Cities Partnership,Local Government (Cities),Local Government,0,0,0,0,0,0,0,0,0,81.5,Non-top 10
+SCG3802,PUB-San Bernardino Regional Energy Partnership,Local Government (Cities),Local Government,0,0,0,0,0,0,0,0,0,81.5,Non-top 10
+SCG3815,PUB-Calculated Incentives,"",Uncategorized,0,0,95483.69747498,110306,1002127.5,0,0,0,377451.89000095,23,Non-top 10
+SCG3816,PUB-Deemed Incentives,"",Uncategorized,0.301254,1729.10302974,1191241.54469091,650958.26,960119.994,0,6.02508,34582.06059466,13357996.6991832,26,Non-top 10
+SCG3817,PUB-Direct Install Program,"",Uncategorized,0,0,26362.320898,72684.36,72684.36,0,0,0,184427.608091,47,Non-top 10
+SCG3818,PUB-SW-Water/Wastewater Pumping Program,"",Uncategorized,0,0,0,0,0,0,0,0,0,81.5,Non-top 10
+SCG3837,PUB-SW-Energy Atlas,"",Uncategorized,0,0,0,0,0,0,0,0,0,81.5,Non-top 10
+SDGE3266,LInstP-CA Department of Corrections Partnership,State (Correctional Facilities),State,0,0,0,0,0,0,0,0,0,81.5,Non-top 10
+SDGE3267,LInstP-California Community College Partnership,Education (Higher Education CCC),Higher Education,0,0,0,0,0,0,0,0,0,81.5,Non-top 10
+SDGE3268,LInstP-UC/CSU/IOU Partnership,Education (Higher Education UC/CSU),Higher Education,0,0,0,0,0,0,0,0,0,81.5,Non-top 10
+SDGE3269,LInstP-State of California /IOU,State (),State,0,0,0,0,0,0,0,0,0,81.5,Non-top 10
+SDGE3270,LInstP-University of San Diego Partnership,Education (Higher Education CSU),Higher Education,0,0,0,0,0,0,0,0,0,81.5,Non-top 10
+SDGE3271,LInstP-San Diego County Water Authority Partnership,Local Government (Counties),Local Government,0,0,0,0,0,0,0,0,0,81.5,Non-top 10
+SDGE3272,LGP- City of Chula Vista Partnership,Local Government (Cities),Local Government,0,0,0,0,0,0,0,0,0,81.5,Non-top 10
+SDGE3273,LGP- City of San Diego Partnership,Local Government (Cities),Local Government,0,0,0,0,0,0,0,0,0,81.5,Non-top 10
+SDGE3274,LGP- County of San Diego Partnership,Local Government (Counties),Local Government,0,0,0,0,0,0,0,0,0,81.5,Non-top 10
+SDGE3275,LGP- Port of San Diego Partnership,Local Government (Cities),Local Government,0,0,0,0,0,0,0,0,0,81.5,Non-top 10
+SDGE3276,LGP- SANDAG Partnership,Local Government (Counties),Local Government,0,0,0,0,0,0,0,0,0,81.5,Non-top 10
+SDGE3277,LGP- SEEC Partnership,Local Government,Local Government,0,0,0,0,0,0,0,0,0,81.5,Non-top 10
+SDGE3278,LGP- Emerging Cities Partnership,Local Government (Cities),Local Government,0,0,0,0,0,0,0,0,0,81.5,Non-top 10
