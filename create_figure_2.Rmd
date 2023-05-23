@@ -1,0 +1,353 @@
+---
+title: "Regressions (Clean)"
+author: "Michelle Le"
+date: "6/20/2021"
+output: html_document
+---
+##Load data and libraries 
+
+this makes figure 2
+
+```{r, load packages}
+library(readr)
+library(data.table)
+library(dplyr)
+library(ggplot2)
+library(tidyverse)
+library(psych) #for pair.panels()
+library(car) #for the qqPlot function
+library(nlme) #for fitting mixed effects models (linear models with random effects)
+library(fitdistrplus)
+library(stargazer) #to make regression tables, learn more at https://cran.r-project.org/web/packages/stargazer/vignettes/stargazer.pdf
+library(pscl)
+library(splines)
+```
+
+```{r, Start}
+#read in data for K-12 EE programs 
+K12 <- read.csv("k12_counties_3.csv")
+counties <- read.csv("counties_3.csv")
+cities <- read.csv("cities_3.csv")
+```
+
+##K12
+
+```{r, K12 transformations}
+#log-transform budget, kWh, and enrollment
+K12$ln_budget <- log(K12$budget + 1)
+K12$ln_kWh <- log(K12$kWh + 1)
+K12$ln_enrollment <- log(K12$enrollment + 1)
+#round budget and kWh for any poisson attempts
+K12$roundedbudget <- round(K12$budget, 0)
+K12$roundedkWh <- round(K12$kWh, 0)
+#add a binary indicator for any negative binomial attempts 
+K12$ybudget <- ifelse(K12$budget>0, 1, 0)
+K12$ykWh <- ifelse(K12$kWh>0, 1, 0)
+#per student variables
+K12$budgetperstudent <- K12$budget/K12$enrollment
+K12$lcffperstudent <- K12$lcff/K12$enrollment
+K12$kWhperstudent <- K12$kWh/K12$enrollment
+K12$incomepercapita <- K12$income/K12$population
+K12$ln_budgetperstudent <- log(K12$budgetperstudent + 1)
+K12$ln_lcffperstudent <- log(K12$lcffperstudent + 1)
+K12$ln_kWhperstudent <- log(K12$kWhperstudent + 1)
+K12$roundedlnbudgetper <- round(K12$ln_budgetperstudent, 0)
+K12$roundedlnkWhper <- round(K12$ln_kWhperstudent, 0)
+K12$roundedlnbudget <- round(K12$ln_budget, 0)
+K12$roundedlnkWh <- round(K12$ln_kWh, 0)
+K12$roundedbudgetper <- round(K12$budgetperstudent, 0)
+K12$roundedkWhper <- round(K12$kWhperstudent, 0)
+#scale population and lcff
+K12$population_scaled <- K12$population/100000
+K12$lcff_scaled <- K12$lcff/100000
+K12$lcffperstudent_scaled <- K12$lcffperstudent/100000
+K12$income_scaled <- K12$income/100000
+```
+
+```{r, K12 subsetting}
+#only considering the counties that did participate 
+K12_subset <- subset(K12, budget > 0)
+
+```
+
+##Counties
+
+```{r, counties transformations}
+#log-transform 
+counties$ln_kWh <- log(counties$kWh + 1)
+counties$ln_rev <- log(counties$revenue)
+counties$ln_population <- log(counties$population)
+counties$ln_budget <- log(counties$budget + 1)
+#round budget and kWh
+counties$roundedbudget <- round(counties$budget, 0)
+counties$roundedkWh <- round(counties$kWh, 0)
+#add a binary indicator
+counties$ybudget <- ifelse(counties$budget>0, 1, 0)
+counties$ykWh <- ifelse(counties$kWh>0, 1, 0)
+#per person
+counties$budgetpercapita <- counties$budget/counties$population
+counties$revpercapita <- counties$revenue/counties$population
+counties$kWhpercapita <- counties$kWh/counties$population
+counties$ln_budgetpercapita <- log(counties$budgetpercapita + 1)
+counties$ln_revpercapita <- log(counties$revpercapita + 1)
+counties$ln_kWhpercapita <- log(counties$kWhpercapita + 1)
+#round 
+counties$roundedbudgetper <- round(counties$budgetpercapita, 0)
+counties$roundedkWhper <- round(counties$kWhpercapita, 0)
+#scaling
+counties$revenue_scaled <- counties$revenue/100000
+counties$population_scaled <- counties$population/100000
+counties$income_scaled <- counties$income/100000
+counties$revpercapita_scaled <- counties$revpercapita/100000
+```
+
+```{r, counties subsetting}
+
+#only considering the counties that did participate 
+counties_subset <- subset(counties, budget > 0)
+
+```
+
+##Cities
+
+```{r, cities transformations}
+#log-transform 
+cities$ln_budget <- log(cities$budget + 1)
+cities$ln_kWh <- log(cities$kWh + 1)
+cities$ln_rev <- log(cities$revenue)
+#round budget and kWh
+cities$roundedbudget <- round(cities$budget, 0)
+cities$roundedkWh <- round(cities$kWh, 0)
+#add a binary indicator
+cities$ybudget <- ifelse(cities$budget>0, 1, 0)
+cities$ykWh <- ifelse(cities$kWh>0, 1, 0)
+#per student
+cities$budgetpercapita <- cities$budget/cities$population
+cities$revpercapita <- cities$revenue/cities$population
+cities$kWhpercapita <- cities$kWh/cities$population
+cities$ln_budgetpercapita <- log(cities$budgetpercapita)
+cities$ln_revpercapita <- log(cities$revpercapita)
+cities$ln_kWhpercapita <- log(cities$kWhpercapita + 1)
+#round budget and kWh
+cities$roundedbudgetper <- round(cities$budgetpercapita, 0)
+cities$roundedkWhper <- round(cities$kWhpercapita, 0)
+#scaling
+cities$population_scaled <- cities$population/100000
+cities$revenue_scaled <- cities$revenue/100000
+cities$revpercapita_scaled <- cities$revpercapita/100000
+cities$income_scaled <- cities$income/100000
+```
+
+```{r, city subsetting}
+#get rid of cities with NAs for tax revenue, and those with a budget of 0
+cities_na <- na.omit(cities)
+```
+
+## figure 5 - make plotting dataframe, theme, p-val and r2 grob, color palette
+
+```{r}
+
+# plotting dataframe
+co <- counties_subset[,c("ln_budget","ln_budgetpercapita",
+                  "irr", "revpercapita",
+                  "dac")]
+co$Level <- "Local government\n(county analysis)"
+ci <- cities_subset[,c("ln_budget", "ln_budgetpercapita",
+                  "population", "obf",
+                  "ruca")]
+ci$Level <- "Local government\n(city analysis)"
+k <- K12_subset[,c("ln_budget","ln_budgetperstudent",
+              "perc_eligible_frpm", "irr",
+              "perc_title1","dac")]
+k$Level <- "K-12 schools\n(county analysis)"
+
+# universal theme
+theme_ups <- function(){ 
+    font <- "Arial"
+    theme_bw() %+replace%    #replace elements we want to change
+    theme(
+      #text elements
+      axis.title = element_text(             #axis titles
+                   family = font,            #font family
+                   size = 12),               #font size
+      
+      axis.text = element_text(              #axis text
+                   family = font,            #axis famuly
+                   size = 9)                 #font size
+    )
+}
+
+# p-val and rho grob
+corr.co.b.irr <- cor.test(co$ln_budget,co$irr)
+corr.co.b.revpc <- cor.test(co$ln_budget,co$revpercapita)
+corr.co.bpc.dac <- cor.test(co$ln_budgetpercapita,co$dac)
+corr.co.bpc.revpc <- cor.test(co$ln_budgetpercapita,co$revpercapita)
+corr.ci.b.pop <- cor.test(ci$ln_budget,ci$population)
+corr.ci.b.obf <- cor.test(ci$ln_budget,ci$obf)
+corr.ci.bpc.ruca <- cor.test(ci$ln_budgetpercapita,ci$ruca)
+corr.ci.bpc.obf <- cor.test(ci$ln_budgetpercapita,ci$obf)
+corr.k.b.frmp <- cor.test(k$ln_budget,k$perc_eligible_frpm)
+corr.k.b.irr <- cor.test(k$ln_budget,k$irr)
+corr.k.bps.t1 <- cor.test(k$ln_budgetperstudent,k$perc_title1)
+corr.k.bps.dac <- cor.test(k$ln_budgetperstudent,k$dac)
+
+corrs <- list(corr.co.b.irr, corr.co.b.revpc, corr.co.bpc.dac, corr.co.bpc.revpc,
+              corr.ci.b.pop, corr.ci.b.obf, corr.ci.bpc.ruca, corr.ci.bpc.obf,
+              corr.k.b.frmp, corr.k.b.irr, corr.k.bps.t1, corr.k.bps.dac)
+pval <- c()
+rho <- c()
+for(i in 1:length(corrs)){
+  pval[i] <- corrs[[i]]$p.value
+  if(pval[i]>0.1){star <- ""}
+  else if(pval[i]>0.05){star <- "*"}
+  else if(pval[i]>0.01){star <- "**"}
+  else{star <- "***"}
+  rho[i] <- paste0("r = ", round(corrs[[i]]$estimate,2), star)
+}
+
+library(grid)
+rhogrob <- list()
+for(i in 1:length(rho)){
+  rhogrob[[i]] <- grobTree(textGrob(rho[i], hjust=1, vjust=1, x=0.95,  y=0.95,
+                          gp=gpar(col="black", fontsize=10,fontface="bold")))
+}
+
+# colors!
+upscolors <- c('#bcdb51', '#59a98c','#69719c')
+
+```
+
+## figure 5 - make the figure
+
+```{r}
+
+library(scales)
+
+#county
+co.bu.irr <- ggplot(co, aes(y=ln_budget, x=irr))+
+  geom_point(alpha=0.8, color="#bcdb51")+
+  geom_smooth(method="lm", color="black")+
+  labs(x="Rurality\n(Index of Relative Rurality)", y="\nLog of Budget")+
+  annotation_custom(rhogrob[[1]])+
+  theme_ups()
+co.bu.revpc <- ggplot(co, aes(y=ln_budget, x=revpercapita))+
+  geom_point(alpha=0.8, color="#bcdb51")+
+  geom_smooth(method="lm", color="black")+
+  labs(x="Revenue per Capita\n", y="\nLog of Budget")+
+  annotation_custom(rhogrob[[2]])+
+  theme_ups()
+co.bupc.dac <- ggplot(co, aes(y=ln_budgetpercapita, x=dac))+
+  geom_point(alpha=0.8, color="#bcdb51")+
+  geom_smooth(method="lm", color="black")+
+  labs(x="Disadvantaged\nCommunity Proportion (DAC)", y="Log of Budget\nper Capita")+
+  annotation_custom(rhogrob[[3]])+
+  theme_ups()
+co.bupc.revpc <- ggplot(co, aes(y=ln_budgetpercapita, x=revpercapita))+
+  geom_point(alpha=0.8, color="#bcdb51")+
+  geom_smooth(method="lm", color="black")+
+  labs(x="Revenue per Capita\n", y="Log of Budget\nper Capita")+
+  annotation_custom(rhogrob[[4]])+
+  theme_ups()
+
+#city
+ci.bu.pop <- ggplot(ci, aes(y=ln_budget, x=population))+
+  geom_point(alpha=0.8, color='#59a98c')+
+  geom_smooth(method="lm", color="black")+
+  labs(x="Population\n", y="\nLog of Budget")+
+  annotation_custom(rhogrob[[5]])+
+  scale_x_log10(breaks = trans_breaks("log10", function(x) 10^x),
+              labels = trans_format("log10", math_format(10^.x))) +
+  theme_ups()
+ci.bu.obf <- ggplot(ci, aes(y=ln_budget, x=obf))+
+  geom_point(alpha=0.8, color='#59a98c')+
+  geom_smooth(method="lm", color="black")+
+  labs(x="Percent of\nOn-bill Financing", y="\nLog of Budget")+
+  annotation_custom(rhogrob[[6]])+
+  theme_ups()
+ci.bupc.ruca <- ggplot(ci, aes(y=ln_budgetpercapita, x=ruca))+
+  geom_point(alpha=0.8, color='#59a98c')+
+  geom_smooth(method="lm", color="black")+
+  labs(x="Rurality\n(Rural Urban Commuting Area)", y="Log of Budget\nper Capita")+
+  annotation_custom(rhogrob[[7]])+
+  scale_x_continuous(breaks=c(0,2,4,6,8,10))+
+  theme_ups()
+ci.bupc.obf <- ggplot(ci, aes(y=ln_budgetpercapita, x=obf))+
+  geom_point(alpha=0.8, color='#59a98c')+
+  geom_smooth(method="lm", color="black")+
+  labs(x="Percent of\nOn-bill Financing", y="Log of Budget\nper Capita")+
+  annotation_custom(rhogrob[[8]])+
+  theme_ups()
+
+#k12
+k.bu.frpm <- ggplot(k, aes(y=ln_budget, x=perc_eligible_frpm))+
+  geom_point(alpha=0.8, color='#69719c')+
+  geom_smooth(method="lm", color="black")+
+  labs(x="Percent of Students Eligible\nfor Free and Reduced Lunch", y="\nLog of Budget")+
+  annotation_custom(rhogrob[[9]])+
+  theme_ups()
+k.bu.irr <- ggplot(k, aes(y=ln_budget, x=irr))+
+  geom_point(alpha=0.8, color='#69719c')+
+  geom_smooth(method="lm", color="black")+
+  labs(x="Rurality\n(Index of Relative Rurality)", y="\nLog of Budget")+
+  annotation_custom(rhogrob[[10]])+
+  theme_ups()
+k.bupc.t1 <- ggplot(k, aes(y=ln_budgetperstudent, x=perc_title1))+
+  geom_point(alpha=0.8, color='#69719c')+
+  geom_smooth(method="lm", color="black")+
+  labs(x="Percent of\nTitle 1 Schools", y="Log of Budget\nper Student")+
+  annotation_custom(rhogrob[[11]])+
+  theme_ups()
+k.bupc.dac <- ggplot(k, aes(y=ln_budgetperstudent, x=dac))+
+  geom_point(alpha=0.8, color='#69719c')+
+  geom_smooth(method="lm", color="black")+
+  labs(x="Disadvantaged\nCommunity Proportion (DAC)", y="Log of Budget\nper Student")+
+  annotation_custom(rhogrob[[12]])+
+  theme_ups()
+
+library(ggpubr)
+
+co.b <- ggarrange(co.bu.irr, co.bu.revpc, heights=1, legend="none", align="v", nrow=2)
+co.bpc <- ggarrange(co.bupc.dac, co.bupc.revpc, heights=1, legend="none", align="v", nrow=2)
+co.b <- annotate_figure(co.b, 
+                        left=text_grob("Budget\n\n", face="bold", rot=90, just="center", size=14))
+co.bpc <- annotate_figure(co.bpc, 
+                          left=text_grob("Budget per capita\n\n", face="bold", rot=90, just="center", size=14))
+
+co <- ggarrange(co.b, co.bpc, heights=1, legend="none", align="v", nrow=2)
+co <- annotate_figure(co, 
+                top=text_grob("Local government\n(county analysis)\n", face="bold", hjust=.2, size=14))
+
+ci <- ggarrange(ci.bu.pop, ci.bu.obf, ci.bupc.ruca, ci.bupc.obf, heights=1, legend="none", align="v", nrow=4)
+ci <- annotate_figure(ci, 
+                top=text_grob("Local government\n(city analysis)\n", face="bold", hjust=.4, size=14),
+                left="\n")
+
+k <- ggarrange(k.bu.frpm, k.bu.irr, k.bupc.t1, k.bupc.dac, heights=1, legend="none", align="v", nrow=4)
+k <- annotate_figure(k,
+                     top=text_grob("K-12 schools\n(county analysis)\n", face="bold", hjust=.4, size=14),
+                     left="\n")
+
+fig5 <- ggarrange(co, ci, k, ncol = 3, widths = 1, legend = "none", align = "h") +
+  annotation_custom(grid.polygon(x = c(.07, .34, .39, .67, .72, 1),
+                                 y = c(.93, .93, .93, .93, .93, .93),
+                                 id = c(1, 1, 2, 2, 3, 3),
+                                 gp = gpar(lwd = 2))) +
+  annotation_custom(grid.polygon(x = c(.03, .03, .03, .03),
+                                 y = c(.04, .41, .5, .87),
+                                 id = c(1, 1, 2, 2),
+                                 gp = gpar(lwd = 2)))
+
+ggsave("fig2.jpg", width=1113*3.2, height=932*3.2, dpi=320, units="px")
+
+```
+
+
+
+
+
+
+
+
+
+
+
