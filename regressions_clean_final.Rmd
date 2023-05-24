@@ -1437,7 +1437,10 @@ wilcox.test(citiesfbottomq_energy$perc_na, citiesftopq_energy$perc_na)  #W = 549
 print(paste0("K12 total budget: ", sum(K12_subset$budget)))
 print(paste0("counties total budget: ", sum(counties_subset$budget)))
 print(paste0("cities total budget: ", sum(cities_subset$budget)))
-
+print(paste0("counties - share claims on-bill financing: ", sum(counties_subset$claims * counties_subset$obf/100) / sum(counties_subset$claims)))
+print(paste0("K12 - share claims on-bill financing: ", sum(K12_subset$claims * K12_subset$obf/100) / sum(K12_subset$claims)))
 
 ```
+
+
 
