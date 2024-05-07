@@ -1,0 +1,59 @@
+﻿county,number,abbreviation
+Del Norte,1,DN
+Siskiyou,2,SIS
+Modoc,3,MOD
+Humboldt,4,HUM
+Trinity,5,TRI
+Shasta,6,SHA
+Lassen,7,LAS
+Tehama,8,TEH
+Plumas,9,PLU
+Mendocino,,MEN
+Glenn,11,GLE
+Butte,12,BUT
+Sierra,13,SIE
+Lake,14,LAK
+Colusa,15,COL
+Yuba,16,YUB
+Nevada,17,NEV
+Sutter,18,SUT
+Placer,19,PLA
+Sonoma,,SON
+Napa,21,NAP
+Yolo,22,YOL
+Solano,23,SOL
+Sacramento,24,SAC
+El Dorado,25,ED
+Amador,26,AMA
+Marin,27,MRN
+Contra Costa,28,CC
+San Joaquin,29,SJ
+Calaveras,,CAL
+Alpine,31,ALP
+Tuolumne,32,TUO
+Alameda,33,ALA
+San Francisco,34,SF
+San Mateo,35,SM
+Santa Cruz,36,SCR
+Santa Clara,37,SCL
+Stanislaus,38,STA
+Merced,39,MER
+Mariposa,,MPA
+Madera,41,MAD
+Fresno,42,FRE
+San Benito,43,SBT
+Monterey,44,MON
+Kings,45,KIN
+Tulare,46,TUL
+Mono,47,MNO
+Inyo,48,INY
+San Luis Obispo,49,SLO
+Kern,,KER
+Santa Barbara,51,SB
+Ventura,52,VEN
+Los Angeles,53,LA
+San Bernardino,54,SBD
+Orange,55,ORA
+Riverside,56,RIV
+San Diego,57,SD
+Imperial,58,IMP
